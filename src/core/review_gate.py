@@ -90,7 +90,7 @@ def _run_claude_review(diff: str) -> dict:
     diff_file.write_text(diff, encoding="utf-8")
 
     prompt = (
-        "Read memex/memex/data/_review_diff.txt which contains a git diff. "
+        "Read memexa/memexa/data/_review_diff.txt which contains a git diff. "
         "Review for: logic errors, security issues, API breaking changes, "
         "missing error handling, untested code paths. "
         "Output ONLY a JSON object with no other text: "

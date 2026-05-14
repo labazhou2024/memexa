@@ -50,16 +50,16 @@ def find_workspace() -> Path:
 
 
 def find_jarvis_root() -> Path:
-    """Find the memex project root."""
-    return find_workspace() / "memex"
+    """Find the memexa project root."""
+    return find_workspace() / "memexa"
 
 
 def find_data_dir() -> Path:
-    """Find the memex data directory."""
-    return find_jarvis_root() / "memex" / "data"
+    """Find the memexa data directory."""
+    return find_jarvis_root() / "memexa" / "data"
 
 
 # Pre-computed for import convenience
 WORKSPACE = find_workspace()
-MEMEX_ROOT = find_jarvis_root()
+MEMEXA_ROOT = find_jarvis_root()
 DATA_DIR = find_data_dir()

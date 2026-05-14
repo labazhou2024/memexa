@@ -239,7 +239,7 @@ def validate_manifest() -> int:
 def _cli() -> int:
     p = argparse.ArgumentParser(
         prog="python -m src.core.cron_orchestrator",
-        description="memex cron orchestrator — dispatch incremental drivers",
+        description="memexa cron orchestrator — dispatch incremental drivers",
     )
     sub = p.add_subparsers(dest="cmd")
 

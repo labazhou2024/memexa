@@ -3,7 +3,7 @@
 This project adopts the **Contributor Covenant, version 2.1**, by
 reference. The canonical text is published by its authors at
 <https://www.contributor-covenant.org/version/2/1/code_of_conduct/>.
-The text below summarises what that means in practice for `memex`; the
+The text below summarises what that means in practice for `memexa`; the
 upstream document controls if anything here is unclear.
 
 ## In short

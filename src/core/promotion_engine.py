@@ -110,9 +110,9 @@ except Exception:  # pragma: no cover
 # ---------------------------------------------------------------------------
 
 def _resolve_data_dir() -> Path:
-    """Mirror pattern_extractor._resolve_data_dir (MEMEX_DATA_DIR honored)."""
+    """Mirror pattern_extractor._resolve_data_dir (MEMEXA_DATA_DIR honored)."""
     default = Path(__file__).parent.parent / "data"
-    env_override = os.environ.get("MEMEX_DATA_DIR")
+    env_override = os.environ.get("MEMEXA_DATA_DIR")
     if env_override:
         try:
             p = Path(env_override).resolve()
@@ -150,7 +150,7 @@ except Exception:  # pragma: no cover
     def _pending_lock(pending_file):  # type: ignore[no-redef]
         yield
 
-# Memory root (workspace-relative; not memex/memex/data). The governance
+# Memory root (workspace-relative; not memexa/memexa/data). The governance
 # target_path expected by pre_write_check is a string relative path like
 # "memory/feedback_xxx.md", not an absolute one. The actual file write is
 # done inside promote() via a workspace-root join.

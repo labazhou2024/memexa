@@ -8,7 +8,7 @@
 > [2025-09-05 NapCat 公网 OneBot 事件](https://www.xcnahida.cn/?p=b8AROpEJ)
 > 之后腾讯开始对所有曾用过 NapCat / LiteLoaderQQNT 的 QQ 做指纹匹配 +
 > 批量封号。本项目 maintainer 的 QQ 在 2026-05-14 也被卷入。
-> 用 `MEMEX_QQ_NAPCAT_FORCE=1` 可强行启用, **仅限可弃用的研究账号**。
+> 用 `MEMEXA_QQ_NAPCAT_FORCE=1` 可强行启用, **仅限可弃用的研究账号**。
 >
 > **db-only 路径: 推荐方案。已在上游 JARVIS LIVE，OSS v0.2 移植。**
 > 当前 OSS v0.1.x 用户需要手工把上游的 reader (`jarvis/qq_db.py`，
@@ -25,7 +25,7 @@
 对腾讯端的可见性等同于"普通聊天记录备份工具"。
 
 > **OSS v0.1.x 状态**: SQLCipher 解密 + key 提取实现在上游 JARVIS
-> (`jarvis/qq_db.py`，762 行，仅依赖标准库)。已计划在 Memex v0.2 移植到
+> (`jarvis/qq_db.py`，762 行，仅依赖标准库)。已计划在 Memexa v0.2 移植到
 > `src/extraction/qq/qq_db.py`。在那之前，OSS 用户需要自己把那一个文件
 > 拷过来，或者先用下面的剪贴板兜底。
 
@@ -55,25 +55,25 @@ macOS (路径因客户端版本而异 — 在 container 内搜):
 
 ### Key 提取 (每个 QQ 客户端装机一次)
 
-数据库用 SQLCipher 加密。Memex **不**附带 key 提取工具 — 由姊妹工具提供:
+数据库用 SQLCipher 加密。Memexa **不**附带 key 提取工具 — 由姊妹工具提供:
 
 - [QQBackup/qq-win-db-key](https://github.com/QQBackup/qq-win-db-key) — Windows NTQQ key dump
 - [Mythologyli/qq-nt-db](https://github.com/Mythologyli/qq-nt-db) — 替代实现
 
-QQ 登录中跑一次提取, 把 key 写到 `~/.memex/secrets/qq_db.key`。Memex reader
+QQ 登录中跑一次提取, 把 key 写到 `~/.memexa/secrets/qq_db.key`。Memexa reader
 用 URI 形式 `mode=ro&nolock=1` 打开数据库, QQ 仍开着也不冲突。
 
 ### 接入
 
 ```bash
-# 1. 告诉 memex 摄入哪个 QQ 账号
-$EDITOR ~/.memex/identity.yaml
+# 1. 告诉 memexa 摄入哪个 QQ 账号
+$EDITOR ~/.memexa/identity.yaml
 # 加或设:
 #   qq_id: "<你的 QQ ID>"
 
 # 2. 把 qq-win-db-key 提取的 key 写进 secrets
-mkdir -p ~/.memex/secrets
-$EDITOR ~/.memex/secrets/qq_db.key   # 原始 hex, 单行
+mkdir -p ~/.memexa/secrets
+$EDITOR ~/.memexa/secrets/qq_db.key   # 原始 hex, 单行
 
 # 3. 测 reader 能开 DB
 python -c "
@@ -109,7 +109,7 @@ Builder 报 `unknown schema version <N>` 时带版本号提 issue。
 
 ## 2. 备选: 剪贴板适配器 (零风险)
 
-如果连 key 提取都不想做, Memex 自带剪贴板 reader 接受用户主动转发的消息:
+如果连 key 提取都不想做, Memexa 自带剪贴板 reader 接受用户主动转发的消息:
 
 ```bash
 # QQ 里: 选消息 → 右键 → 转发 → 复制
@@ -126,7 +126,7 @@ Reader 解析 QQ "转发" 剪贴板格式, 生成跟 db 路径相同的 v5 envel
 ## 3. 不推荐: NapCat / Lagrange / Shamrock / go-cqhttp 适配器
 
 `src/extraction/qq_realtime_watcher.py` 和 `qq_batch_ingest.py` 保留在树中作为
-历史参考, 默认拒绝启动除非你设 `MEMEX_QQ_NAPCAT_FORCE=1`。**在你在乎的账号上
+历史参考, 默认拒绝启动除非你设 `MEMEXA_QQ_NAPCAT_FORCE=1`。**在你在乎的账号上
 开这个 flag 是强烈不推荐的。**
 
 原因:
@@ -145,7 +145,7 @@ Reader 解析 QQ "转发" 剪贴板格式, 生成跟 db 路径相同的 v5 envel
 ## 4. 不可用: 官方 QQ Bot 开放平台
 
 [官方 `bot.q.qq.com` 自 2026-01-31 起个人开发者不再支持群接入](https://bot.q.qq.com/wiki/)。
-频道消息和 bot 私聊仍可做, Memex 暂未集成 (欢迎社区 PR)。
+频道消息和 bot 私聊仍可做, Memexa 暂未集成 (欢迎社区 PR)。
 
 ---
 

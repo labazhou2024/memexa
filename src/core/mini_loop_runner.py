@@ -39,9 +39,9 @@ _SPEC_PATH = _DATA_DIR / "task_spec.json"
 _RESULTS_PATH = _DATA_DIR / "mini_loop_results.jsonl"
 
 # Used by tests to override file paths via environment variables
-_CONFIG_PATH_ENV = "MEMEX_MINI_LOOP_CONFIG_PATH"
-_SPEC_PATH_ENV = "MEMEX_MINI_LOOP_SPEC_PATH"
-_RESULTS_PATH_ENV = "MEMEX_MINI_LOOP_RESULTS_PATH"
+_CONFIG_PATH_ENV = "MEMEXA_MINI_LOOP_CONFIG_PATH"
+_SPEC_PATH_ENV = "MEMEXA_MINI_LOOP_SPEC_PATH"
+_RESULTS_PATH_ENV = "MEMEXA_MINI_LOOP_RESULTS_PATH"
 
 # Grace period: spec mtime older than SPEC_STALE_PROBE_SEC is considered
 # stale only when status is NOT "in_progress". TU-4 (plan_v1, 2026-04-25)
@@ -278,7 +278,7 @@ def run_probes(
             logger.warning("mini_loop_runner: propagate_to_subprocess failed: %s", exc)
             sub_env = dict(os.environ)
             if active_tid:
-                sub_env["MEMEX_ACTIVE_TASK_ID"] = active_tid
+                sub_env["MEMEXA_ACTIVE_TASK_ID"] = active_tid
 
         t0 = time.monotonic()
         try:
@@ -389,7 +389,7 @@ def _cli(argv: Optional[List[str]] = None) -> int:
                 from src.core.task_binding import get_active_task_id
                 tid = get_active_task_id()
             except Exception:
-                tid = os.environ.get("MEMEX_ACTIVE_TASK_ID")
+                tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID")
 
         complexity = args.complexity
         if complexity is None:

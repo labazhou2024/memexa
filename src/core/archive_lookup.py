@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 SOURCE_ARCHIVE_ROOTS: Dict[str, Path] = {
-    # source name → root dir relative to memex workspace
+    # source name → root dir relative to memexa workspace
     "wechat": Path("data/extract_archive"),
     "email": Path("archive/email"),
     "sms": Path("archive/sms"),

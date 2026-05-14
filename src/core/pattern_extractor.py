@@ -9,7 +9,7 @@ Pattern Extractor -- metaswarm BEADS 模式的 Python 实现
 
 两种用法:
 1. 提取: python -m src.core.pattern_extractor extract --source "code_review" --input "..."
-2. 检索: python -m src.core.pattern_extractor prime --files "memex/core/*.py" --keywords "hook"
+2. 检索: python -m src.core.pattern_extractor prime --files "memexa/core/*.py" --keywords "hook"
 
 Lock acquisition order [LOG-R1-009 2026-04-20]
 -----------------------------------------------
@@ -52,7 +52,7 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 def _resolve_data_dir() -> Path:
-    """Resolve data dir. Respects MEMEX_DATA_DIR env var for isolation testing.
+    """Resolve data dir. Respects MEMEXA_DATA_DIR env var for isolation testing.
 
     [SEC-3 + LOGIC-HIGH-3] Env var override enables subprocess tests to run
     against a tmp copy of prod data without ever mutating real prod files.
@@ -63,7 +63,7 @@ def _resolve_data_dir() -> Path:
     (prevents subprocess-propagated traversal to attacker-controlled path).
     """
     default = Path(__file__).parent.parent / "data"
-    env_override = os.environ.get("MEMEX_DATA_DIR")
+    env_override = os.environ.get("MEMEXA_DATA_DIR")
     if env_override:
         try:
             p = Path(env_override).resolve()
@@ -327,7 +327,7 @@ def _compute_fingerprint(canonical_tags: List[str], fact: str) -> str:
     Design rationale:
     - fact[:50] cutoff trades precision for merge-rate. Two rules that
       diverge only after char 50 merge incorrectly; that's covered by
-      Risk #10 monitoring (see plan v2) and the MEMEX_FINGERPRINT_MERGE
+      Risk #10 monitoring (see plan v2) and the MEMEXA_FINGERPRINT_MERGE
       env kill-switch.
     - Legacy entries (pre-A3) carry fingerprint="" and MUST be excluded
       from merge buckets to prevent mass-collapse of unrelated patterns
@@ -352,12 +352,12 @@ def save_patterns(entries: List[PatternEntry]) -> int:
     fact into one entry with growing helpful_count — directly answers
     CEO 2026-04-20 23:50 concern about "冗余节点".
 
-    A7 kill-switch: set env MEMEX_FINGERPRINT_MERGE=0 to disable merge
+    A7 kill-switch: set env MEMEXA_FINGERPRINT_MERGE=0 to disable merge
     and fall back to pre-A7 append-only behavior. Default ON.
     """
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    merge_enabled = os.environ.get("MEMEX_FINGERPRINT_MERGE", "1") != "0"
+    merge_enabled = os.environ.get("MEMEXA_FINGERPRINT_MERGE", "1") != "0"
 
     # A7: build fp → existing_id map from current on-disk state. Exclude
     # entries with empty fingerprint (legacy v2) to prevent cross-legacy
@@ -1537,7 +1537,7 @@ def _extract_from_task_dir(task_id: Optional[str]) -> List[PatternEntry]:
 
     Reads `<task_dir>/review_findings/<role>_iter<N>.json` (autopilot v2.0 §4.2 standard).
     Closes writer/reader path drift: extract_from_session previously only read Path A
-    (`memex/memex/data/last_review*.json`), missing all autopilot-class session output.
+    (`memexa/memexa/data/last_review*.json`), missing all autopilot-class session output.
 
     Returns list of PatternEntry, or [] if task_id None / dir missing / no findings.
     Per HARD RULE feedback_writer_reader_schema_contract.

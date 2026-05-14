@@ -10,7 +10,7 @@ Retry Tracker -- 代码级强制 3 次失败停止规则
 3. 下次修复前，调用 can_retry(finding_id) 检查是否已超限
 4. 如果超限，返回 False + 原因，fix-agent 必须跳过此 finding
 
-状态文件: memex/data/retry_state.json
+状态文件: memexa/data/retry_state.json
 """
 
 import json

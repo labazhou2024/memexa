@@ -373,7 +373,7 @@ def _credit_helpful_patterns(reason: str) -> dict:
                 # [Fix C] Clear session_id file on successful credit (prevents
                 # stale sid leaking into next session's primed log).
                 # Use the authoritative path from pattern_extractor module
-                # (which respects MEMEX_DATA_DIR env var + monkeypatch for tests).
+                # (which respects MEMEXA_DATA_DIR env var + monkeypatch for tests).
                 try:
                     _pe._CURRENT_SESSION_FILE.unlink(missing_ok=True)
                 except Exception:

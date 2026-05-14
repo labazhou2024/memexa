@@ -32,8 +32,8 @@ import os
 import sys
 from pathlib import Path
 
-# Script-mode safety: when invoked as `python memex/core/session_gate.py ...`
-# (e.g. by git pre-commit hook), the `memex` package is not on sys.path → all
+# Script-mode safety: when invoked as `python memexa/core/session_gate.py ...`
+# (e.g. by git pre-commit hook), the `memexa` package is not on sys.path → all
 # inner `from src.core.X import Y` calls fail silently (caught by fail-soft
 # except blocks) → trace_sink writes go to a void → Layer A skip-trace
 # observability appears to work but never lands events. LIVE-fire diagnosis
@@ -72,17 +72,17 @@ def _find_workspace() -> Path:
 
 
 _WORKSPACE = _find_workspace()
-_MEMEX_ROOT = _WORKSPACE / "memex"
+_MEMEXA_ROOT = _WORKSPACE / "memexa"
 
-# [Env var override for test isolation] Respect MEMEX_DATA_DIR / MEMEX_HARNESS_FILE
+# [Env var override for test isolation] Respect MEMEXA_DATA_DIR / MEMEXA_HARNESS_FILE
 # Matches _hook_utils.py behavior. Production behavior unchanged when env unset.
-_env_data = os.environ.get("MEMEX_DATA_DIR")
+_env_data = os.environ.get("MEMEXA_DATA_DIR")
 if _env_data and Path(_env_data).is_dir():
     _DATA = Path(_env_data)
 else:
-    _DATA = _MEMEX_ROOT / "memex" / "data"
+    _DATA = _MEMEXA_ROOT / "memexa" / "data"
 
-_env_harness = os.environ.get("MEMEX_HARNESS_FILE")
+_env_harness = os.environ.get("MEMEXA_HARNESS_FILE")
 if _env_harness:
     _HARNESS = Path(_env_harness)
 else:
@@ -133,10 +133,10 @@ def check_harness_freshness() -> Tuple[bool, List[str]]:
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=5,
+            capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=5,
         )
         current = result.stdout.strip()
-        recorded = harness.get("git_repos", {}).get("memex", {}).get("last_commit", "")
+        recorded = harness.get("git_repos", {}).get("memexa", {}).get("last_commit", "")
         if current and recorded and current != recorded:
             issues.append(f"HARNESS_STALE: HEAD={current} harness={recorded}")
     # allow-silent: observability fail-soft
@@ -177,7 +177,7 @@ def _compute_pytest_targets(staged_files: Optional[List[str]] = None) -> List[st
 
     Returns list of pytest paths derived from staged .py files. Heuristic:
       - tests/<f>.py → include verbatim
-      - memex/core/<X>.py → glob tests/test_<X>*.py (stem glob-escaped per
+      - memexa/core/<X>.py → glob tests/test_<X>*.py (stem glob-escaped per
         security-iter1-1: prevents path-named like `[evil].py` matching all)
       - any other .py → ignored (no test mapping)
     Always appends tests/test_integration_autopilot_enforcement.py LAST.
@@ -195,7 +195,7 @@ def _compute_pytest_targets(staged_files: Optional[List[str]] = None) -> List[st
             r = subprocess.run(
                 ["git", "diff", "--name-only", "--diff-filter=d", "HEAD", "--cached"],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=10, cwd=str(_MEMEX_ROOT),
+                timeout=10, cwd=str(_MEMEXA_ROOT),
             )
             staged_files = [
                 f.strip() for f in r.stdout.splitlines()
@@ -207,21 +207,21 @@ def _compute_pytest_targets(staged_files: Optional[List[str]] = None) -> List[st
         if not f.endswith(".py"):
             continue
         if f.startswith("tests/"):
-            if (_MEMEX_ROOT / f).exists():
+            if (_MEMEXA_ROOT / f).exists():
                 targets.add(f)
             continue
-        # Map memex/core/X.py → tests/test_X*.py via glob.
+        # Map memexa/core/X.py → tests/test_X*.py via glob.
         # security-iter1-1 fix: escape stem to prevent metachar injection
         # (e.g. `[evil].py` would otherwise match dozens of unrelated tests).
         stem = Path(f).stem
         if not stem:
             continue
         escaped_stem = _glob.escape(stem)
-        for hit in (_MEMEX_ROOT / "tests").glob(f"test_{escaped_stem}*.py"):
-            rel = hit.relative_to(_MEMEX_ROOT).as_posix()
+        for hit in (_MEMEXA_ROOT / "tests").glob(f"test_{escaped_stem}*.py"):
+            rel = hit.relative_to(_MEMEXA_ROOT).as_posix()
             targets.add(rel)
     integration = "tests/test_integration_autopilot_enforcement.py"
-    if (_MEMEX_ROOT / integration).exists():
+    if (_MEMEXA_ROOT / integration).exists():
         targets.add(integration)
     return sorted(targets)
 
@@ -241,10 +241,10 @@ def _run_pytest_quick() -> Tuple[bool, str]:
       - Test failures detected -> BLOCKING
     Side effect: writes last_session_test_result.json for helpful_count Gate 3.
 
-    Override: MEMEX_PYTEST_FULL_SUITE=1 forces legacy full-suite mode
+    Override: MEMEXA_PYTEST_FULL_SUITE=1 forces legacy full-suite mode
     (e.g. for CI weekly run).
     """
-    if os.environ.get("MEMEX_PYTEST_FULL_SUITE", "").strip() == "1":
+    if os.environ.get("MEMEXA_PYTEST_FULL_SUITE", "").strip() == "1":
         targets = ["tests/"]
         mode_label = "full"
     else:
@@ -267,7 +267,7 @@ def _run_pytest_quick() -> Tuple[bool, str]:
         result = subprocess.run(
             [sys.executable, "-m", "pytest", *targets, "-q", "--tb=line", "--no-header"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=120, cwd=str(_MEMEX_ROOT),
+            timeout=120, cwd=str(_MEMEXA_ROOT),
         )
         # Only take last 5 lines to prevent context explosion
         lines = result.stdout.strip().splitlines()
@@ -316,13 +316,13 @@ def _check_release_gate_trigger() -> Optional[str]:
         if not last_release:
             result = subprocess.run(
                 ["git", "rev-list", "--count", "HEAD~20..HEAD"],
-                capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=5,
+                capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=5,
             )
             commits_since = int(result.stdout.strip()) if result.returncode == 0 else 0
         else:
             result = subprocess.run(
                 ["git", "rev-list", "--count", f"{last_release}..HEAD"],
-                capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=5,
+                capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=5,
             )
             commits_since = int(result.stdout.strip()) if result.returncode == 0 else 0
 
@@ -371,15 +371,15 @@ def _check_release_gate_trigger() -> Optional[str]:
 # ================================================================
 
 _BENCH_PIPELINE_GLOBS = (
-    "memex/core/hindsight",
-    "memex/core/memory_",
-    "memex/core/graph_",
-    "memex/core/dual_llm",
-    "memex/core/entity_",
-    "memex/core/predicate_",
-    "memex/vendor/",
-    "memex/core/bench_runner",
-    "memex/core/bench_dashboard",
+    "memexa/core/hindsight",
+    "memexa/core/memory_",
+    "memexa/core/graph_",
+    "memexa/core/dual_llm",
+    "memexa/core/entity_",
+    "memexa/core/predicate_",
+    "memexa/vendor/",
+    "memexa/core/bench_runner",
+    "memexa/core/bench_dashboard",
     ".claude/data/audit_corpus.jsonl",
 )
 
@@ -404,11 +404,11 @@ def _staged_touches_pipeline(staged_files: List[str]) -> bool:
 
 
 def _bench_gate_block_mode(env: Dict[str, str]) -> bool:
-    """2x2 matrix for MEMEX_BENCH_BLOCK env (HARD RULE feedback_priority_inverted_fallback_2x2_matrix.md):
+    """2x2 matrix for MEMEXA_BENCH_BLOCK env (HARD RULE feedback_priority_inverted_fallback_2x2_matrix.md):
        (unset / set_empty) x (canonical / no_canonical).
        Empty/unset → False (warn-mode). Set non-empty truthy → True (block).
     """
-    raw = env.get("MEMEX_BENCH_BLOCK")
+    raw = env.get("MEMEXA_BENCH_BLOCK")
     if raw is None:
         return False  # unset: warn-mode default per F-5
     raw = raw.strip()
@@ -428,15 +428,15 @@ def _bench_gate(
       decision in {pass, block, warn_only, skip, fail_open}.
 
     Skip predicate runs FIRST before any daemon I/O.
-    Recursion guard: MEMEX_BENCH_GATE_INVOKED env semaphore.
+    Recursion guard: MEMEXA_BENCH_GATE_INVOKED env semaphore.
     Empty staged → skip with reason 'no_files_staged'.
     No memory_pipeline match → skip with reason 'no_memory_pipeline_staged'.
-    MEMEX_BENCH_SKIP=1 → skip with reason 'env_skip_authorized'.
-    MEMEX_BENCH_BYPASS_TOKEN valid → skip with reason 'hmac_bypass'.
+    MEMEXA_BENCH_SKIP=1 → skip with reason 'env_skip_authorized'.
+    MEMEXA_BENCH_BYPASS_TOKEN valid → skip with reason 'hmac_bypass'.
     Otherwise: invoke bench_runner; warn-mode default (exit 0 + stderr); block-mode if env set.
     """
     # 0: recursion guard (per R-E)
-    if env.get("MEMEX_BENCH_GATE_INVOKED") == "1":
+    if env.get("MEMEXA_BENCH_GATE_INVOKED") == "1":
         return ("skip", "recursion_guard")
     # 1: empty staged → skip (no daemon contact; per AC-6)
     if not staged_files:
@@ -445,22 +445,22 @@ def _bench_gate(
     if not _staged_touches_pipeline(staged_files):
         return ("skip", "no_memory_pipeline_staged")
     # 3: explicit skip env (security-iter1-2 fix: emit observable trace)
-    if env.get("MEMEX_BENCH_SKIP", "").strip() == "1":
+    if env.get("MEMEXA_BENCH_SKIP", "").strip() == "1":
         try:
             from src.core.trace_sink import write_trace_event
-            write_trace_event("bench_gate_env_skip", {"channel": "MEMEX_BENCH_SKIP"})
+            write_trace_event("bench_gate_env_skip", {"channel": "MEMEXA_BENCH_SKIP"})
         except Exception:
             pass
         return ("skip", "env_skip_authorized")
     # 4: HMAC bypass token (CEO-signed)
-    bypass_token = env.get("MEMEX_BENCH_BYPASS_TOKEN", "").strip()
+    bypass_token = env.get("MEMEXA_BENCH_BYPASS_TOKEN", "").strip()
     if bypass_token:
         try:
             from src.core._hook_utils import _verify_bench_bypass_token
             if _verify_bench_bypass_token(bypass_token):
                 try:
                     from src.core.trace_sink import write_trace_event
-                    write_trace_event("bench_bypass_authorized", {"channel": "MEMEX_BENCH_BYPASS_TOKEN"})
+                    write_trace_event("bench_bypass_authorized", {"channel": "MEMEXA_BENCH_BYPASS_TOKEN"})
                 except Exception:
                     pass
                 return ("skip", "hmac_bypass_authorized")
@@ -468,7 +468,7 @@ def _bench_gate(
             pass  # fail-soft: invalid token treated as no-bypass
     # 5: invoke bench_runner. security-iter1-1 fix: outer try/finally
     # MUST cover ALL exit paths (including import error) to prevent env leak.
-    env["MEMEX_BENCH_GATE_INVOKED"] = "1"
+    env["MEMEXA_BENCH_GATE_INVOKED"] = "1"
     try:
         try:
             from src.core.bench_runner import run_benchmark, append_history
@@ -476,7 +476,7 @@ def _bench_gate(
             return ("fail_open", f"import_error:{type(e).__name__}")
         threshold = 0.35
         try:
-            t_env = env.get("MEMEX_BENCH_THRESHOLD", "").strip()
+            t_env = env.get("MEMEXA_BENCH_THRESHOLD", "").strip()
             if t_env:
                 threshold = float(t_env)
         except Exception:
@@ -499,7 +499,7 @@ def _bench_gate(
             return ("warn_only", f"recall@10_real={recall:.3f}<threshold={threshold:.2f}")
         return ("pass", f"recall@10_real={recall:.3f}>=threshold={threshold:.2f}")
     finally:
-        env.pop("MEMEX_BENCH_GATE_INVOKED", None)
+        env.pop("MEMEXA_BENCH_GATE_INVOKED", None)
 
 
 def run_commit_gate(phase: Optional[int] = None) -> int:
@@ -520,14 +520,14 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
     [Item #2] Emits gate_decision event on completion.
     """
     import os
-    os.environ["MEMEX_COMMIT_GATE_RUNNING"] = "1"
+    os.environ["MEMEXA_COMMIT_GATE_RUNNING"] = "1"
     # U8 TU-4: propagate phase via env var so _rule7/_rule8 can read it
     # without needing to thread param through every callsite (keeps the
     # diff localised; existing rule-7/rule-8 call signatures unchanged).
     if phase is not None:
-        os.environ["MEMEX_COMMIT_GATE_PHASE"] = str(phase)
+        os.environ["MEMEXA_COMMIT_GATE_PHASE"] = str(phase)
     else:
-        os.environ.pop("MEMEX_COMMIT_GATE_PHASE", None)
+        os.environ.pop("MEMEXA_COMMIT_GATE_PHASE", None)
 
     print("[SESSION GATE v6.0] Commit gate running...")
     _failed_checks: List[str] = []
@@ -563,7 +563,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
     try:
         staged = subprocess.run(
             ["git", "diff", "--cached", "--diff-filter=d", "--name-only"],
-            capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+            capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
         )
         all_staged = [f for f in staged.stdout.strip().splitlines() if f.strip()]
         py_files = [f for f in all_staged if f.endswith(".py")]
@@ -607,7 +607,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
             files_json = json.dumps(py_files)
             lr_code = (
                 "import json, sys, os\n"
-                "files = json.loads(os.environ['_MEMEX_REVIEW_FILES'])\n"
+                "files = json.loads(os.environ['_MEMEXA_REVIEW_FILES'])\n"
                 "from src.core.local_reviewer import review_files\n"
                 "r = review_files(files)\n"
                 "print(r.summary)\n"
@@ -615,19 +615,19 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
                 "    print(f'  [{f.severity.upper()}] {f.file}:{f.line} {f.message}')\n"
                 "sys.exit(1 if any(f.severity in ('critical','high') for f in r.findings) else 0)\n"
             )
-            # 2026-04-26 U3 plan_v4 TU-8 (S-3 + T-3): scrub MEMEX_CEO_*
+            # 2026-04-26 U3 plan_v4 TU-8 (S-3 + T-3): scrub MEMEXA_CEO_*
             # prefix from local_reviewer subprocess env. local_reviewer
             # executes attacker-controllable staged .py files; HMAC key /
             # approvals dir env must NOT leak to that subprocess. Prefix
-            # match (not single tuple) so future MEMEX_CEO_* additions
+            # match (not single tuple) so future MEMEXA_CEO_* additions
             # auto-scrubbed.
             _scrubbed_env = {k: v for k, v in os.environ.items()
-                             if not k.startswith("MEMEX_CEO_")}
-            env = {**_scrubbed_env, "_MEMEX_REVIEW_FILES": files_json}
+                             if not k.startswith("MEMEXA_CEO_")}
+            env = {**_scrubbed_env, "_MEMEXA_REVIEW_FILES": files_json}
             lr_result = subprocess.run(
                 [sys.executable, "-c", lr_code],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=30, cwd=str(_MEMEX_ROOT), env=env,
+                timeout=30, cwd=str(_MEMEXA_ROOT), env=env,
             )
             # Cap reviewer output to prevent OOM in long sessions (max 1500 chars)
             _lr_out = lr_result.stdout.strip()
@@ -650,12 +650,12 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
             # pytest gate pattern from §9.1).
             _safe_msg = repr(e).encode("ascii", "replace").decode("ascii")
             _local_fo_reason = os.environ.get(
-                "MEMEX_LOCAL_GATE_FAIL_OPEN_REASON", ""
+                "MEMEXA_LOCAL_GATE_FAIL_OPEN_REASON", ""
             ).strip()
             if len(_local_fo_reason) >= 80:
                 print(
                     f"[LOCAL] AUTHORIZED fail_open via "
-                    f"MEMEX_LOCAL_GATE_FAIL_OPEN_REASON "
+                    f"MEMEXA_LOCAL_GATE_FAIL_OPEN_REASON "
                     f"({len(_local_fo_reason)} chars): {_local_fo_reason[:200]}"
                 )
                 print(f"[LOCAL] Underlying infra exception: {_safe_msg[:300]}")
@@ -679,7 +679,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
             else:
                 print(
                     f"[LOCAL] BLOCKED: subprocess infra exception "
-                    f"(set MEMEX_LOCAL_GATE_FAIL_OPEN_REASON env with >=80 "
+                    f"(set MEMEXA_LOCAL_GATE_FAIL_OPEN_REASON env with >=80 "
                     f"char justification to override): {_safe_msg[:300]}"
                 )
                 blocked = True
@@ -698,10 +698,10 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
         print(f"[PYTEST] {test_msg}")
         if not test_ok:
             # 2026-04-26 U2 plan_v2 §9.1: explicit fail_open authorization
-            # via MEMEX_PYTEST_FAIL_OPEN_REASON env (≥80-char justification)
+            # via MEMEXA_PYTEST_FAIL_OPEN_REASON env (≥80-char justification)
             # per autopilot v2 spec. Without env, pytest is fail_closed.
             _fail_open_reason = os.environ.get(
-                "MEMEX_PYTEST_FAIL_OPEN_REASON", ""
+                "MEMEXA_PYTEST_FAIL_OPEN_REASON", ""
             ).strip()
             # B-3 (2026-05-04): reason MUST contain `regression_test_added=<path>`
             # AND that path must exist (be a real test file). Pre-fix: any 80+
@@ -723,9 +723,9 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
                     from pathlib import Path as _B3P
                     _ap = _B3P(_added_path)
                     if not _ap.is_absolute():
-                        # try workspace + memex roots
+                        # try workspace + memexa roots
                         from src.core.task_dir_layout import _workspace_root as _wsr
-                        for base in (_wsr(), _wsr() / "memex"):
+                        for base in (_wsr(), _wsr() / "memexa"):
                             if (base / _ap).exists():
                                 _ap = base / _ap
                                 break
@@ -738,7 +738,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
             if _b3_ok:
                 print(
                     f"[PYTEST] AUTHORIZED fail_open via "
-                    f"MEMEX_PYTEST_FAIL_OPEN_REASON "
+                    f"MEMEXA_PYTEST_FAIL_OPEN_REASON "
                     f"({len(_fail_open_reason)} chars + B-3 regression_test_added verified): "
                     f"{_fail_open_reason[:200]}"
                 )
@@ -832,7 +832,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
     # (no task_id) fail-open as per ANCHOR-5.
     #
     # 2026-04-25 plan_v1 TU-2: _resolve_active_tid adds autopilot_flag
-    # fallback so direct-shell commits (which lose MEMEX_ACTIVE_TASK_ID
+    # fallback so direct-shell commits (which lose MEMEXA_ACTIVE_TASK_ID
     # in the .git/hooks/pre-commit subprocess) still resolve a tid when
     # autopilot=on. LIVE evidence pre-fix: 12/17 gate_skipped had
     # reason=no_task_binding. Post-fix: those become enforced.
@@ -852,7 +852,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
             # Estimate code_lines_added from staged diff
             diff_stat = subprocess.run(
                 ["git", "diff", "--cached", "--numstat"],
-                capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+                capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
             )
             code_lines = 0
             for line in (diff_stat.stdout or "").splitlines():
@@ -892,13 +892,13 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
         # have been annotated into plan_v<N>.md before commit lands. This
         # closes the feedback loop — otherwise plan-gap findings get
         # code-patched but plan templates stay stale.
-        # Operator override: MEMEX_SKIP_PLAN_RETRO=1 (logged).
+        # Operator override: MEMEXA_SKIP_PLAN_RETRO=1 (logged).
         try:
             from src.core.plan_retro_gate import check_gate as _prg_check, \
                 env_skip_flag as _prg_skip
             # AC-A4 part-2: multi-path override resolution.
-            # Read order: (1) ~/.claude_gates_override file, (2) MEMEX_GATES_OVERRIDE env,
-            # (3) legacy MEMEX_GATES_BOOTSTRAP=1.
+            # Read order: (1) ~/.claude_gates_override file, (2) MEMEXA_GATES_OVERRIDE env,
+            # (3) legacy MEMEXA_GATES_BOOTSTRAP=1.
             # OWASP LLM01: all accept paths emit observable trace events.
             _override_consumed = False
             _sha_now = _get_head_sha_short()
@@ -935,7 +935,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
 
             # Path 2: env var override (secondary/backward-compat)
             if not _override_consumed:
-                _env_token = os.environ.get("MEMEX_GATES_OVERRIDE", "").strip()
+                _env_token = os.environ.get("MEMEXA_GATES_OVERRIDE", "").strip()
                 if _env_token:
                     try:
                         from src.core._gates_skip_budget import verify_override_token
@@ -949,10 +949,10 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
                             })
                             # Also emit fallback_to_env audit warning
                             _emit_trace("fallback_to_env", {
-                                "name": "MEMEX_GATES_OVERRIDE",
+                                "name": "MEMEXA_GATES_OVERRIDE",
                                 "gate": "plan_retro",
                             })
-                            print("[PLAN RETRO GATE] skipped via MEMEX_GATES_OVERRIDE env token")
+                            print("[PLAN RETRO GATE] skipped via MEMEXA_GATES_OVERRIDE env token")
                             gate_status["plan_retro"] = "skip"
                             _skip_reasons["plan_retro"] = "override_token_consumed"
                             _emit_skip_trace("plan_retro", "override_token_consumed",
@@ -967,15 +967,15 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
                     except (ImportError, OSError, RuntimeError):
                         pass  # fail-soft: fall through to legacy path
 
-            # Path 3: legacy MEMEX_GATES_BOOTSTRAP=1
-            # TU-6 (plan_v3): bootstrap counter. MEMEX_GATES_BOOTSTRAP=1
+            # Path 3: legacy MEMEXA_GATES_BOOTSTRAP=1
+            # TU-6 (plan_v3): bootstrap counter. MEMEXA_GATES_BOOTSTRAP=1
             # skips plan_retro enforcement for the current commit BUT
             # increments a counter and emits L2 action_item at N>=1
             # (OWASP LLM01 — cannot silently ride override channel).
-            bootstrap = os.environ.get("MEMEX_GATES_BOOTSTRAP", "") == "1"
+            bootstrap = os.environ.get("MEMEXA_GATES_BOOTSTRAP", "") == "1"
             if bootstrap and not _override_consumed:
                 _record_bootstrap_bypass()
-                print("[PLAN RETRO GATE] skipped via MEMEX_GATES_BOOTSTRAP=1 "
+                print("[PLAN RETRO GATE] skipped via MEMEXA_GATES_BOOTSTRAP=1 "
                       "(CEO L2 action_item emitted)")
                 gate_status["plan_retro"] = "skip"
                 _skip_reasons["plan_retro"] = "bootstrap_bypass"
@@ -983,10 +983,10 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
                                  active_tid, _autopilot, _sha_now)
                 _override_consumed = True
             elif _prg_skip() and not _override_consumed:
-                print("[PLAN RETRO GATE] skipped via MEMEX_SKIP_PLAN_RETRO=1")
+                print("[PLAN RETRO GATE] skipped via MEMEXA_SKIP_PLAN_RETRO=1")
                 gate_status["plan_retro"] = "skip"
-                _skip_reasons["plan_retro"] = "MEMEX_SKIP_PLAN_RETRO"
-                _emit_skip_trace("plan_retro", "MEMEX_SKIP_PLAN_RETRO",
+                _skip_reasons["plan_retro"] = "MEMEXA_SKIP_PLAN_RETRO"
+                _emit_skip_trace("plan_retro", "MEMEXA_SKIP_PLAN_RETRO",
                                  active_tid, _autopilot, _sha_now)
             elif not _override_consumed:
                 _prg_allow, _prg_reason = _prg_check(active_tid)
@@ -1020,7 +1020,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
 
         # U6 TU-2: bench_gate — continuous benchmark gate (PR-time).
         # Skip predicate runs FIRST before any daemon I/O.
-        # Recursion guard via MEMEX_BENCH_GATE_INVOKED env semaphore.
+        # Recursion guard via MEMEXA_BENCH_GATE_INVOKED env semaphore.
         try:
             _b_decision, _b_reason = _bench_gate(all_staged, _autopilot, os.environ)
             gate_status["bench"] = _b_decision
@@ -1077,7 +1077,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
     # reported any LIVE-finding (Stage 6 → Stage 2 closed loop), commit MUST
     # block until those findings are cleared (re-verified or explicitly
     # withdrawn). This is the structural mechanism that makes "submit
-    # /memex-pilot, walk away" actually safe — if E2E shows red, Stage 5
+    # /memexa-pilot, walk away" actually safe — if E2E shows red, Stage 5
     # refuses to commit.
     try:
         if active_tid:
@@ -1136,7 +1136,7 @@ def run_commit_gate(phase: Optional[int] = None) -> int:
 
 
 def _record_bootstrap_bypass() -> None:
-    """TU-6 (plan_v3): count MEMEX_GATES_BOOTSTRAP=1 uses + emit L2
+    """TU-6 (plan_v3): count MEMEXA_GATES_BOOTSTRAP=1 uses + emit L2
     action_item at N>=1 (OWASP LLM01). Fail-soft.
     """
     count = -1
@@ -1166,7 +1166,7 @@ def _record_bootstrap_bypass() -> None:
     try:
         from src.core._atomic_state import atomic_update_json
         hs_path = _WORKSPACE / ".claude" / "config" / "harness_state.json"
-        msg = (f"[BootstrapBypass] MEMEX_GATES_BOOTSTRAP=1 used in "
+        msg = (f"[BootstrapBypass] MEMEXA_GATES_BOOTSTRAP=1 used in "
                f"commit (count={count}) — CEO review recommended")
         def _mut_hs(d):
             items = d.setdefault("action_items_for_user", [])
@@ -1258,7 +1258,7 @@ def _current_phase_filter() -> Optional[int]:
     """Read current phase scope from env (set by run_commit_gate).
     Returns None if no phase scoping (monolithic commit). Sanitized via
     _sanitize_env_phase_value (security-iter2-4)."""
-    raw = os.environ.get("MEMEX_COMMIT_GATE_PHASE", "")
+    raw = os.environ.get("MEMEXA_COMMIT_GATE_PHASE", "")
     cleaned = _sanitize_env_phase_value(raw)
     if cleaned is None:
         return None
@@ -1300,7 +1300,7 @@ def _rule7_depth_gate(task_id: str, code_lines: int) -> Tuple[bool, str]:
     """Depth double-gate: AC density + line ratio. BOTH below → block.
     Individual failures → soft_warn event only.
 
-    U8 TU-4: when MEMEX_COMMIT_GATE_PHASE env is set, scope ACs to phase.
+    U8 TU-4: when MEMEXA_COMMIT_GATE_PHASE env is set, scope ACs to phase.
     """
     # 2026-04-24 plan_v3 TU-4: fail-CLOSED when autopilot is active
     # AND data missing. Prior fail-open let today's 3 complex commits
@@ -1640,9 +1640,9 @@ def _detect_commit_author(active_tid: Optional[str]) -> Tuple[str, str]:
         traces.jsonl. UNION events; take MAX timestamp; task_dir wins on tie.
         Bounded 1MB tail.
     Tier 2 (medium, SEC-2 hardened): subprocess git config user.email with
-        cwd=_MEMEX_ROOT + minimal env (PATH only) to prevent PATH-hijack.
-        Match against MEMEX_CEO_EMAIL env override or hardcoded CEO email.
-    Tier 3 (signal-weak): MEMEX_ACTIVE_SUB_AGENT_ID env var presence.
+        cwd=_MEMEXA_ROOT + minimal env (PATH only) to prevent PATH-hijack.
+        Match against MEMEXA_CEO_EMAIL env override or hardcoded CEO email.
+    Tier 3 (signal-weak): MEMEXA_ACTIVE_SUB_AGENT_ID env var presence.
 
     Collapse rules:
         (tier1=no_recent_spawn) AND (tier2=ceo_email) AND (tier3=no_env)
@@ -1713,7 +1713,7 @@ def _detect_commit_author(active_tid: Optional[str]) -> Tuple[str, str]:
         try:
             r = subprocess.run(
                 ["git", "config", "--get", "user.email"],
-                cwd=str(_MEMEX_ROOT),
+                cwd=str(_MEMEXA_ROOT),
                 env={
                     "PATH": os.environ.get("PATH", ""),
                     "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
@@ -1722,7 +1722,7 @@ def _detect_commit_author(active_tid: Optional[str]) -> Tuple[str, str]:
             )
             if r.returncode == 0:
                 got_email = (r.stdout or "").strip()
-                ceo_email = os.environ.get("MEMEX_CEO_EMAIL", "")
+                ceo_email = os.environ.get("MEMEXA_CEO_EMAIL", "")
                 if got_email == ceo_email:
                     tier2 = "ceo_email"
                 elif got_email:
@@ -1730,8 +1730,8 @@ def _detect_commit_author(active_tid: Optional[str]) -> Tuple[str, str]:
         except (OSError, subprocess.SubprocessError, ValueError):
             pass  # tier2 stays "no_git_email"
 
-        # Tier 3: MEMEX_ACTIVE_SUB_AGENT_ID env var
-        tier3 = "no_env" if not os.environ.get("MEMEX_ACTIVE_SUB_AGENT_ID", "") else "sub_agent_env_set"
+        # Tier 3: MEMEXA_ACTIVE_SUB_AGENT_ID env var
+        tier3 = "no_env" if not os.environ.get("MEMEXA_ACTIVE_SUB_AGENT_ID", "") else "sub_agent_env_set"
 
         # Collapse
         if tier1 == "no_recent_spawn" and tier2 == "ceo_email" and tier3 == "no_env":
@@ -1954,7 +1954,7 @@ def _get_head_sha_short() -> Optional[str]:
     try:
         out = subprocess.check_output(
             ["git", "rev-parse", "--short=12", "HEAD"],
-            cwd=str(_MEMEX_ROOT),
+            cwd=str(_MEMEXA_ROOT),
             timeout=5,
             stderr=subprocess.DEVNULL,
         )
@@ -2074,7 +2074,7 @@ def _check_strategic_output() -> Optional[str]:
         try:
             result = subprocess.run(
                 ["git", "log", "--oneline", "--since=midnight", "--format=%h"],
-                capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=5,
+                capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=5,
             )
             commits_today = len(result.stdout.strip().splitlines()) if result.returncode == 0 else 0
         except Exception:
@@ -2123,7 +2123,7 @@ def run_session_end_check() -> int:
     try:
         result = subprocess.run(
             ["git", "status", "--porcelain"],
-            capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+            capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
         )
         uncommitted = [l for l in result.stdout.strip().splitlines() if l.strip()]
         if uncommitted:
@@ -2172,7 +2172,7 @@ def _resolve_phase(
 ) -> Tuple[Optional[int], str, Dict[str, Optional[str]]]:
     """U8 plan_v2 TU-3: 4-tier phase resolution.
 
-    Order: tier-1 CLI flag > tier-2 MEMEX_AUTOPILOT_PHASE env >
+    Order: tier-1 CLI flag > tier-2 MEMEXA_AUTOPILOT_PHASE env >
     tier-3 plan_template `current_phase` > None (caller decides).
 
     Per HARD RULE feedback_value_resolution_chain_explicit + feedback_priority_
@@ -2350,7 +2350,7 @@ def main():
                 print(f"[phase-commit] invalid phase: {args.positional!r}",
                       file=sys.stderr)
                 sys.exit(64)
-        env_phase = os.environ.get("MEMEX_AUTOPILOT_PHASE")
+        env_phase = os.environ.get("MEMEXA_AUTOPILOT_PHASE")
         resolved, source, diag = _resolve_phase(phase, env_phase, None)
         if resolved is None:
             print("[phase-commit] no phase resolved (CLI/env/template all empty)",

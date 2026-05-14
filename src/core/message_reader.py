@@ -5,7 +5,7 @@ Message Reader — 统一外部信息感知接口。
 失败返回空 Dict，绝不阻塞心跳。
 
 数据源:
-  1. WeChat — memex_feed.json / WeChatDB
+  1. WeChat — memexa_feed.json / WeChatDB
   2. QQ — NapCat HTTP API / qq_feed.json
   3. Schedule — schedule_data.json (DDL/事件/待办)
   4. Git — subprocess git status per repo
@@ -21,8 +21,8 @@ from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_WORKSPACE = _MEMEX_ROOT.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_WORKSPACE = _MEMEXA_ROOT.parent
 _DATA = Path(__file__).parent.parent / "data"
 _SCHEDULE_FILE = _WORKSPACE / "schedule_data.json"
 
@@ -35,11 +35,11 @@ def read_wechat_recent(hours: int = 24) -> Dict[str, Any]:
     """Read recent WeChat message summaries.
 
     Priority:
-      1. memex_feed.json (if wechat-processor has run)
+      1. memexa_feed.json (if wechat-processor has run)
       2. Return empty
     """
     try:
-        feed_file = _DATA / "memex_feed.json"
+        feed_file = _DATA / "memexa_feed.json"
         if feed_file.exists():
             data = json.loads(feed_file.read_text(encoding="utf-8"))
             # Filter to recent entries
@@ -207,9 +207,9 @@ def read_schedule_context() -> Dict[str, Any]:
             except (ValueError, TypeError):
                 pass
 
-    # Also check .memex_oracle_state.json for stress
+    # Also check .memexa_oracle_state.json for stress
     try:
-        oracle_file = _WORKSPACE / ".memex_oracle_state.json"
+        oracle_file = _WORKSPACE / ".memexa_oracle_state.json"
         if oracle_file.exists():
             oracle = json.loads(oracle_file.read_text(encoding="utf-8"))
             result["stress_level"] = max(
@@ -244,7 +244,7 @@ def check_git_status(repo_name: str) -> Dict[str, Any]:
     """
     # Resolve repo path
     repo_paths = {
-        "memex": _WORKSPACE / "memex",
+        "memexa": _WORKSPACE / "memexa",
         "polymarket-agent": _WORKSPACE / "polymarket-agent",
         "polymarket": _WORKSPACE / "polymarket-agent",
     }

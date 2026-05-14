@@ -47,7 +47,7 @@ except ImportError as e:
         f"Missing: {e}"
     ) from e
 
-# Argon2id parameters: parity with memex.browser_vault._vault.kdf
+# Argon2id parameters: parity with memexa.browser_vault._vault.kdf
 KDF_M_KIB = 32768  # 32 MiB
 KDF_T_COST = 3
 KDF_P_PARALLEL = 4

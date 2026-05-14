@@ -2,8 +2,8 @@
 
 Used by:
   - tools/migrate_md_lessons_to_v5.py    (md → graph migration)
-  - memex/core/stop_session_card_hook.py (session transcript → lesson cards)
-  - memex/core/userprompt_lesson_recall.py (recall + format)
+  - memexa/core/stop_session_card_hook.py (session transcript → lesson cards)
+  - memexa/core/userprompt_lesson_recall.py (recall + format)
 
 Design goals:
   - Generalization: keyword patterns externalized to data/lesson_keywords.json,

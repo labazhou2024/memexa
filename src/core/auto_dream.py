@@ -144,11 +144,11 @@ class AutoDream:
 
     def _extract_git_patterns(self) -> List[Dict]:
         """Extract patterns from git commit messages."""
-        memex_dir = self._data_dir.parent.parent  # memex/
+        memexa_dir = self._data_dir.parent.parent  # memexa/
         try:
             result = subprocess.run(
                 ["git", "log", "--oneline", "-20", "--format=%s"],
-                capture_output=True, text=True, cwd=str(memex_dir), timeout=10,
+                capture_output=True, text=True, cwd=str(memexa_dir), timeout=10,
             )
             if result.returncode != 0:
                 return []
@@ -545,7 +545,7 @@ def weekly_meta_digest(force_run: bool = False) -> Dict[str, Any]:
     Pulls from:
       - tools/self_evolution_health (W1-W7 status)
       - .claude/data/traces.jsonl (last 7d auto-actions)
-      - memex/data/events.jsonl (errors + cron)
+      - memexa/data/events.jsonl (errors + cron)
       - data/last_credit.json + data/approval_timeout_last_run.json
       - git log --since='1 week ago' (commits)
 
@@ -620,7 +620,7 @@ def weekly_meta_digest(force_run: bool = False) -> Dict[str, Any]:
     # Section 3: Errors / Warnings (events.jsonl)
     err_section = "\n## Errors & Warnings (last 7 days)\n\n"
     try:
-        events_path = workspace / "memex" / "data" / "events.jsonl"
+        events_path = workspace / "memexa" / "data" / "events.jsonl"
         err_types = {"posttool_failure", "stop_failure", "agent_rate_limited",
                      "pattern_encoding_warning", "outbox_dead_letter"}
         err_counts: Dict[str, int] = {}

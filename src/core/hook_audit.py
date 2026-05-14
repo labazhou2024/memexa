@@ -93,7 +93,7 @@ class AuditReport:
 
 
 def _workspace_root() -> Path:
-    # hook_audit.py sits at memex/memex/core/
+    # hook_audit.py sits at memexa/memexa/core/
     return Path(__file__).resolve().parent.parent.parent.parent
 
 
@@ -106,7 +106,7 @@ def _resolve_script(command: str, workspace: Path) -> tuple[Optional[Path], str]
     Returns (resolved_path_or_None, command_verbatim).
 
     Handles common shapes:
-      'python memex/memex/core/foo.py'
+      'python memexa/memexa/core/foo.py'
       'python -m src.core.foo'
       'python -m src.core.foo arg1'
     """
@@ -115,16 +115,16 @@ def _resolve_script(command: str, workspace: Path) -> tuple[Optional[Path], str]
         return None, command
     if tokens[0].endswith("python") or tokens[0].endswith("python3"):
         if len(tokens) >= 2 and tokens[1] == "-m":
-            # Module form: dotted path → look up a file under memex/...
+            # Module form: dotted path → look up a file under memexa/...
             if len(tokens) >= 3:
                 module = tokens[2]
                 parts = module.split(".")
-                # Try memex/<parts>.py
-                candidate = workspace / "memex" / Path(*parts).with_suffix(".py")
+                # Try memexa/<parts>.py
+                candidate = workspace / "memexa" / Path(*parts).with_suffix(".py")
                 if candidate.exists():
                     return candidate.resolve(), command
                 # Fallback: <parts>/__main__.py
-                candidate2 = workspace / "memex" / Path(*parts) / "__main__.py"
+                candidate2 = workspace / "memexa" / Path(*parts) / "__main__.py"
                 if candidate2.exists():
                     return candidate2.resolve(), command
                 # No file found
@@ -180,7 +180,7 @@ def load_hooks(settings_path: Optional[Path] = None,
     # `echo pretool_gate` would otherwise satisfy the substring check while
     # the hook is dead.
     workspace = _workspace_root()
-    canonical_gate = (workspace / "memex" / "memex" / "core" / "pretool_gate.py").resolve()
+    canonical_gate = (workspace / "memexa" / "memexa" / "core" / "pretool_gate.py").resolve()
     for tool in REQUIRED_PRETOOL_COVERAGE:
         pattern = re.compile(rf"(^|\|){re.escape(tool)}(\||$|\()")
         hit = False

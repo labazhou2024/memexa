@@ -22,14 +22,14 @@ from pathlib import Path
 from typing import Dict, Optional
 from src.core._path_resolver import memory_dir
 
-_MEMEX = Path(__file__).resolve().parents[2]
-_WORKSPACE = _MEMEX.parent
+_MEMEXA = Path(__file__).resolve().parents[2]
+_WORKSPACE = _MEMEXA.parent
 _MEMORY_DIR = memory_dir()
 
 # v1 thresholds (per plan_v1.md):
 LIMITS = {
     "claude_md": 20000,
-    "memex_claudemd": 500,
+    "memexa_claudemd": 500,
     "memory_md": 24000,
     "session_start_gate_stdout": 2500,
 }
@@ -46,20 +46,20 @@ def _session_start_gate_bytes() -> int:
     """Run session_start_gate.py and count stdout bytes.
 
     Captures STDOUT only (stderr is telemetry, not injected into context).
-    Environment is stripped to mirror fresh cold-start (no MEMEX_* leakage).
+    Environment is stripped to mirror fresh cold-start (no MEMEXA_* leakage).
     """
-    script = _MEMEX / "memex" / "core" / "session_start_gate.py"
+    script = _MEMEXA / "memexa" / "core" / "session_start_gate.py"
     if not script.exists():
         return 0
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(("MEMEX_", "CLAUDE_"))}
+           if not k.startswith(("MEMEXA_", "CLAUDE_"))}
     env["PYTHONIOENCODING"] = "utf-8"
     try:
         r = subprocess.run(
             [sys.executable, str(script)],
             capture_output=True,
             encoding="utf-8", errors="replace",
-            env=env, timeout=30, cwd=str(_MEMEX),
+            env=env, timeout=30, cwd=str(_MEMEXA),
         )
         return len(r.stdout.encode("utf-8"))
     except Exception:
@@ -70,7 +70,7 @@ def collect() -> Dict[str, int]:
     """Collect current byte counts for each cold-start source."""
     return {
         "claude_md": _size(_WORKSPACE / "CLAUDE.md"),
-        "memex_claudemd": _size(_MEMEX / "CLAUDE.md"),
+        "memexa_claudemd": _size(_MEMEXA / "CLAUDE.md"),
         "memory_md": _size(_MEMORY_DIR / "MEMORY.md"),
         "session_start_gate_stdout": _session_start_gate_bytes(),
     }
@@ -81,7 +81,7 @@ def total(sizes: Dict[str, int]) -> int:
     clamped_memory = min(sizes.get("memory_md", 0), 24400)
     return (
         sizes.get("claude_md", 0)
-        + sizes.get("memex_claudemd", 0)
+        + sizes.get("memexa_claudemd", 0)
         + clamped_memory
         + max(sizes.get("session_start_gate_stdout", 0), 0)
     )
@@ -98,7 +98,7 @@ def check(sizes: Dict[str, int]) -> Dict[str, bool]:
 
 def save_baseline(sizes: Dict[str, int],
                   path: Optional[Path] = None) -> Path:
-    path = path or (_MEMEX / "data" / "cold_start_baseline.json")
+    path = path or (_MEMEXA / "data" / "cold_start_baseline.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps({"sizes": sizes, "total": total(sizes),
@@ -109,7 +109,7 @@ def save_baseline(sizes: Dict[str, int],
 
 
 def load_baseline(path: Optional[Path] = None) -> Optional[dict]:
-    path = path or (_MEMEX / "data" / "cold_start_baseline.json")
+    path = path or (_MEMEXA / "data" / "cold_start_baseline.json")
     if not path.exists():
         return None
     return json.loads(path.read_text(encoding="utf-8"))

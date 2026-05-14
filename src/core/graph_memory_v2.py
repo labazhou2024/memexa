@@ -5,7 +5,7 @@ History:
   - Neo4j 5.26 backend with custom Episode/Fact/Entity schema
   - Dual-LLM (Sonnet + Haiku) fact extraction with source-span/provenance/numeric-coherence wrappers
   - Issues: 70% entity-kind drift, 800 B chunking placeholder, mojibake bug, 0% recall on audit_corpus
-  - ARCHIVED 2026-04-25 to archive/legacy/memex_memory_2026_04_25/
+  - ARCHIVED 2026-04-25 to archive/legacy/memexa_memory_2026_04_25/
 
 - v2 (this module): thin HTTP facade to Hindsight daemon
   - Backend: Hindsight + DeepSeek (OpenAI-compatible) running in py3.12 conda env "hindsight"
@@ -45,7 +45,7 @@ class CapabilityRequired(Exception):
     """Raised when a cross-contact query is attempted without a valid capability token."""
 
 
-# Paths resolved relative to this file's parent chain (memex/data/)
+# Paths resolved relative to this file's parent chain (memexa/data/)
 _CAP_TOKEN_PATH: Path = Path(__file__).resolve().parents[2] / "data" / "capability_token.bin"
 _CAP_LOCKOUT_PATH: Path = Path(__file__).resolve().parents[2] / "data" / "capability_lockout.json"
 
@@ -63,8 +63,8 @@ def _emit_cap_trace(event: str, payload: dict) -> None:
     (security-p0-iter1-1 fix).
     """
     import json as _js
-    # Allowlist trace path: workspace memex/data/ only (no env-var traversal)
-    fh = _safe_open_trace_path("MEMEX_GMV2_STUB_TRACE_LOG")
+    # Allowlist trace path: workspace memexa/data/ only (no env-var traversal)
+    fh = _safe_open_trace_path("MEMEXA_GMV2_STUB_TRACE_LOG")
     if fh is None:
         return
     try:
@@ -116,7 +116,7 @@ def _get_vault_key_material() -> bytes:
     Returns b'' if vault is locked or inaccessible (gate will reject).
     """
     try:
-        from memex.browser_vault import api as vault_api
+        from memexa.browser_vault import api as vault_api
         if not vault_api.try_unlock_silent():
             return b""
         # Use the public accessor added in TU-1
@@ -211,7 +211,7 @@ def _register_vault_on_lock_callback(token_path: Optional[Path] = None) -> None:
     Fails silently if not available (defense-in-depth only; TTL is primary).
     """
     try:
-        from memex.browser_vault import api as vault_api
+        from memexa.browser_vault import api as vault_api
         p = token_path or _CAP_TOKEN_PATH
         vault_api.register_lock_callback(lambda: _on_vault_lock_unlink_token(p))
     except Exception:
@@ -273,7 +273,7 @@ def _mint_capability_token(*, data_dir: Optional[Path] = None) -> int:
 
     # Attempt vault unlock
     try:
-        from memex.browser_vault import api as vault_api
+        from memexa.browser_vault import api as vault_api
     except Exception:
         return 2
 
@@ -368,7 +368,7 @@ def _clear_lockout(*, data_dir: Optional[Path] = None) -> int:
     lockout_path = (data_dir / "capability_lockout.json") if data_dir else _CAP_LOCKOUT_PATH
 
     try:
-        from memex.browser_vault import api as vault_api
+        from memexa.browser_vault import api as vault_api
     except Exception:
         return 2
 
@@ -416,7 +416,7 @@ import time as _time
 from src.core._path_resolver import memory_dir
 
 def _emit_stub_trace(layer: str, payload: dict) -> None:
-    path = _os.environ.get("MEMEX_GMV2_STUB_TRACE_LOG", "")
+    path = _os.environ.get("MEMEXA_GMV2_STUB_TRACE_LOG", "")
     if not path:
         return
     try:
@@ -429,7 +429,7 @@ def _emit_stub_trace(layer: str, payload: dict) -> None:
 
 
 def _emit_filter_trace(event: str, payload: dict) -> None:
-    path = _os.environ.get("MEMEX_GMV2_FILTER_TRACE_LOG", "")
+    path = _os.environ.get("MEMEXA_GMV2_FILTER_TRACE_LOG", "")
     if not path:
         return
     try:
@@ -774,7 +774,7 @@ def stats() -> dict[str, Any]:
         "ok": client.health(),
         "backend": "hindsight",
         "version": "v2",
-        "bank": os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5"),
+        "bank": os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5"),
     }
 
 
@@ -832,7 +832,7 @@ def write_fact_async(file_path: str, content_bytes: bytes) -> bool:
 def _safe_open_trace_path(env_var: str):
     """Resolve env-var trace path, reject paths outside allowlisted parents.
 
-    Per security-iter2-1 (RP-15): MEMEX_GMV2_STUB_TRACE_LOG must not be
+    Per security-iter2-1 (RP-15): MEMEXA_GMV2_STUB_TRACE_LOG must not be
     settable to arbitrary file (e.g. ../../CLAUDE.md). Allowlist:
     - <home>/.claude/ (workspace memory + tasks)
     - tempfile.gettempdir() (per hindsight_outbox._allowlisted_parents pattern)
@@ -866,7 +866,7 @@ def _safe_open_trace_path(env_var: str):
 
 def _emit_cli_trace(subcommand: str, exit_code: int) -> None:
     """Emit cli_command_invoked trace per RP-14 (declared events must emit)."""
-    target = _safe_open_trace_path("MEMEX_GMV2_STUB_TRACE_LOG")
+    target = _safe_open_trace_path("MEMEXA_GMV2_STUB_TRACE_LOG")
     if target is None:
         return
     try:
@@ -915,7 +915,7 @@ def _main_query(entity: str, limit: int, timeout_s: float) -> int:
             print("[]")
             rec = {"event": "cli_query_timeout", "ts": _time.time(),
                    "entity": entity, "timeout_s": timeout_s}
-            target = _safe_open_trace_path("MEMEX_GMV2_STUB_TRACE_LOG")
+            target = _safe_open_trace_path("MEMEXA_GMV2_STUB_TRACE_LOG")
             if target is not None:
                 try:
                     with open(target, "a", encoding="utf-8") as f:
@@ -971,7 +971,7 @@ def _scan_memory_dir(memory_dir=None):
             resolved.relative_to(md)  # raises ValueError if escape
         except (ValueError, OSError):
             # symlink escape; emit trace + skip
-            target = _safe_open_trace_path("MEMEX_GMV2_STUB_TRACE_LOG")
+            target = _safe_open_trace_path("MEMEXA_GMV2_STUB_TRACE_LOG")
             if target is not None:
                 try:
                     with open(target, "a", encoding="utf-8") as t:
@@ -1006,8 +1006,8 @@ def _query_indexed_documents(timeout_s: float = 10.0,
     except ImportError:
         return set(), "httpx_missing"
     base = base_url or _os.environ.get(
-        "MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-    bank_id = bank or _os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+        "MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+    bank_id = bank or _os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
     seen = set()
     for page in range(max_pages):
         offset = page * page_limit
@@ -1115,7 +1115,7 @@ def _main_backfill(rate: int, dry_run: bool, timeout_s: float) -> int:
         print(_json.dumps(out, ensure_ascii=False, default=str))
         rec = {"event": "backfill_documents_timeout", "ts": _time.time(),
                "error": idx_err}
-        target = _safe_open_trace_path("MEMEX_GMV2_STUB_TRACE_LOG")
+        target = _safe_open_trace_path("MEMEXA_GMV2_STUB_TRACE_LOG")
         if target is not None:
             try:
                 with open(target, "a", encoding="utf-8") as f:

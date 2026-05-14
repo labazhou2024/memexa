@@ -13,7 +13,7 @@ Key design choices (from plan_v1):
     anchor whose 3rd-fail timestamp is OLDEST (FIFO).
   - Cooldown source-of-truth: scan trace.jsonl for prior `architect_replan_triggered`
     events (no separate state file -> idempotent under spawn crash).
-  - Mock contract: MEMEX_RE_PLANNER_MOCK=1 returns 0, emits both events with
+  - Mock contract: MEMEXA_RE_PLANNER_MOCK=1 returns 0, emits both events with
     result="mocked", does NOT call re_plan().
   - Trace event payloads locked: {axis_anchor, count, coverage, task_id, ts} for
     failure_cluster_detected; {axis_anchor, result, task_id, ts} for architect_replan_triggered.
@@ -362,7 +362,7 @@ def trigger_architect_full(
         "plan_path": plan_path,
     }
 
-    if os.environ.get("MEMEX_RE_PLANNER_MOCK") == "1":
+    if os.environ.get("MEMEXA_RE_PLANNER_MOCK") == "1":
         append_trace(task_id, "architect_replan_triggered", {
             "axis_anchor": anchor_id,
             "result": "mocked",

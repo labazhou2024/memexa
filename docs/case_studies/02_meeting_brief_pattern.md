@@ -4,7 +4,7 @@
 
 > **The problem in one sentence**: You'll see X in 30 minutes. What's the
 > baseline? When did you last talk? What's the open thread? What's the
-> landmine? Most people skim chat history — slow and error-prone. memex
+> landmine? Most people skim chat history — slow and error-prone. memexa
 > turns it into 4 sections in 5 minutes.
 
 ## The audience
@@ -50,7 +50,7 @@ The whole point is that you can fill it in 5 min and use it cold.
               ┌─────────────────────┼─────────────────────┐
               ▼                     ▼                     ▼
        ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-       │  memex arc   │     │ memex quick  │     │ memex quick  │
+       │  memexa arc   │     │ memexa quick  │     │ memexa quick  │
        │  (60 cards,  │     │ "<name>      │     │ "<name>      │
        │  relationship│     │  this week"  │     │  question"   │
        │  history)    │     │  (recency)   │     │  (asks)      │
@@ -72,7 +72,7 @@ You're meeting Alice tomorrow morning. Three queries:
 ### Query 1 — `arc` for relationship breadth
 
 ```bash
-memex arc "Alice" --max-cards 60
+memexa arc "Alice" --max-cards 60
 ```
 
 You read top→bottom and extract:
@@ -87,7 +87,7 @@ You read top→bottom and extract:
 ### Query 2 — `quick` for the freshest 7 days
 
 ```bash
-memex quick "Alice 1月" --max-k 20
+memexa quick "Alice 1月" --max-k 20
 ```
 
 - 2024-01-22: she rescheduled study group to 2024-01-30 (holiday)
@@ -99,7 +99,7 @@ memex quick "Alice 1月" --max-k 20
 ### Query 3 — `quick` for outstanding asks
 
 ```bash
-memex quick "Alice 等 待 问" --max-k 15
+memexa quick "Alice 等 待 问" --max-k 15
 ```
 
 This catches "waiting for" / "still need" / "could you" language.
@@ -139,7 +139,7 @@ look for: previous canceled plans, criticism, money topics.)
 - Note: don't bring up holiday plans (rescheduling was her call)
 ```
 
-5 minutes from "memex arc Alice" to filled brief. You walk into the meeting
+5 minutes from "memexa arc Alice" to filled brief. You walk into the meeting
 having scanned the relationship in a way that would otherwise take 30
 minutes of scrolling.
 
@@ -173,13 +173,13 @@ Once the pattern clicks, wrap it:
 # in ~/.bashrc or PowerShell profile
 function brief {
   echo "=== §1 BASELINE ==="
-  memex arc "$1" --max-cards 60
+  memexa arc "$1" --max-cards 60
   echo ""
   echo "=== §2 LAST 7 DAYS ==="
-  memex quick "$1 最近" --max-k 15
+  memexa quick "$1 最近" --max-k 15
   echo ""
   echo "=== §3 OPEN THREADS ==="
-  memex quick "$1 等 待 问 还没" --max-k 15
+  memexa quick "$1 等 待 问 还没" --max-k 15
 }
 
 # usage
@@ -201,7 +201,7 @@ can look back at "what was my read on X in 2024 Q3?".
 
 ## When this doesn't fit
 
-- **You've never talked to them before** — memex has no data. Use LinkedIn /
+- **You've never talked to them before** — memexa has no data. Use LinkedIn /
   their CV instead.
 - **The meeting is purely informational (lecture, presentation)** — no
   relationship layer needed. Skip §3-§4, use [03_project_status_check.md](../../examples/demo_dataset/walkthroughs/03_project_status_check.md)

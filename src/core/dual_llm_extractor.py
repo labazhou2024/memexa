@@ -19,7 +19,7 @@ Core anti-hallucination design (per verifier rounds 2/3):
    - span_verified AND agreement ≥ 0.60                     → pending_review
    - else                                                   → REJECT
 
-Offline/mock path: MEMEX_DUAL_LLM_MOCK=1 returns deterministic fixtures
+Offline/mock path: MEMEXA_DUAL_LLM_MOCK=1 returns deterministic fixtures
 for tests.
 
 Contract: extract_from_chunk() never raises; returns ExtractionResult
@@ -184,7 +184,7 @@ _NUM_RE = re.compile(r"([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)")
 # so an adversarial LLM-produced path can't read arbitrary files.
 # Derive workspace from __file__ so rename/deployment doesn't silently
 # disable traversal protection (R3 fix: was hardcoded).
-# Path layout: WORKSPACE/memex/memex/core/dual_llm_extractor.py → 4 parents up
+# Path layout: WORKSPACE/memexa/memexa/core/dual_llm_extractor.py → 4 parents up
 _WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _MEMORY_ROOT = (
     memory_dir()
@@ -357,7 +357,7 @@ def _real_llm_call(model: str, chunk: str) -> List[Dict[str, Any]]:
     """Call LLM via llm_provider (supports claude/openai/glm swap).
 
     [2026-04-22 Track C migration] Previously called `claude -p` directly;
-    now routes through `llm_provider.call_llm()` respecting MEMEX_LLM_PROVIDER
+    now routes through `llm_provider.call_llm()` respecting MEMEXA_LLM_PROVIDER
     env. `model` argument kept for backward compat but mapped to tier:
       claude-opus-* → premium
       claude-sonnet-* → smart
@@ -473,8 +473,8 @@ def _get_llm_fn() -> LLMFn:
     (flag=1, not shadow) AND mock is set, refuse — mocks writing
     synthetic facts to a real graph is always wrong.
     """
-    if os.environ.get("MEMEX_DUAL_LLM_MOCK", "0") == "1":
-        if os.environ.get("MEMEX_GRAPHITI_ENABLED", "0") == "1":
+    if os.environ.get("MEMEXA_DUAL_LLM_MOCK", "0") == "1":
+        if os.environ.get("MEMEXA_GRAPHITI_ENABLED", "0") == "1":
             logger.error("refusing mock LLM in ACTIVE graph mode; returning no-op")
             return lambda m, c: []  # no-op; extraction will reject on empty
         return _mock_llm_call
@@ -590,7 +590,7 @@ def extract_from_chunk(chunk: str, source_episode_id: str,
     # Safety: still requires source_span verification; only skips the
     # cross-LLM agreement requirement. Tier=pending_review so CEO sees.
     single_fallback = os.environ.get(
-        "MEMEX_DUAL_LLM_SINGLE_FALLBACK", "0"
+        "MEMEXA_DUAL_LLM_SINGLE_FALLBACK", "0"
     ) == "1"
     if single_fallback and (facts_a and not facts_b):
         # Sonnet-only path: verify spans, mark pending_review.

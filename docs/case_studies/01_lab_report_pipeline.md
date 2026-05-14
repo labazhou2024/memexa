@@ -4,7 +4,7 @@
 
 > **The problem in one sentence**: You missed an experiment / class / meeting,
 > and the recovery path is a written deliverable due in N days. You don't
-> remember the spec. Your memex bank does.
+> remember the spec. Your memexa bank does.
 >
 > **The pipeline takes you from "ambiguous task" to "9-page PDF" in 20 min.**
 
@@ -17,7 +17,7 @@ Two real situations this fits:
 2. **办事人 (knowledge worker, ops flavor)** — missed a quarterly review,
    must submit a written status doc to compensate.
 
-Both look the same to memex: **a deadline + a deliverable + scattered
+Both look the same to memexa: **a deadline + a deliverable + scattered
 context across 4-6 sources**.
 
 ## The 7-step pipeline
@@ -31,13 +31,13 @@ context across 4-6 sources**.
                                        ▼
                           ┌─────────────────────────────────┐
                           │  2. pending direct query         │
-                          │     memex pending → hit the row  │
+                          │     memexa pending → hit the row  │
                           └────────────┬────────────────────┘
                                        │
                                        ▼
                           ┌─────────────────────────────────┐
                           │  3. task-brief 5-step SOP        │
-                          │     memex quick + memex person   │
+                          │     memexa quick + memexa person   │
                           │     → spec + counterparty asks   │
                           └────────────┬────────────────────┘
                                        │
@@ -78,7 +78,7 @@ and needs to compensate with a written report.
 ### Step 1 — cold start (3 min)
 
 ```bash
-memex pending
+memexa pending
 ```
 
 Output (abridged):
@@ -95,7 +95,7 @@ Hit. You now know **what** is due, **when**, and **whose ask** it traces to.
 ### Step 2 — recover the spec (3 min)
 
 ```bash
-memex person "advisor@example.com" --window-days 14
+memexa person "advisor@example.com" --window-days 14
 ```
 
 Pulls the **directive list**:
@@ -108,8 +108,8 @@ That's the contract. Two requirements, no ambiguity.
 ### Step 3 — recover the in-flight work (3 min)
 
 ```bash
-memex topic "midterm report"
-memex quick "experimental data section" --max-k 8
+memexa topic "midterm report"
+memexa quick "experimental data section" --max-k 8
 ```
 
 Two queries → you find that Carol already delivered the experimental data
@@ -164,7 +164,7 @@ Don't:
   - schedule a follow-up before getting feedback
 ```
 
-The boundary is as important as the action. memex is a query system, not
+The boundary is as important as the action. memexa is a query system, not
 an autonomous agent. **Doing** is up to you.
 
 ## Key principle: the 2-step "broad-then-narrow" recall
@@ -179,7 +179,7 @@ narrow refine (quick + keyword)            │
                                      concrete next action
 ```
 
-This pattern shows up in every memex workflow. Once you internalize it,
+This pattern shows up in every memexa workflow. Once you internalize it,
 the 14 subcommands collapse to a single mental model:
 
 - "Who / what is the source of this task?"  → broad recall
@@ -201,7 +201,7 @@ Replace the four placeholders:
 
 | Step | Placeholder | Your value |
 |---|---|---|
-| Step 1 | `memex pending` row about midterm | Whatever your missed deliverable was |
+| Step 1 | `memexa pending` row about midterm | Whatever your missed deliverable was |
 | Step 2 | `advisor@example.com` | The actual counterparty's email/name |
 | Step 4 | midterm peer report URL | Any prior reference (peer / colleague / template repo) |
 | Step 5 | course handout URL | Official spec source (RFP, SOP, syllabus) |
@@ -215,7 +215,7 @@ The pipeline itself doesn't change.
 - **No external authoritative source exists** — you'd be inventing the spec,
   not recovering it. This is a different kind of writing task.
 - **Counterparty hasn't communicated the requirement** — you need to ask
-  first. memex won't conjure requirements that were never expressed.
+  first. memexa won't conjure requirements that were never expressed.
 
 ## See also
 

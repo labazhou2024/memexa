@@ -9,12 +9,12 @@ criterion that proves it fixed.
 ## Layer 0 — Is the install sane?
 
 ```bash
-memex version            # prints memex + python + dep versions
-memex config             # prints every resolved env + file path
-memex doctor             # round-trips backend + LLM + identity
+memexa version            # prints memexa + python + dep versions
+memexa config             # prints every resolved env + file path
+memexa doctor             # round-trips backend + LLM + identity
 ```
 
-If `memex doctor` shows all `[ok]`, the install is sane and the problem
+If `memexa doctor` shows all `[ok]`, the install is sane and the problem
 is in your data path. Skip to "Layer 2".
 
 ## Layer 1 — Backend won't come up
@@ -62,7 +62,7 @@ curl -s http://127.0.0.1:8888/v1/default/banks/memory_full_v5/stats
    ```bash
    ls data/l0_v5/work/cards_v2_*/qwen.jsonl 2>/dev/null | head
    ```
-   Empty → Stage A LLM is failing. Check `memex doctor` LLM gate probe.
+   Empty → Stage A LLM is failing. Check `memexa doctor` LLM gate probe.
 
 3. Does Stage B produce cards?
    ```bash
@@ -86,7 +86,7 @@ Most likely the driver crashed inside the subprocess. Logs:
 
 ```bash
 ls -la data/maintenance_logs/ | tail
-tail -100 data/maintenance_logs/memex_core_cron_orchestrator_*.log
+tail -100 data/maintenance_logs/memexa_core_cron_orchestrator_*.log
 ```
 
 Look for the per-driver `dispatch '<id>' ...` line. The next line tells
@@ -105,9 +105,9 @@ Exit criterion: next cron run shows `pending=0` for the affected source.
 
 ## Layer 3 — LLM provider issues
 
-### Symptom: `memex doctor` LLM probe returns 401 / 403
+### Symptom: `memexa doctor` LLM probe returns 401 / 403
 
-API key wrong or expired. `memex config` to inspect the masked value;
+API key wrong or expired. `memexa config` to inspect the masked value;
 re-issue if needed.
 
 ### Symptom: probe returns 200 but cron silently produces 0 cards
@@ -116,9 +116,9 @@ The provider is responding but returning malformed JSON. Capture one
 real call:
 
 ```bash
-MEMEX_HINDSIGHT_TRACE_LOG=/tmp/memex_trace.jsonl \
+MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
   python -m src.drivers.backfill_v5_wechat_driver --once --verbose
-jq . /tmp/memex_trace.jsonl
+jq . /tmp/memexa_trace.jsonl
 ```
 
 Common pathologies:
@@ -141,7 +141,7 @@ own logs.
 For vLLM specifically:
 
 - GPU OOM → reduce `--max-model-len` or batch size
-- Engine deadlock under high concurrency → cap `MEMEX_EXTRACT_CONCURRENT=5`
+- Engine deadlock under high concurrency → cap `MEMEXA_EXTRACT_CONCURRENT=5`
   (sweet spot for most vLLM deploys)
 
 ## Layer 4 — Query returns nothing useful
@@ -155,7 +155,7 @@ Common pitfalls:
 - Default `--salience 0.3` filtering out everything low-priority. Pass
   `--salience 0.0` to see the full distribution.
 - Querying the legacy `memory_full` bank by accident. Default is `_v5`;
-  unset `MEMEX_HINDSIGHT_BANK` if you've shadowed it.
+  unset `MEMEXA_HINDSIGHT_BANK` if you've shadowed it.
 - Windows GBK terminal mangling Chinese output. Set
   `PYTHONIOENCODING=utf-8` or use Windows Terminal.
 
@@ -183,7 +183,7 @@ question.
 
 ### Symptom: dashboard renders but every panel says "—"
 
-Localhost-only install. Set `MEMEX_DASHBOARD_HOSTS` env to a JSON array
+Localhost-only install. Set `MEMEXA_DASHBOARD_HOSTS` env to a JSON array
 to light up remote-host panels. See
 [`src/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
 docstring for the schema.
@@ -206,7 +206,7 @@ with the exact path printed.
 
 Open an issue with:
 
-1. Output of `memex version` + `memex config` + `memex doctor`.
+1. Output of `memexa version` + `memexa config` + `memexa doctor`.
 2. The exact command that fails + full traceback.
 3. The relevant cron log slice (`data/maintenance_logs/*.log`).
 

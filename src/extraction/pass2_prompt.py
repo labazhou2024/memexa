@@ -516,7 +516,7 @@ def get_pass2_system_prompt(source: str = "wechat") -> str:
     """Compose the pass-2 system prompt for ``source``.
 
     Routes through :mod:`src.core.prompt_router` to honor the
-    ``MEMEX_EXTRACTOR_TIER`` env (bundled / byo). When the router
+    ``MEMEXA_EXTRACTOR_TIER`` env (bundled / byo). When the router
     returns ``None`` (the default bundled mode) we fall back to the
     in-tree OSS prompt below.
     """

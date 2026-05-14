@@ -8,7 +8,7 @@
 > [2025-09-05 NapCat public-OneBot incident](https://www.xcnahida.cn/?p=b8AROpEJ)
 > in which Tencent began signature-matching every QQ that ever ran NapCat /
 > LiteLoaderQQNT and rolling out batched bans. The maintainer's own QQ was
-> caught in this wave on 2026-05-14. Override with `MEMEX_QQ_NAPCAT_FORCE=1`
+> caught in this wave on 2026-05-14. Override with `MEMEXA_QQ_NAPCAT_FORCE=1`
 > only on a research-disposable account.
 >
 > **db-only path: the recommended one. Hardened in upstream JARVIS;
@@ -30,7 +30,7 @@ backup tool.
 > **OSS v0.1.x status**: the SQLCipher decrypt + key-extraction implementation
 > lives in upstream JARVIS (`jarvis/qq_db.py`, 762 lines, standard library
 > only). It is scheduled for migration to `src/extraction/qq/qq_db.py` in
-> Memex v0.2. Until then, OSS users must either copy that file in by hand
+> Memexa v0.2. Until then, OSS users must either copy that file in by hand
 > or rely on the clipboard fallback below.
 
 ### Trade-offs
@@ -61,27 +61,27 @@ macOS (path varies by client version — search inside the container):
 
 ### Key extraction (one-time per QQ client install)
 
-The database is encrypted with SQLCipher. Memex does **not** bundle a key
+The database is encrypted with SQLCipher. Memexa does **not** bundle a key
 extractor — that is provided by sister tools:
 
 - [QQBackup/qq-win-db-key](https://github.com/QQBackup/qq-win-db-key) — Windows NTQQ key dump
 - [Mythologyli/qq-nt-db](https://github.com/Mythologyli/qq-nt-db) — alternative path
 
 Run their extraction once while QQ is signed in, then write the key into
-`~/.memex/secrets/qq_db.key`. Memex's reader uses the URI form
+`~/.memexa/secrets/qq_db.key`. Memexa's reader uses the URI form
 `mode=ro&nolock=1` so it can open the database while QQ is still open.
 
 ### Wire-up
 
 ```bash
-# 1. Tell memex which QQ account ID to ingest
-$EDITOR ~/.memex/identity.yaml
+# 1. Tell memexa which QQ account ID to ingest
+$EDITOR ~/.memexa/identity.yaml
 # Add or set:
 #   qq_id: "<your-qq-id>"
 
 # 2. Drop the key from qq-win-db-key into the secrets directory
-mkdir -p ~/.memex/secrets
-$EDITOR ~/.memex/secrets/qq_db.key   # raw hex, single line
+mkdir -p ~/.memexa/secrets
+$EDITOR ~/.memexa/secrets/qq_db.key   # raw hex, single line
 
 # 3. Test the reader can open the DB
 python -c "
@@ -120,7 +120,7 @@ client version number.
 
 ## 2. Alternative: clipboard adapter (zero-risk)
 
-If you don't want to extract keys at all, Memex ships a clipboard reader
+If you don't want to extract keys at all, Memexa ships a clipboard reader
 that takes manually forwarded messages:
 
 ```bash
@@ -141,7 +141,7 @@ zero footprint.
 
 The `src/extraction/qq_realtime_watcher.py` and `qq_batch_ingest.py` modules
 are kept in the tree for historical reference and will refuse to start unless
-you set `MEMEX_QQ_NAPCAT_FORCE=1`. **Setting that variable on an account you
+you set `MEMEXA_QQ_NAPCAT_FORCE=1`. **Setting that variable on an account you
 care about is strongly discouraged.**
 
 Reasons:
@@ -165,7 +165,7 @@ token, and accept the account is a research throw-away.
 
 As of 2026-01-31, the official `bot.q.qq.com` platform [no longer permits
 individual developers to bind bots to QQ groups](https://bot.q.qq.com/wiki/).
-You can still do channel messages and bot DMs, which Memex does not currently
+You can still do channel messages and bot DMs, which Memexa does not currently
 integrate (community PR welcome).
 
 ---

@@ -4,7 +4,7 @@ Used to serialise access to on-demand Mac MLX-LM model slots (e.g. Gemma-31B on
 :18081) so that only one ingestion pipeline loads the model at a time, avoiding
 OOM on the 36 GB M4 Max.
 
-Lock file: memex/data/MLX_SERVER_LOCK.flag
+Lock file: memexa/data/MLX_SERVER_LOCK.flag
 Format   : JSON {"owner": str, "model": str, "acquired_at": float,
                  "ttl": int, "token": str}
 
@@ -41,7 +41,7 @@ from typing import Optional
 
 # ---------------------------------------------------------------------------
 # Path resolution — ASCII-only, no hard-coded CWD with non-ASCII characters.
-# Resolve relative to this file's location (repo/memex/dispatch/...).
+# Resolve relative to this file's location (repo/memexa/dispatch/...).
 # ---------------------------------------------------------------------------
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DATA_DIR = _REPO_ROOT / "data"

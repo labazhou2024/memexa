@@ -60,7 +60,7 @@ walkthrough cross-references at least two sources.
 # from repo root
 docker compose -f docker-compose.example.yml up -d   # start backend
 make demo-ingest                                      # POST 26 cards
-memex doctor                                          # confirm bank has data
+memexa doctor                                          # confirm bank has data
 
 # then any walkthrough's commands will return real output
 ```

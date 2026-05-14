@@ -7,7 +7,7 @@ the vLLM servers are managed externally (watchdog + screen sessions),
 not via mlx_lm launchctl swap.
 
 This stub is safe because:
-  - Phase 1 server backend mode (MEMEX_PIPELINE_BACKEND=server) skips
+  - Phase 1 server backend mode (MEMEXA_PIPELINE_BACKEND=server) skips
     actual model swap (vLLM stays loaded across stages)
   - load_only(label) just succeeds — caller assumes vLLM already serving
   - is_alive returns True — caller checks via HTTP probe separately

@@ -26,18 +26,18 @@ Usage on your-org
 -------------
 Phase A:
     python phase_split_worker.py --phase gate \
-        --batches-dir /tmp/memex_email_browser/data/input_batches_email \
-        --cards-dir   /tmp/memex_email_browser/data/cards_email \
-        --gate-dir    /tmp/memex_email_browser/data/gate_email \
+        --batches-dir /tmp/memexa_email_browser/data/input_batches_email \
+        --cards-dir   /tmp/memexa_email_browser/data/cards_email \
+        --gate-dir    /tmp/memexa_email_browser/data/gate_email \
         --gatekeeper-url   http://127.0.0.1:8316 \
         --gatekeeper-model Qwen/Qwen3-14B-AWQ \
         --concurrent 8
 
 Phase B (one process per Gemma vllm):
     python phase_split_worker.py --phase extract \
-        --batches-dir /tmp/memex_email_browser/data/input_batches_email \
-        --cards-dir   /tmp/memex_email_browser/data/cards_email \
-        --gate-dir    /tmp/memex_email_browser/data/gate_email \
+        --batches-dir /tmp/memexa_email_browser/data/input_batches_email \
+        --cards-dir   /tmp/memexa_email_browser/data/cards_email \
+        --gate-dir    /tmp/memexa_email_browser/data/gate_email \
         --extractor-url   http://127.0.0.1:8313 \
         --extractor-model mlx-community/gemma-4-31b-it-4bit \
         --concurrent 2 --shard 0/3
@@ -54,7 +54,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 # Imports from the existing worker + prompt module. Both live next to us
-# on your-org at /tmp/memex_l0_cc_full/code/.
+# on your-org at /tmp/memexa_l0_cc_full/code/.
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 

@@ -20,14 +20,14 @@ not a thematic dump.
 
 ```
                           ┌───────────────────────────┐
-                          │  memex project "midterm"  │
+                          │  memexa project "midterm"  │
                           │  → 22 raw cards           │
                           │  cross-source (6 sources) │
                           └─────────────┬─────────────┘
                                         │
                                         ▼
                           ┌───────────────────────────┐
-                          │  memex timeline --start ..│
+                          │  memexa timeline --start ..│
                           │  → same cards, ordered    │
                           │     by when_start         │
                           └─────────────┬─────────────┘
@@ -42,7 +42,7 @@ not a thematic dump.
 ## Step 1 — pull everything for the project
 
 ```bash
-memex project "midterm report" --max-cards 40
+memexa project "midterm report" --max-cards 40
 ```
 
 `project` runs source-aware variants in parallel (it knows to look for
@@ -66,7 +66,7 @@ source breakdown:
 ## Step 2 — order it as a story
 
 ```bash
-memex timeline --start 2024-01-08 --end 2024-01-16 \
+memexa timeline --start 2024-01-08 --end 2024-01-16 \
   --filter "topic:midterm report"
 ```
 
@@ -121,15 +121,15 @@ blockers, root-cause of delay — all sequential questions.
 ## Adapt to your own data
 
 ```bash
-memex project "<project-name>" --max-cards 40
-memex timeline --start <YYYY-MM-DD> --end <YYYY-MM-DD> \
+memexa project "<project-name>" --max-cards 40
+memexa timeline --start <YYYY-MM-DD> --end <YYYY-MM-DD> \
   --filter "topic:<project-keyword>"
 ```
 
 A common variant — narrow to one source if a project lives mostly in one place:
 
 ```bash
-memex project "<project>" --source wechat
+memexa project "<project>" --source wechat
 ```
 
 ## See also

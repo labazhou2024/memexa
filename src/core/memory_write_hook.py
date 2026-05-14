@@ -163,16 +163,16 @@ _SUBPROCESS_ENV_ALLOWLIST = (
     "PATH", "PATHEXT", "PYTHONPATH", "PYTHONIOENCODING",
     "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE", "HOME", "APPDATA",
     "NEO4J_URI", "NEO4J_USER", "NEO4J_PASSWORD",
-    "MEMEX_HOOK_FAST", "MEMEX_GRAPHITI_ENABLED",
-    "MEMEX_GRAPH_RETRIEVE", "MEMEX_DUAL_LLM_MOCK",
+    "MEMEXA_HOOK_FAST", "MEMEXA_GRAPHITI_ENABLED",
+    "MEMEXA_GRAPH_RETRIEVE", "MEMEXA_DUAL_LLM_MOCK",
     "ANTHROPIC_API_KEY",
     # U2 (2026-04-26): per security-reviewer S-3, allowlist new env vars
-    "MEMEX_MEMORY_HOOK_LEGACY_ONLY",
-    "MEMEX_OUTBOX_DIR",
-    "MEMEX_OUTBOX_ZOMBIE_TTL",
-    "MEMEX_AUDIT_THRESHOLD",
-    "MEMEX_PID_FILE_DIR",
-    "MEMEX_HINDSIGHT_URL", "MEMEX_HINDSIGHT_BANK", "MEMEX_HINDSIGHT_TIMEOUT",
+    "MEMEXA_MEMORY_HOOK_LEGACY_ONLY",
+    "MEMEXA_OUTBOX_DIR",
+    "MEMEXA_OUTBOX_ZOMBIE_TTL",
+    "MEMEXA_AUDIT_THRESHOLD",
+    "MEMEXA_PID_FILE_DIR",
+    "MEMEXA_HINDSIGHT_URL", "MEMEXA_HINDSIGHT_BANK", "MEMEXA_HINDSIGHT_TIMEOUT",
 )
 
 
@@ -251,8 +251,8 @@ def _emit_hook_trace(event: str, payload: dict) -> None:
     """TU-7 (plan_v3 AC-8): emit explicit trace event on every fail-soft
     exit path. Prior behavior swallowed exceptions silently.
 
-    AC-9 fix: when run as raw script (python memex/memex/core/memory_
-    write_hook.py), memex/ isn't on sys.path by default. Insert it
+    AC-9 fix: when run as raw script (python memexa/memexa/core/memory_
+    write_hook.py), memexa/ isn't on sys.path by default. Insert it
     before attempting the trace_sink import so observability works
     regardless of how the hook was invoked.
     """
@@ -316,8 +316,8 @@ def main() -> int:
             return 0
 
         # U2 (2026-04-26): primary path is outbox enqueue.
-        # Kill-switch MEMEX_MEMORY_HOOK_LEGACY_ONLY=1 → bypass outbox.
-        if os.environ.get("MEMEX_MEMORY_HOOK_LEGACY_ONLY") == "1":
+        # Kill-switch MEMEXA_MEMORY_HOOK_LEGACY_ONLY=1 → bypass outbox.
+        if os.environ.get("MEMEXA_MEMORY_HOOK_LEGACY_ONLY") == "1":
             _emit_hook_trace("memory_write_hook_kill_switch",
                              {"file_path": real_path[:200],
                               "reason": "env_override"})

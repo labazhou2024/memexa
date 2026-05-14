@@ -144,7 +144,7 @@ def suggest_alternative_agent(failed_type: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 def _patterns_path() -> Path:
-    # agent_output_validator.py → memex/memex/core/ → data/
+    # agent_output_validator.py → memexa/memexa/core/ → data/
     return (
         Path(__file__).resolve().parent.parent
         / "data" / "improvement_patterns.jsonl"

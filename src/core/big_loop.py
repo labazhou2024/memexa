@@ -13,7 +13,7 @@ Agent-delegated stages (return specs for CTO to invoke):
   Q6: Strategic advisor (returns spec for strategic-advisor Agent)
 
 Usage:
-    loop = BigLoop(project_root=Path("memex"))
+    loop = BigLoop(project_root=Path("memexa"))
     result = await loop.run()
 """
 
@@ -134,7 +134,7 @@ class BigLoop:
         spec = {
             "agent": "qa-director",
             "model": "opus",
-            "prompt": f"Full code review of {len(src_files)} Python files in memex project. "
+            "prompt": f"Full code review of {len(src_files)} Python files in memexa project. "
                       f"Output numbered Bug JSON with severity + fix suggestions.",
             "files_to_review": src_files[:50],  # Cap for context
             "output_format": "json_bug_list",
@@ -239,10 +239,10 @@ class BigLoop:
         AC-T10-2: KB -> memory promotion no longer requires CEO CLI.
         R7 guard: O(patterns) bounded; caller-visible counts clamped to 10/run
         inside promotion_engine.find_promotable.
-        Kill switch: MEMEX_T10_DISABLE_Q6_5=1 (skip, returns no-op dict).
+        Kill switch: MEMEXA_T10_DISABLE_Q6_5=1 (skip, returns no-op dict).
         """
         import os as _os
-        if _os.environ.get("MEMEX_T10_DISABLE_Q6_5") == "1":
+        if _os.environ.get("MEMEXA_T10_DISABLE_Q6_5") == "1":
             return {"skipped": "disabled"}
         try:
             from src.core.promotion_engine import (

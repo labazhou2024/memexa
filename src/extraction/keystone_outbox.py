@@ -3,7 +3,7 @@
 Provides shared atomic-write + bare-PII scrub for U6 wechat_read / outlook_read /
 schedule_poll. Mac-side U7 will pull JSON envelopes via xfer.py.
 
-Schema (envelope JSON written to memex/data/win_keystone_outbox/<utc-iso>__<source>.json):
+Schema (envelope JSON written to memexa/data/win_keystone_outbox/<utc-iso>__<source>.json):
 
     ENVELOPE_SCHEMA = {
         "schema_version": int,                 # = 1
@@ -107,7 +107,7 @@ def scrub_pii(text: str) -> tuple[str, int]:
 
 def _outbox_dir() -> Path:
     """Resolve outbox directory; create if missing."""
-    p = _WS_ROOT / "memex" / "data" / "win_keystone_outbox"
+    p = _WS_ROOT / "memexa" / "data" / "win_keystone_outbox"
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -201,8 +201,8 @@ def write_envelope(
 _APPEND_LOCK = __import__("threading").Lock()  # in-process serialization
 
 # TU-7 (2026-04-30): rotation thresholds. Override via env for tests / different deployments.
-_ROTATE_MAX_BYTES = int(os.environ.get("MEMEX_OUTBOX_ROTATE_MAX_BYTES", str(100 * 1024 * 1024)))
-_ROTATE_MAX_AGE_SEC = float(os.environ.get("MEMEX_OUTBOX_ROTATE_MAX_AGE_SEC", str(7 * 24 * 3600)))
+_ROTATE_MAX_BYTES = int(os.environ.get("MEMEXA_OUTBOX_ROTATE_MAX_BYTES", str(100 * 1024 * 1024)))
+_ROTATE_MAX_AGE_SEC = float(os.environ.get("MEMEXA_OUTBOX_ROTATE_MAX_AGE_SEC", str(7 * 24 * 3600)))
 
 
 def _should_rotate(target: Path) -> tuple:

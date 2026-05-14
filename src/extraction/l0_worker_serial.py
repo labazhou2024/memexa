@@ -46,7 +46,7 @@ from typing import List, Optional, Tuple
 
 import httpx
 
-# Workspace root for memex.* imports
+# Workspace root for memexa.* imports
 _WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
 if str(_WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(_WORKSPACE_ROOT))

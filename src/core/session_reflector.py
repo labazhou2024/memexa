@@ -16,7 +16,7 @@ Design (per verifier R2):
 - PII scrub before Haiku
 - Budget cap shared with L2 classifier
 - Only triggers when recent signals warrant reflection (error / review reject / long session)
-- ENV flag: MEMEX_L3_REFLECTION=1 default on
+- ENV flag: MEMEXA_L3_REFLECTION=1 default on
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ _REFLECTION_LOG_FMT = "reflection_{sid}.log"
 
 def is_enabled() -> bool:
     """ENV flag. Default on."""
-    return os.environ.get("MEMEX_L3_REFLECTION", "1") == "1"
+    return os.environ.get("MEMEXA_L3_REFLECTION", "1") == "1"
 
 
 def _safe_env() -> dict:
@@ -67,8 +67,8 @@ def _safe_env() -> dict:
     whitelist = [
         "PATH", "PYTHONPATH", "ANTHROPIC_API_KEY",
         "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE",
-        "MEMEX_DATA_DIR", "MEMEX_L2_SOFT_SIGNAL", "MEMEX_L3_REFLECTION",
-        "MEMEX_HAIKU_DAILY_USD",
+        "MEMEXA_DATA_DIR", "MEMEXA_L2_SOFT_SIGNAL", "MEMEXA_L3_REFLECTION",
+        "MEMEXA_HAIKU_DAILY_USD",
     ]
     return {k: v for k, v in os.environ.items() if k in whitelist}
 
@@ -220,7 +220,7 @@ def _trace_file_for_classify() -> Path:
     """Path resolution mirrors trace_sink._trace_file() without importing it
     (keep classify_session_state self-contained so tests can inject paths).
     """
-    override = os.environ.get("MEMEX_TRACE_FILE")
+    override = os.environ.get("MEMEXA_TRACE_FILE")
     if override:
         try:
             p = Path(override).resolve()

@@ -1,5 +1,5 @@
 """
-memex Agents - Behavioral Intelligence
+memexa Agents - Behavioral Intelligence
 
 Phase 2 agents for user behavior analysis and adaptation.
 """

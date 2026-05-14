@@ -44,10 +44,10 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-BATCH_GAP_SEC = int(os.environ.get("MEMEX_BATCH_GAP_SEC", "3600"))  # 1 h (CEO 2026-05-05: 不要拆碎连续聊天)
+BATCH_GAP_SEC = int(os.environ.get("MEMEXA_BATCH_GAP_SEC", "3600"))  # 1 h (CEO 2026-05-05: 不要拆碎连续聊天)
 SHORT_1V1_THRESHOLD = 10  # msgs
-UNRESOLVED_REPLY_WAIT_SEC = int(os.environ.get("MEMEX_UNRESOLVED_REPLY_WAIT_SEC", "3600"))  # 1 h
-MAX_MSGS_PER_BATCH_LLM = int(os.environ.get("MEMEX_MAX_MSGS_PER_BATCH_LLM", "2000"))  # CEO 2026-05-05: 提到 2000 实际无上限 (>500 msgs 已极少；>2000 LLM 推理可能超 timeout)
+UNRESOLVED_REPLY_WAIT_SEC = int(os.environ.get("MEMEXA_UNRESOLVED_REPLY_WAIT_SEC", "3600"))  # 1 h
+MAX_MSGS_PER_BATCH_LLM = int(os.environ.get("MEMEXA_MAX_MSGS_PER_BATCH_LLM", "2000"))  # CEO 2026-05-05: 提到 2000 实际无上限 (>500 msgs 已极少；>2000 LLM 推理可能超 timeout)
 
 
 @dataclass
@@ -720,7 +720,7 @@ def main(argv=None) -> int:
     cross_model_streak = 0
     CROSS_MODEL_STREAK_ABORT = 3
     PER_BATCH_TIMEOUT_S = float(os.environ.get(
-        "MEMEX_PER_BATCH_TIMEOUT_S", "420"))  # 7 min default; covers ~2 LLM calls × 180s
+        "MEMEXA_PER_BATCH_TIMEOUT_S", "420"))  # 7 min default; covers ~2 LLM calls × 180s
     failed_chat_rooms: List[str] = []
     aborted_streak = False
     for b in selected:

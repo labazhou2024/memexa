@@ -59,7 +59,7 @@ voice memo                   ─── demo_user 自言自语想中期报告
 # 在 repo 根目录
 docker compose -f docker-compose.example.yml up -d   # 起后端
 make demo-ingest                                      # POST 26 张卡
-memex doctor                                          # 确认 bank 有数据
+memexa doctor                                          # 确认 bank 有数据
 
 # 之后任何 walkthrough 里的命令都能返回真实输出
 ```

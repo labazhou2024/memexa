@@ -18,14 +18,14 @@
 
 ```
                           ┌───────────────────────────┐
-                          │  memex project "midterm"  │
+                          │  memexa project "midterm"  │
                           │  → 22 张原始卡            │
                           │  跨源 (6 source)          │
                           └─────────────┬─────────────┘
                                         │
                                         ▼
                           ┌───────────────────────────┐
-                          │  memex timeline --start ..│
+                          │  memexa timeline --start ..│
                           │  → 同一批卡, 按           │
                           │     when_start 重排       │
                           └─────────────┬─────────────┘
@@ -40,7 +40,7 @@
 ## Step 1 — 把项目相关的全拉出来
 
 ```bash
-memex project "midterm report" --max-cards 40
+memexa project "midterm report" --max-cards 40
 ```
 
 `project` 跑 source 定制的并发变体 (它知道在 wechat/qq 里找"中期报告",
@@ -64,7 +64,7 @@ source 分布:
 ## Step 2 — 按故事排序
 
 ```bash
-memex timeline --start 2024-01-08 --end 2024-01-16 \
+memexa timeline --start 2024-01-08 --end 2024-01-16 \
   --filter "topic:midterm report"
 ```
 
@@ -118,15 +118,15 @@ memex timeline --start 2024-01-08 --end 2024-01-16 \
 ## 用到你自己的数据
 
 ```bash
-memex project "<你项目名>" --max-cards 40
-memex timeline --start <YYYY-MM-DD> --end <YYYY-MM-DD> \
+memexa project "<你项目名>" --max-cards 40
+memexa timeline --start <YYYY-MM-DD> --end <YYYY-MM-DD> \
   --filter "topic:<项目关键词>"
 ```
 
 常见变体 — 限定单一 source (如果项目主要发生在某个 source):
 
 ```bash
-memex project "<项目>" --source wechat
+memexa project "<项目>" --source wechat
 ```
 
 ## 相关

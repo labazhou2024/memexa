@@ -25,8 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-HINDSIGHT_API_HOST = os.environ.get("MEMEX_HINDSIGHT_API_HOST", "127.0.0.1")
-HINDSIGHT_API_PORT = int(os.environ.get("MEMEX_HINDSIGHT_API_PORT", "8888"))
+HINDSIGHT_API_HOST = os.environ.get("MEMEXA_HINDSIGHT_API_HOST", "127.0.0.1")
+HINDSIGHT_API_PORT = int(os.environ.get("MEMEXA_HINDSIGHT_API_PORT", "8888"))
 HTTP_TIMEOUT_SEC = 3.0
 DEFAULT_TTL_DAYS = 30
 DEFAULT_TOP_N = 20

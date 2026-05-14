@@ -47,10 +47,10 @@ logger = logging.getLogger(__name__)
 
 _REPO = Path(__file__).resolve().parents[3]
 _CACHE_DIR = _REPO / "data" / "l0_v5_qq" / "work" / "stt_cache"
-_DEFAULT_MODEL = os.environ.get("MEMEX_STT_MODEL", "small")
-_DEFAULT_LANG = os.environ.get("MEMEX_STT_LANG", "zh")
-_FFMPEG = os.environ.get("MEMEX_FFMPEG", "ffmpeg")
-_SILK_DECODER = os.environ.get("MEMEX_SILK_DECODER", "silk_v3_decoder")
+_DEFAULT_MODEL = os.environ.get("MEMEXA_STT_MODEL", "small")
+_DEFAULT_LANG = os.environ.get("MEMEXA_STT_LANG", "zh")
+_FFMPEG = os.environ.get("MEMEXA_FFMPEG", "ffmpeg")
+_SILK_DECODER = os.environ.get("MEMEXA_SILK_DECODER", "silk_v3_decoder")
 
 VOICE_TAG = "[语音转写]"
 VOICE_FAIL_TAG = "[语音"  # prefix used in fail-soft placeholders
@@ -173,8 +173,8 @@ def _get_whisper(model_name: str):
         return _WHISPER_CACHE[model_name]
     try:
         from faster_whisper import WhisperModel
-        device = os.environ.get("MEMEX_STT_DEVICE", "cpu")
-        compute_type = os.environ.get("MEMEX_STT_COMPUTE", "int8")
+        device = os.environ.get("MEMEXA_STT_DEVICE", "cpu")
+        compute_type = os.environ.get("MEMEXA_STT_COMPUTE", "int8")
         model = WhisperModel(model_name, device=device, compute_type=compute_type)
         _WHISPER_CACHE[model_name] = model
         return model

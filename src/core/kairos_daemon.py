@@ -31,8 +31,8 @@ from .error_classifier import (
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_WORKSPACE = _MEMEX_ROOT.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_WORKSPACE = _MEMEXA_ROOT.parent
 _DATA = Path(__file__).parent.parent / "data"
 _PROJECTS_FILE = _DATA / "pending_projects.json"
 _REPORTS_DIR = _DATA / "project_reports"
@@ -218,7 +218,7 @@ def get_next_project() -> Optional[Dict]:
 #   3. Gate keeper (Phase D syntax/import/security checks)
 #   4. CEO approval queue (L2/L3 for high-risk operations)
 # Therefore we use --permission-mode bypass for autonomous execution,
-# with memex hooks providing the actual safety enforcement.
+# with memexa hooks providing the actual safety enforcement.
 
 def _invoke_claude(prompt: str, model: str, budget: float,
                    max_turns: int, resume_session: Optional[str] = None) -> Dict:

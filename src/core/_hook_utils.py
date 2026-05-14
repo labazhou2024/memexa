@@ -42,16 +42,16 @@ def get_workspace_root() -> Path:
 
 _WORKSPACE = get_workspace_root()
 
-# [SEC-3] Respect MEMEX_DATA_DIR / MEMEX_HARNESS_FILE env vars for test isolation.
+# [SEC-3] Respect MEMEXA_DATA_DIR / MEMEXA_HARNESS_FILE env vars for test isolation.
 # Falls back to workspace-based paths in production.
-_env_data = os.environ.get("MEMEX_DATA_DIR")
+_env_data = os.environ.get("MEMEXA_DATA_DIR")
 if _env_data and Path(_env_data).is_dir():
     _DATA_DIR = Path(_env_data)
 else:
-    _DATA_DIR = _WORKSPACE / "memex" / "memex" / "data"
+    _DATA_DIR = _WORKSPACE / "memexa" / "memexa" / "data"
 _EVENTS_FILE = _DATA_DIR / "events.jsonl"
 
-_env_harness = os.environ.get("MEMEX_HARNESS_FILE")
+_env_harness = os.environ.get("MEMEXA_HARNESS_FILE")
 if _env_harness:
     _HARNESS = Path(_env_harness)
 else:
@@ -60,7 +60,7 @@ else:
 
 # U6 TU-3: HMAC allowlist for gates that may carry bypass tokens.
 # Adding a gate here means: (a) gate is recognised by ceo_approve verifier;
-# (b) gate's bypass token is HMAC-signed via MEMEX_HMAC_KEY env;
+# (b) gate's bypass token is HMAC-signed via MEMEXA_HMAC_KEY env;
 # (c) auditor scripts can grep this list to inventory all override channels.
 _HMAC_ALLOWLIST = (
     "bench_gate",
@@ -73,12 +73,12 @@ def _verify_bench_bypass_token(token: str) -> bool:
     """U6 TU-3: HMAC-verify a bench_gate bypass token.
 
     Token format: hex(hmac_sha256(key, "bench_gate:" + utc_date_yyyy_mm_dd))[:32]
-    Key: MEMEX_HMAC_KEY env var. If unset, bypass is rejected.
+    Key: MEMEXA_HMAC_KEY env var. If unset, bypass is rejected.
     Date binds: token is only valid for the day it was issued (replay-resistant).
     """
     import hmac, hashlib
     from datetime import datetime, timezone
-    key = os.environ.get("MEMEX_HMAC_KEY", "").strip()
+    key = os.environ.get("MEMEXA_HMAC_KEY", "").strip()
     if not key or not token:
         return False
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -258,7 +258,7 @@ def _should_emit_gate(gate: str, rule: str, decision: str, target: str) -> bool:
         return True
     # Try loading config policy; default to dedup_60s
     try:
-        from memex.config_loader import load_config
+        from memexa.config_loader import load_config
         cfg = load_config()
         policy = cfg.get("feature_flags", {}).get("gate_event_sampling", "dedup_60s")
     except Exception:

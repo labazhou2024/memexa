@@ -2,7 +2,7 @@
 
 [English](configuration.md) · **中文**
 
-`memex` 运行时读的每个旋钮。这里没列的要么是实现细节, 要么是即将废弃
+`memexa` 运行时读的每个旋钮。这里没列的要么是实现细节, 要么是即将废弃
 的 env var。
 
 ## 设置层次
@@ -10,13 +10,13 @@
 | 层               | 路径                                       | 格式  | 重载                |
 |------------------|--------------------------------------------|--------|---------------------|
 | 环境变量          | shell / `.env`                             | env    | per-process         |
-| 用户配置          | `~/.memex/identity.yaml`                   | YAML   | per-process (LRU-cached) |
-| 用户配置          | `~/.memex/aliases.yaml`                    | YAML   | per-process (LRU-cached) |
-| 用户配置          | `~/.memex/config.yaml`                     | YAML   | per-process         |
+| 用户配置          | `~/.memexa/identity.yaml`                   | YAML   | per-process (LRU-cached) |
+| 用户配置          | `~/.memexa/aliases.yaml`                    | YAML   | per-process (LRU-cached) |
+| 用户配置          | `~/.memexa/config.yaml`                     | YAML   | per-process         |
 | 项目配置          | `config/aliases.example.yaml`              | YAML   | 模板, 仅复制用       |
 | 项目配置          | `config/identity.example.yaml`             | YAML   | 模板, 仅复制用       |
 
-解析优先级 **env 优先**, 然后 **`~/.memex/*.yaml`**, 然后 **workspace 默认**。
+解析优先级 **env 优先**, 然后 **`~/.memexa/*.yaml`**, 然后 **workspace 默认**。
 一个 key 在一层里设, 不要在多层重复。
 
 ## 核心环境变量
@@ -25,19 +25,19 @@
 
 | 变量                          | 默认                          | 用在                              |
 |-----------------------------|-----------------------------|----------------------------------|
-| `MEMEX_WORKSPACE_ROOT`      | `~/.claude/projects/`       | `_path_resolver` — 任何读 workspace 状态的模块 |
-| `MEMEX_CONFIG_DIR`          | `~/.memex/`                 | `memex init` 目标                |
-| `MEMEX_QUERY_LOG_PATH`      | `<workspace>/data/memory_query_log.jsonl` | `memory_query` 调用日志 |
+| `MEMEXA_WORKSPACE_ROOT`      | `~/.claude/projects/`       | `_path_resolver` — 任何读 workspace 状态的模块 |
+| `MEMEXA_CONFIG_DIR`          | `~/.memexa/`                 | `memexa init` 目标                |
+| `MEMEXA_QUERY_LOG_PATH`      | `<workspace>/data/memory_query_log.jsonl` | `memory_query` 调用日志 |
 
 ### 记忆后端 (Hindsight)
 
 | 变量                                | 默认                       | 备注                                          |
 |-----------------------------------|--------------------------|---------------------------------------------|
-| `MEMEX_HINDSIGHT_URL`             | `http://127.0.0.1:8888`  | 主 daemon URL                              |
-| `MEMEX_HINDSIGHT_FALLBACK_URL`    | unset                    | 设了的话, 主连接 timeout 时重试            |
-| `MEMEX_HINDSIGHT_BANK`            | `memory_full_v5`         | retain / recall / reflect 的目标 bank      |
-| `MEMEX_HINDSIGHT_TIMEOUT`         | `180`                    | 每个 HTTP 调用秒数 (高负载下 recall 慢)    |
-| `MEMEX_HINDSIGHT_TRACE_LOG`       | unset                    | trace JSONL 文件路径; unset = 不 trace      |
+| `MEMEXA_HINDSIGHT_URL`             | `http://127.0.0.1:8888`  | 主 daemon URL                              |
+| `MEMEXA_HINDSIGHT_FALLBACK_URL`    | unset                    | 设了的话, 主连接 timeout 时重试            |
+| `MEMEXA_HINDSIGHT_BANK`            | `memory_full_v5`         | retain / recall / reflect 的目标 bank      |
+| `MEMEXA_HINDSIGHT_TIMEOUT`         | `180`                    | 每个 HTTP 调用秒数 (高负载下 recall 慢)    |
+| `MEMEXA_HINDSIGHT_TRACE_LOG`       | unset                    | trace JSONL 文件路径; unset = 不 trace      |
 
 ### PostgreSQL (bid cache)
 
@@ -45,14 +45,14 @@
 
 | 变量                     | 默认         | 备注                                                  |
 |------------------------|-------------|----------------------------------------------------|
-| `MEMEX_PG_DSN`         | unset       | 完整 DSN (`postgres://user@host:5433/hindsight`)。设了就覆盖 host/port/user/db。|
-| `MEMEX_PG_HOST`        | `127.0.0.1` |                                                    |
-| `MEMEX_PG_PORT`        | `5433`      |                                                    |
-| `MEMEX_PG_USER`        | `$USER`     | 回退到 `getpass.getuser()`                          |
-| `MEMEX_PG_DB`          | `hindsight` |                                                    |
-| `MEMEX_PG_BID_TTL_SEC` | `3600`      | 磁盘缓存 TTL                                        |
-| `MEMEX_PG_SSH_TARGET`  | unset       | 设了就走 `ssh <target> psql ...` 而不是直接 psycopg2。仅当 PG 端口被防火墙挡住时用。 |
-| `MEMEX_PG_PSQL_BIN`    | `psql`      | 仅在 ssh 模式下用                                    |
+| `MEMEXA_PG_DSN`         | unset       | 完整 DSN (`postgres://user@host:5433/hindsight`)。设了就覆盖 host/port/user/db。|
+| `MEMEXA_PG_HOST`        | `127.0.0.1` |                                                    |
+| `MEMEXA_PG_PORT`        | `5433`      |                                                    |
+| `MEMEXA_PG_USER`        | `$USER`     | 回退到 `getpass.getuser()`                          |
+| `MEMEXA_PG_DB`          | `hindsight` |                                                    |
+| `MEMEXA_PG_BID_TTL_SEC` | `3600`      | 磁盘缓存 TTL                                        |
+| `MEMEXA_PG_SSH_TARGET`  | unset       | 设了就走 `ssh <target> psql ...` 而不是直接 psycopg2。仅当 PG 端口被防火墙挡住时用。 |
+| `MEMEXA_PG_PSQL_BIN`    | `psql`      | 仅在 ssh 模式下用                                    |
 
 ### LLM provider (OpenAI-compatible)
 
@@ -60,11 +60,11 @@ Stage A (gatekeeper) 和 Stage B (extractor) 用。
 
 | 变量                                | 必填?     | 例                                       |
 |-----------------------------------|-----------|----------------------------------------|
-| `MEMEX_REMOTE_LLM_BASE_URL`       | 是        | `http://127.0.0.1:8000`                |
-| `MEMEX_REMOTE_LLM_API_KEY`        | provider 决定 | `sk-…`                                |
-| `MEMEX_REMOTE_LLM_GATE_MODEL`     | 是        | `qwen2.5-14b-instruct` / `gpt-4o-mini` |
-| `MEMEX_REMOTE_LLM_EXTRACT_MODEL`  | 是        | `gemma-2-27b-it` / `deepseek-chat`     |
-| `MEMEX_EXTRACT_CONCURRENT`        | `5`       | 每 driver extract endpoint 并发。大多数 vLLM 部署甜点是 5。 |
+| `MEMEXA_REMOTE_LLM_BASE_URL`       | 是        | `http://127.0.0.1:8000`                |
+| `MEMEXA_REMOTE_LLM_API_KEY`        | provider 决定 | `sk-…`                                |
+| `MEMEXA_REMOTE_LLM_GATE_MODEL`     | 是        | `qwen2.5-14b-instruct` / `gpt-4o-mini` |
+| `MEMEXA_REMOTE_LLM_EXTRACT_MODEL`  | 是        | `gemma-2-27b-it` / `deepseek-chat`     |
+| `MEMEXA_EXTRACT_CONCURRENT`        | `5`       | 每 driver extract endpoint 并发。大多数 vLLM 部署甜点是 5。 |
 
 ### Audio (可选)
 
@@ -74,28 +74,28 @@ whisper) 或远程跑 (Linux/CUDA faster-whisper)。
 | 变量                     | 默认                              | 备注                                |
 |------------------------|----------------------------------|----------------------------------|
 | `HF_HUB_OFFLINE`       | unset                            | 模型下完后设 `1`, 跳过 Hub 探测     |
-| `MEMEX_AUDIO_INBOX`    | `<workspace>/data/audio/inbox`   | LaunchAgent / cron 取新文件的位置  |
-| `MEMEX_AUDIO_DEVICE`   | `cpu`                            | `cpu` / `cuda` / `mps` 之一        |
+| `MEMEXA_AUDIO_INBOX`    | `<workspace>/data/audio/inbox`   | LaunchAgent / cron 取新文件的位置  |
+| `MEMEXA_AUDIO_DEVICE`   | `cpu`                            | `cpu` / `cuda` / `mps` 之一        |
 
 ### Dashboard
 
 | 变量                         | 默认             | 备注                                          |
 |----------------------------|------------------|-----------------------------------------------|
-| `MEMEX_DASHBOARD_PORT`     | `8765`           |                                               |
-| `MEMEX_DASHBOARD_HOSTS`    | unset            | JSON 数组列出要探测的远程 host (schema 见 `src/dashboard/sys_monitor/server.py` docstring)。unset → 只看 localhost。 |
-| `MEMEX_PG_SNAPSHOT_DIR`    | unset            | `MEMEX_PG_SNAPSHOT_HOST` 上 `v5_*.sql.gz` snapshot 路径 |
-| `MEMEX_PG_SNAPSHOT_HOST`   | unset            | snapshot 轮询的 ssh target                   |
+| `MEMEXA_DASHBOARD_PORT`     | `8765`           |                                               |
+| `MEMEXA_DASHBOARD_HOSTS`    | unset            | JSON 数组列出要探测的远程 host (schema 见 `src/dashboard/sys_monitor/server.py` docstring)。unset → 只看 localhost。 |
+| `MEMEXA_PG_SNAPSHOT_DIR`    | unset            | `MEMEXA_PG_SNAPSHOT_HOST` 上 `v5_*.sql.gz` snapshot 路径 |
+| `MEMEXA_PG_SNAPSHOT_HOST`   | unset            | snapshot 轮询的 ssh target                   |
 
 ### Cron / orchestrator
 
 | 变量                       | 默认     | 备注                                                          |
 |---------------------------|---------|-------------------------------------------------------------|
-| `MEMEX_CRON_TIMEOUT_SEC`  | `14400` | 每 driver 子进程 wall-clock; 老默认是 1 800                  |
-| `MEMEX_DEBUG`             | unset   | 设任意 truthy 值, CLI 失败时打印完整 traceback              |
+| `MEMEXA_CRON_TIMEOUT_SEC`  | `14400` | 每 driver 子进程 wall-clock; 老默认是 1 800                  |
+| `MEMEXA_DEBUG`             | unset   | 设任意 truthy 值, CLI 失败时打印完整 traceback              |
 
 ## YAML 文件
 
-### `~/.memex/identity.yaml`
+### `~/.memexa/identity.yaml`
 
 ```yaml
 primary_email: alice@example.com
@@ -109,10 +109,10 @@ imap:
   host: imap.example.com
   port: 993
   user: alice@example.com
-  password_env: MEMEX_IMAP_PASSWORD  # 永远不要在 YAML 内联密钥
+  password_env: MEMEXA_IMAP_PASSWORD  # 永远不要在 YAML 内联密钥
 ```
 
-### `~/.memex/aliases.yaml`
+### `~/.memexa/aliases.yaml`
 
 ```yaml
 self_aliases:
@@ -124,20 +124,20 @@ self_roles:
 timezone: "Asia/Shanghai"
 ```
 
-### `~/.memex/config.yaml` (可选)
+### `~/.memexa/config.yaml` (可选)
 
 ```yaml
-workspace_root: /home/alice/memex-data
+workspace_root: /home/alice/memexa-data
 ```
 
 ## 检查
 
 ```bash
-memex config         # 打印所有解析后的变量 + 文件是否存在
-memex doctor         # 端到端检 backend + LLM provider + identity
+memexa config         # 打印所有解析后的变量 + 文件是否存在
+memexa doctor         # 端到端检 backend + LLM provider + identity
 ```
 
-`memex doctor` 报 `[fail] LLM/gate ... probe error` 时, 先修 LLM provider
+`memexa doctor` 报 `[fail] LLM/gate ... probe error` 时, 先修 LLM provider
 的 env var 再跑别的 — 否则 cron job 会在 Stage A 静默失败。
 
 ## *不*可配置的

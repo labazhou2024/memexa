@@ -37,7 +37,7 @@
 我们保护的资产:
 
 - 用户本地 memory 图谱 (PostgreSQL 内容)
-- 用户运行时凭据 (`.env`, `~/.memex/*.yaml`)
+- 用户运行时凭据 (`.env`, `~/.memexa/*.yaml`)
 - 用户 LLM API key, 包括嵌入 `.env` 的
 
 假设环境:

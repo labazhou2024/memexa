@@ -51,7 +51,7 @@ This script:
 3. Runs the two-LLM extraction (gate + extract). **By default this
    uses a stub LLM** that emits deterministic synthetic V2 envelopes
    so the smoke test does not need a real LLM endpoint. Set
-   `MEMEX_REMOTE_LLM_BASE_URL` to use a real model.
+   `MEMEXA_REMOTE_LLM_BASE_URL` to use a real model.
 4. POSTs the resulting cards to the local Hindsight daemon at
    `http://127.0.0.1:8888`.
 

@@ -227,9 +227,9 @@ def _scrub_raw_output(text: str, max_len: int = 2000) -> str:
 
 
 # [SEC-M3 Round3 final 2026-04-19] Per-process verifier call cap. Guards
-# against runaway external LLM spend when MEMEX_AUTO_VERIFY_QUALITY=1 is
+# against runaway external LLM spend when MEMEXA_AUTO_VERIFY_QUALITY=1 is
 # combined with a high-throughput feedback stream. Default 50 calls/process;
-# CEO can override via MEMEX_AUTO_VERIFY_MAX.
+# CEO can override via MEMEXA_AUTO_VERIFY_MAX.
 import threading as _thr_mod
 _VERIFIER_CALL_LOCK = _thr_mod.Lock()
 _VERIFIER_CALL_COUNT = 0
@@ -238,7 +238,7 @@ _VERIFIER_BUDGET_EXHAUSTED_COUNT = 0
 
 
 def _verifier_quota_remaining() -> int:
-    max_calls = int(os.environ.get("MEMEX_AUTO_VERIFY_MAX", "50"))
+    max_calls = int(os.environ.get("MEMEXA_AUTO_VERIFY_MAX", "50"))
     with _VERIFIER_CALL_LOCK:
         return max(0, max_calls - _VERIFIER_CALL_COUNT)
 
@@ -246,7 +246,7 @@ def _verifier_quota_remaining() -> int:
 def _consume_verifier_quota() -> bool:
     """Returns True if this call is within budget; atomically increments."""
     global _VERIFIER_CALL_COUNT
-    max_calls = int(os.environ.get("MEMEX_AUTO_VERIFY_MAX", "50"))
+    max_calls = int(os.environ.get("MEMEXA_AUTO_VERIFY_MAX", "50"))
     with _VERIFIER_CALL_LOCK:
         if _VERIFIER_CALL_COUNT >= max_calls:
             return False
@@ -285,7 +285,7 @@ def collect_feedback(project: Dict, result: Dict) -> Dict[str, Any]:
     quality_report = result.get("quality_report")
     score_source = "pre_computed"  # default when caller attached quality_report
     if not (quality_report and isinstance(quality_report, dict)):
-        if _os.environ.get("MEMEX_AUTO_VERIFY_QUALITY", "0") == "1":
+        if _os.environ.get("MEMEXA_AUTO_VERIFY_QUALITY", "0") == "1":
             # [SEC-M3 Round3 final] Rate-cap: if quota exhausted, fall through
             # to compute-based score instead of making another external call.
             if not _consume_verifier_quota():
@@ -299,15 +299,15 @@ def collect_feedback(project: Dict, result: Dict) -> Dict[str, Any]:
                     write_trace_event("hook_outcome", {
                         "event": "budget_exhausted",
                         "module": "feedback_collector",
-                        "max_calls": int(_os.environ.get("MEMEX_AUTO_VERIFY_MAX", "50")),
+                        "max_calls": int(_os.environ.get("MEMEXA_AUTO_VERIFY_MAX", "50")),
                         "exhausted_count": _exhausted_count,
                     })
                 except Exception:
                     pass  # trace_sink must never break the feedback path
                 logger.warning(
-                    "Auto-verify quota exhausted (MEMEX_AUTO_VERIFY_MAX=%s); "
+                    "Auto-verify quota exhausted (MEMEXA_AUTO_VERIFY_MAX=%s); "
                     "using compute fallback for this call (exhausted_count=%d)",
-                    _os.environ.get("MEMEX_AUTO_VERIFY_MAX", "50"),
+                    _os.environ.get("MEMEXA_AUTO_VERIFY_MAX", "50"),
                     _exhausted_count,
                 )
                 score_source = "compute_quota_exhausted"

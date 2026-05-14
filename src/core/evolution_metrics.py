@@ -141,11 +141,11 @@ class EvolutionMetrics:
         return snapshot
 
     def _get_test_pass_rate(self) -> float:
-        memex_dir = self._file.parent.parent.parent  # data/ -> memex/ -> memex/
+        memexa_dir = self._file.parent.parent.parent  # data/ -> memexa/ -> memexa/
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=no", "--no-header"],
-                capture_output=True, text=True, cwd=str(memex_dir), timeout=120,
+                capture_output=True, text=True, cwd=str(memexa_dir), timeout=120,
             )
             output = result.stdout.strip()
             passed = failed = 0

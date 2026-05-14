@@ -19,13 +19,13 @@ Design (per BL-9 of long_term_plan_v2.md):
 - task_id traversal guard (security-iter2-1 HIGH): _VALID_TASK_ID_PATTERN check
   + resolve().relative_to(tasks_root) defense-in-depth.
 
-Note (security-iter2-2): MEMEX_TASK_DIR env in task_dir_layout.tasks_root() lacks
+Note (security-iter2-2): MEMEXA_TASK_DIR env in task_dir_layout.tasks_root() lacks
 parent-allowlist guard (pre-existing in task_dir_layout). This module's task_id
 validation closes the surface for adversarial task_id; full env-allowlist tracked
 as U18 deferred. Future maintainers: keep plan_versioning AND plan_retro_gate
 env-handling aligned (currently plan_retro_gate._task_dir hardcodes the base path
 and is NOT env-aware; this is an intentional divergence — plan_retro_gate consumers
-ignore MEMEX_TASK_DIR while plan_versioning honors it).
+ignore MEMEXA_TASK_DIR while plan_versioning honors it).
 
 Public API:
   set_latest_plan(task_id, version) -> dict (status, version, pointer_path, ...)

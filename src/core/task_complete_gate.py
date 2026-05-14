@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 _DATA = Path(__file__).parent.parent / "data"
-_MEMEX = Path(__file__).parent.parent.parent
+_MEMEXA = Path(__file__).parent.parent.parent
 
 # Whitelist of valid reviewer types for per-reviewer artifact files
 _VALID_REVIEWERS = {"security", "logic", "coverage"}
@@ -46,7 +46,7 @@ def _run_pytest_quick() -> tuple:
         r = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=no", "--no-header"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=120, cwd=str(_MEMEX),
+            timeout=120, cwd=str(_MEMEXA),
         )
         last_line = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else ""
         if r.returncode == 0:

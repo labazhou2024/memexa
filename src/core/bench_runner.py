@@ -33,11 +33,11 @@ from typing import Literal, Optional
 
 _LOG = logging.getLogger(__name__)
 
-# Resolve memex root: memex/core/bench_runner.py -> ../../ = memex/
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_DEFAULT_HISTORY = _MEMEX_ROOT / "data" / "benchmark_results_history.jsonl"
-_DEFAULT_ARCHIVE_DIR = _MEMEX_ROOT / "data" / "archive"
-_DEFAULT_LOCK_PATH = _MEMEX_ROOT / "data" / "hindsight_daemon.lock.json"
+# Resolve memexa root: memexa/core/bench_runner.py -> ../../ = memexa/
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_DEFAULT_HISTORY = _MEMEXA_ROOT / "data" / "benchmark_results_history.jsonl"
+_DEFAULT_ARCHIVE_DIR = _MEMEXA_ROOT / "data" / "archive"
+_DEFAULT_LOCK_PATH = _MEMEXA_ROOT / "data" / "hindsight_daemon.lock.json"
 
 # Stopwords for keyword_pool_match (common English function words, >=3 chars).
 _STOPWORDS = frozenset({
@@ -247,7 +247,7 @@ def daemon_health_probe(lock_path: Path | None = None) -> bool:
             result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 capture_output=True, text=True, timeout=5,
-                cwd=str(_MEMEX_ROOT),
+                cwd=str(_MEMEXA_ROOT),
             )
             head_sha = result.stdout.strip()
             if head_sha and head_sha != build_sha:
@@ -272,7 +272,7 @@ def _get_parent_sha() -> str:
         r = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             capture_output=True, text=True, timeout=5,
-            cwd=str(_MEMEX_ROOT),
+            cwd=str(_MEMEXA_ROOT),
         )
         return r.stdout.strip()
     except Exception:
@@ -285,7 +285,7 @@ def _get_staged_tree_sha() -> str:
         r = subprocess.run(
             ["git", "write-tree"],
             capture_output=True, text=True, timeout=5,
-            cwd=str(_MEMEX_ROOT),
+            cwd=str(_MEMEXA_ROOT),
         )
         return r.stdout.strip()
     except Exception:
@@ -489,7 +489,7 @@ def run_benchmark(
     p95 = _percentile(latencies, 0.95)
 
     # Gate decision: default warn_only (F-5: no skip when env unset)
-    env_block = os.environ.get("MEMEX_BENCH_BLOCK", "").strip()
+    env_block = os.environ.get("MEMEXA_BENCH_BLOCK", "").strip()
     if env_block == "1":
         gate = "block" if recall_real < 0.40 else "pass"
     else:
@@ -695,7 +695,7 @@ def attach_sha(
         r = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             capture_output=True, text=True, timeout=5,
-            cwd=str(_MEMEX_ROOT),
+            cwd=str(_MEMEXA_ROOT),
         )
         actual_sha = r.stdout.strip()
     except Exception:

@@ -12,7 +12,7 @@ Modes (any one suffices):
      pre-extracted history (e.g. from a different session).
 
   C. NT-DB        (decrypted QQ NT sqlite)
-     uses memex.qq_db.QQDBReader (requires QQ.exe running for SQLCipher
+     uses memexa.qq_db.QQDBReader (requires QQ.exe running for SQLCipher
      key extraction); on this machine the local NT db is 2024-08 stale
      so this mode is documented but expected to be skipped — keep code
      path live for future deployment.
@@ -64,7 +64,7 @@ _BATCHES_OUT = _DATA / "l0_v5_qq" / "input_batches"
 _DEFAULT_CHAT_IDS = _DATA / "qq_chat_ids.json"
 _DEFAULT_SKIPLIST = _DATA / "qq_mute_skiplist.json"
 _DEFAULT_TIER_MAP = _DATA / "qq_room_tier_map.json"
-_DEFAULT_NAPCAT = os.environ.get("MEMEX_NAPCAT_URL", "http://127.0.0.1:5700")
+_DEFAULT_NAPCAT = os.environ.get("MEMEXA_NAPCAT_URL", "http://127.0.0.1:5700")
 _DEFAULT_DUMP = _DATA / "qq_chat_history_dump.json"
 
 WINDOW_MINUTES = 30
@@ -600,7 +600,7 @@ def cli() -> int:
     ap.add_argument("--start-date", required=True, help="YYYY-MM-DD inclusive")
     ap.add_argument("--end-date", required=True, help="YYYY-MM-DD inclusive")
     ap.add_argument("--threshold-per-day", type=int, default=200)
-    ap.add_argument("--self-qq", type=int, default=None)  # MEMEX_QQ_ID env or identity.yaml
+    ap.add_argument("--self-qq", type=int, default=None)  # MEMEXA_QQ_ID env or identity.yaml
     ap.add_argument("--max-chats", type=int, default=None)
     ap.add_argument("--manifest-path", default="data/identity_manifest.yaml")
     args = ap.parse_args()

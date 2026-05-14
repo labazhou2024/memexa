@@ -2,7 +2,7 @@
 
 Architecture:
 - Hindsight daemon runs in py3.12 conda env (idle_timeout=0, long-running).
-- Main memex (py3.9) talks to daemon via HTTP at MEMEX_HINDSIGHT_URL.
+- Main memexa (py3.9) talks to daemon via HTTP at MEMEXA_HINDSIGHT_URL.
 - This wrapper exposes 3-API contract: retain / recall / reflect.
 
 OpenAPI endpoint paths (from hindsight-client 0.5.4 source @ 2026-04-25):
@@ -28,29 +28,29 @@ except ImportError:  # pragma: no cover - py3.9 base env may not have httpx
 
 # Daemon URL. Single-host install: leave as default (loopback). Multi-host
 # install (e.g. memory backend lives on a Mac, query CLI on Win): set
-# ``MEMEX_HINDSIGHT_URL`` to the primary endpoint and (optionally)
-# ``MEMEX_HINDSIGHT_FALLBACK_URL`` to a local mirror for HA. Calls fall
+# ``MEMEXA_HINDSIGHT_URL`` to the primary endpoint and (optionally)
+# ``MEMEXA_HINDSIGHT_FALLBACK_URL`` to a local mirror for HA. Calls fall
 # through to the fallback automatically on timeout / connection refused.
-_SERVER_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-_FALLBACK_URL = os.environ.get("MEMEX_HINDSIGHT_FALLBACK_URL", "").strip()
+_SERVER_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+_FALLBACK_URL = os.environ.get("MEMEXA_HINDSIGHT_FALLBACK_URL", "").strip()
 # 2026-05-06 L0-v5: default bank switched to memory_full_v5 (schema:v2 Cards,
 # chunks-only mode). memory_full_v3 frozen as archive (see data/l0_v5/v3_archived_marker.json).
-# Set MEMEX_HINDSIGHT_BANK=memory_full_v3 to query legacy v3 bank explicitly.
-_DEFAULT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+# Set MEMEXA_HINDSIGHT_BANK=memory_full_v3 to query legacy v3 bank explicitly.
+_DEFAULT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 _LEGACY_BANK = "memory_full"  # archived schema:v0 (queried only when explicit)
 # 2026-04-30 daemon repair: bumped default 60s → 180s. Win CPU recall p50 ≈
-# 60s warm + N×backfill contention; 60s often timed out under load. MEMEX_HINDSIGHT_TIMEOUT
+# 60s warm + N×backfill contention; 60s often timed out under load. MEMEXA_HINDSIGHT_TIMEOUT
 # env still overrides. Mac Studio M4 Max 36GB (Metal MPS) is faster than Win CPU, so
 # this default is conservative for Win-only deployment.
-_DEFAULT_TIMEOUT = float(os.environ.get("MEMEX_HINDSIGHT_TIMEOUT", "180.0"))
+_DEFAULT_TIMEOUT = float(os.environ.get("MEMEXA_HINDSIGHT_TIMEOUT", "180.0"))
 
 # TU-U4-2 (2026-04-26): deterministic encoding probe.
 # Per logic-iter1-1 fix: accept Union[bytes, str] with isinstance guard.
-_TRACE_LOG_PATH = os.environ.get("MEMEX_HINDSIGHT_TRACE_LOG", "")
+_TRACE_LOG_PATH = os.environ.get("MEMEXA_HINDSIGHT_TRACE_LOG", "")
 
 
 def _emit_trace(event: str, payload: dict[str, Any]) -> None:
-    """Append trace event to JSONL when MEMEX_HINDSIGHT_TRACE_LOG is set.
+    """Append trace event to JSONL when MEMEXA_HINDSIGHT_TRACE_LOG is set.
 
     No-op when env unset (production daemon does not need to log every retain).
     """

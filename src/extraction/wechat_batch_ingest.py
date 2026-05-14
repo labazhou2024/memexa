@@ -421,7 +421,7 @@ def main() -> int:
     p.add_argument("--max-cost", type=float, default=_DEFAULT_MAX_COST)
     args = p.parse_args()
 
-    if os.environ.get("MEMEX_SKIP_WECHAT_BATCH"):
+    if os.environ.get("MEMEXA_SKIP_WECHAT_BATCH"):
         print(json.dumps({"skipped": True, "reason": "env_skip"}))
         return 0
 

@@ -16,7 +16,7 @@ Usage
         # mutate items
         save_pending(pending_file, items)
 
-The lockfile path is derived from the same MEMEX_DATA_DIR env override
+The lockfile path is derived from the same MEMEXA_DATA_DIR env override
 the consuming modules honour, keeping test isolation working.
 """
 from __future__ import annotations

@@ -14,7 +14,7 @@ Per-task on-disk state for crash-resumable autopilot:
 Verifier R1/R2 compliance:
   - #1 trace.jsonl: per-task threading.Lock + filelock.FileLock (mirrors event_bus.log_event)
   - #2 state.json RMW: delegates to _atomic_state.atomic_update_json (Alt-4 reuse)
-  - #5 OneDrive race: MEMEX_TASK_DIR env var; os.replace 3× exponential retry
+  - #5 OneDrive race: MEMEXA_TASK_DIR env var; os.replace 3× exponential retry
   - #6 _latest pointer: textfile + tmp+os.replace (no symlink branch; Windows non-admin safe)
 """
 from __future__ import annotations
@@ -36,24 +36,24 @@ from src.core._atomic_state import atomic_update_json, atomic_read_json
 logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------
-# Path resolution (MEMEX_TASK_DIR escape hatch for OneDrive)
+# Path resolution (MEMEXA_TASK_DIR escape hatch for OneDrive)
 # --------------------------------------------------------------------
 
 _SLUG_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
 
 def _workspace_root() -> Path:
-    """Resolve workspace (parent of memex/). Robust to CWD."""
+    """Resolve workspace (parent of memexa/). Robust to CWD."""
     return Path(__file__).resolve().parent.parent.parent.parent
 
 
 def tasks_root() -> Path:
     """Base directory for all task dirs.
 
-    Honors MEMEX_TASK_DIR env for OneDrive escape. Falls back to
+    Honors MEMEXA_TASK_DIR env for OneDrive escape. Falls back to
     .claude/harness/tasks/ inside the workspace.
     """
-    env = os.environ.get("MEMEX_TASK_DIR")
+    env = os.environ.get("MEMEXA_TASK_DIR")
     if env:
         return Path(env).expanduser().resolve()
     return _workspace_root() / ".claude" / "harness" / "tasks"
@@ -138,7 +138,7 @@ def _cleanup_stale_scope_flag(stale_after_sec: int = 86400) -> bool:
     (NOT silent removal). Per S-3 audit-trail requirement.
     """
     try:
-        flag = _workspace_root() / "memex" / "memex" / "data" / "scope_validation_pending.flag"
+        flag = _workspace_root() / "memexa" / "memexa" / "data" / "scope_validation_pending.flag"
         if not flag.exists():
             return False
         age = time.time() - flag.stat().st_mtime

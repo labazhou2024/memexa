@@ -46,7 +46,7 @@ from src.core.fact_schema import HASH_LEN
 
 # Reuse chat-graph U8 for chat-realtime resolution path
 try:
-    from memex.dispatch import entity_pseudonym as _u8_module
+    from memexa.dispatch import entity_pseudonym as _u8_module
     _HAS_U8 = True
 except ImportError:
     _HAS_U8 = False

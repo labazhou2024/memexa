@@ -32,8 +32,8 @@ Out of scope:
 ## Development setup
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git
-cd memex
+git clone https://github.com/labazhou2024/memexa.git
+cd memexa
 python -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
@@ -79,7 +79,7 @@ Open an issue with:
 - What you tried (one command).
 - What you expected.
 - What happened (paste the full error including the Python traceback).
-- `python -V`, OS, `pip freeze | grep -iE "memex|hindsight|bge"`.
+- `python -V`, OS, `pip freeze | grep -iE "memexa|hindsight|bge"`.
 
 Security-sensitive issues: see [SECURITY.md](SECURITY.md).
 

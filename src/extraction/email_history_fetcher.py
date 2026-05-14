@@ -163,7 +163,7 @@ def _parse_imap_date(s: str) -> Optional[datetime]:
 def _safe_email_parse(raw_bytes: bytes) -> Dict[str, Any]:
     """Parse RFC822 → JSON-friendly dict."""
     import email as email_lib
-    from memex.qq_email import (
+    from memexa.qq_email import (
         _decode_header, _extract_body, _extract_attachments, _parse_date,
     )
     msg = email_lib.message_from_bytes(raw_bytes)
@@ -217,10 +217,10 @@ def fetch_account(
         {'fetched': N, 'skipped': N, 'errors': N, 'folders': [...]}
     """
     if account == "qq_email":
-        from memex.qq_email import QQEmailClient
+        from memexa.qq_email import QQEmailClient
         client = QQEmailClient()
     elif account == "ustc_email":
-        from memex.ustc_email import RemoteEmailClient
+        from memexa.ustc_email import RemoteEmailClient
         client = RemoteEmailClient()
     else:
         raise ValueError(f"unknown account: {account!r}")

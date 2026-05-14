@@ -18,7 +18,7 @@ Layers exercised:
     L3 dispatch:   produces reflection log with transcript (synthetic tail)
     P3 helpful:    credit_session_helpful bumps helpful_count
 
-Uses MEMEX_L6_EVOLUTION=0 internally so L6 only reaches `threshold_unmet`
+Uses MEMEXA_L6_EVOLUTION=0 internally so L6 only reaches `threshold_unmet`
 or `no_eligible_agents` (doesn't modify any .md).
 """
 from __future__ import annotations
@@ -90,7 +90,7 @@ def run_demo() -> int:
     failures = 0
 
     # Force L6 to safe-mode (no .md writes) regardless of user env
-    os.environ["MEMEX_L6_EVOLUTION"] = "0"
+    os.environ["MEMEXA_L6_EVOLUTION"] = "0"
 
     with tempfile.TemporaryDirectory(prefix="se_demo_") as td:
         td_path = Path(td)

@@ -29,8 +29,8 @@ from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_WORKSPACE = _MEMEX_ROOT.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_WORKSPACE = _MEMEXA_ROOT.parent
 _DATA = Path(__file__).parent.parent / "data"
 
 # WORKFLOW_SUFFIX is now in kairos_daemon.py, applied per mode at submission time
@@ -242,7 +242,7 @@ class TaskBrain:
                     issues.append({
                         "type": "stale_heartbeat",
                         "detail": f"heartbeat 已 {age_min:.0f} 分钟未响应（阈值 120 分钟）",
-                        "fix_hint": "检查 Windows Task Scheduler 中 memex-Heartbeat 任务是否正常",
+                        "fix_hint": "检查 Windows Task Scheduler 中 memexa-Heartbeat 任务是否正常",
                     })
             except Exception:
                 pass
@@ -301,8 +301,8 @@ class TaskBrain:
             ctx["bugs"] = []
 
         # Untested modules
-        core = _MEMEX_ROOT / "memex" / "core"
-        tests = _MEMEX_ROOT / "tests"
+        core = _MEMEXA_ROOT / "memexa" / "core"
+        tests = _MEMEXA_ROOT / "tests"
         if core.exists() and tests.exists():
             tested = {f.stem.replace("test_", "") for f in tests.glob("test_*.py")}
             ctx["untested"] = [f.stem for f in sorted(core.glob("*.py"))
@@ -450,7 +450,7 @@ class TaskBrain:
                 candidates.append({
                     "title": "INVESTIGATE: high error rate in events",
                     "prompt": f"Error rate is {t['data'].get('error_count', 0)} errors in recent 100 events. "
-                              f"Read memex/data/events.jsonl, analyze patterns, fix root causes.",
+                              f"Read memexa/data/events.jsonl, analyze patterns, fix root causes.",
                     "priority": 4, "estimate_min": 15, "mode": "workflow",
                 })
             elif t["type"] == "consolidate_memory":

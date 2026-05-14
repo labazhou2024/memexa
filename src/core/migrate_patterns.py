@@ -35,7 +35,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-# Reuse the resolved data dir so env-var overrides (MEMEX_DATA_DIR) work in tests.
+# Reuse the resolved data dir so env-var overrides (MEMEXA_DATA_DIR) work in tests.
 from src.core.pattern_extractor import _PATTERNS_FILE, _DATA_DIR
 
 

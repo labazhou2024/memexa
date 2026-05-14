@@ -178,8 +178,8 @@ def _read_task_spec_budget() -> float:
     """Read cost_budget_usd from canonical task_spec.json. Default 50.0.
 
     Per HARD RULE feedback_state_file_dual_path_discovery (2026-04-27 U12 lesson):
-    only the canonical memex/memex/data/task_spec.json path is authoritative.
-    The legacy memex/data/ shadow was deleted 2026-04-28 (tech debt cleanup
+    only the canonical memexa/memexa/data/task_spec.json path is authoritative.
+    The legacy memexa/data/ shadow was deleted 2026-04-28 (tech debt cleanup
     autopilot 20260427_153149_tech_debt_B_) so dual-path drift is no longer
     possible. persistent_mode.py is the sole writer.
 
@@ -213,17 +213,17 @@ def _resolve_task_dir(task_id: str) -> Optional[Path]:
     """Resolve workspace task_dir. Returns None if absent. Reparse-point-safe.
 
     Lookup order (per HARD RULE feedback_value_resolution_chain_explicit):
-    Tier-1: env MEMEX_TASK_DIR (if set + dir exists)
+    Tier-1: env MEMEXA_TASK_DIR (if set + dir exists)
     Tier-2: <workspace>/.claude/harness/tasks/<task_id>/
     Tier-3: None (skip flag-file write)
     """
-    env_path = os.environ.get("MEMEX_TASK_DIR")
+    env_path = os.environ.get("MEMEXA_TASK_DIR")
     if env_path:
         p = Path(env_path)
         if p.is_dir():
             return p
     # Workspace anchor: parents[3] of this file = workspace root
-    # (memex/core/cost_meter.py → memex → workspace)
+    # (memexa/core/cost_meter.py → memexa → workspace)
     workspace = Path(__file__).resolve().parents[3]
     candidate = workspace / ".claude" / "harness" / "tasks" / task_id
     if candidate.is_dir():

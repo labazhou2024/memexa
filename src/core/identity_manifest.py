@@ -12,7 +12,7 @@ Maintains the cross-source identity graph that grounds Pass-2 extraction:
 PII GUARANTEES:
 - File default location: data/identity_manifest.yaml (gitignore'd)
 - Never serialized to your-org server (extraction injects redacted slice only)
-- Vault encryption optional (mode='vault' uses Fernet; key from env MEMEX_MANIFEST_KEY)
+- Vault encryption optional (mode='vault' uses Fernet; key from env MEMEXA_MANIFEST_KEY)
 - All evidence quotes redacted to ≤80 chars before persistence
 
 Concurrent-write semantics:
@@ -944,7 +944,7 @@ _default_store: Optional[ManifestStore] = None
 def get_default_store() -> ManifestStore:
     global _default_store
     if _default_store is None:
-        path = os.environ.get("MEMEX_IDENTITY_MANIFEST", DEFAULT_MANIFEST_PATH)
+        path = os.environ.get("MEMEXA_IDENTITY_MANIFEST", DEFAULT_MANIFEST_PATH)
         _default_store = ManifestStore.load(path)
     return _default_store
 

@@ -27,7 +27,7 @@ CLI
     python -m src.core.query_type_classifier classify "<prompt>"
     python -m src.core.query_type_classifier acc <corpus.jsonl>
 
-Env kill-switch: ``MEMEX_QUERY_TYPE_LOG=0`` disables hook side-effect.
+Env kill-switch: ``MEMEXA_QUERY_TYPE_LOG=0`` disables hook side-effect.
 """
 
 from __future__ import annotations
@@ -101,7 +101,7 @@ def classify(prompt: str) -> str:
 
 def _log_path() -> Path:
     here = Path(__file__).resolve()
-    # memex/core/query_type_classifier.py → memex/data/
+    # memexa/core/query_type_classifier.py → memexa/data/
     return here.parents[2] / "data" / "query_type_log.jsonl"
 
 

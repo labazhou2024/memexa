@@ -31,15 +31,15 @@ OUT_DIR = ROOT / "data" / "calendar_planning"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 PROGRESS_PATH = OUT_DIR / "ddl_scan_progress.json"
 
-DEFAULT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+DEFAULT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 HINDSIGHT_BASE = os.environ.get(
-    "MEMEX_HINDSIGHT_BASE", "http://127.0.0.1:8888"
+    "MEMEXA_HINDSIGHT_BASE", "http://127.0.0.1:8888"
 ).rstrip("/")
-LLM_PROVIDER = os.environ.get("MEMEX_DDL_LLM_PROVIDER", "deepseek").lower()
+LLM_PROVIDER = os.environ.get("MEMEXA_DDL_LLM_PROVIDER", "deepseek").lower()
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
-DEEPSEEK_MODEL = os.environ.get("MEMEX_DDL_DEEPSEEK_MODEL", "deepseek-chat")
-QWEN_BASE = os.environ.get("MEMEX_DDL_QWEN_BASE", "http://127.0.0.1:18080").rstrip("/")
-QWEN_MODEL = os.environ.get("MEMEX_DDL_QWEN_MODEL", "mlx-community/Qwen3-14B-4bit")
+DEEPSEEK_MODEL = os.environ.get("MEMEXA_DDL_DEEPSEEK_MODEL", "deepseek-chat")
+QWEN_BASE = os.environ.get("MEMEXA_DDL_QWEN_BASE", "http://127.0.0.1:18080").rstrip("/")
+QWEN_MODEL = os.environ.get("MEMEXA_DDL_QWEN_MODEL", "mlx-community/Qwen3-14B-4bit")
 PAGE = 200
 
 CARD_BEGIN = "MEMORYCARD_V2_HEADER_BEGIN"

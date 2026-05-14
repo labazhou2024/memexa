@@ -6,7 +6,7 @@ Mac side prerequisite (LIVE 2026-04-30):
     Measured: ~84 tok/s on M4 Max 36GB.
 
 Usage:
-    from memex.dispatch import mlx_lm_wrapper
+    from memexa.dispatch import mlx_lm_wrapper
     out = mlx_lm_wrapper.invoke("Reply with one sentence: what is 2+2?", max_tokens=64)
     # → {"ok": True, "text": "...", "latency_s": 1.2, "tok_per_s": 53.3, ...}
 
@@ -38,13 +38,13 @@ REMOTE_MODEL = "mlx-community/Llama-3.1-8B-Instruct-4bit"
 # generate. Model selection is server-side via launch script (Qwen3-14B
 # preferred for Chinese chat extraction).
 HTTP_BACKEND_URL = os.environ.get(
-    "MEMEX_QWEN3_URL", "http://127.0.0.1:18080",
+    "MEMEXA_QWEN3_URL", "http://127.0.0.1:18080",
 ).rstrip("/")
 HTTP_BACKEND_MODEL = os.environ.get(
-    "MEMEX_QWEN3_MODEL", "mlx-community/Qwen3-14B-4bit",
+    "MEMEXA_QWEN3_MODEL", "mlx-community/Qwen3-14B-4bit",
 )
 HTTP_BACKEND_TIMEOUT = float(
-    os.environ.get("MEMEX_QWEN3_HTTP_TIMEOUT", "120"),
+    os.environ.get("MEMEXA_QWEN3_HTTP_TIMEOUT", "120"),
 )
 
 
@@ -108,10 +108,10 @@ _TRACE_PATH = Path(__file__).resolve().parents[2] / "data" / "mlx_lm_trace.jsonl
 
 # HTTP dual-port backend configuration (TU-2 backfill_arc)
 _GEMMA_BACKEND_URL = os.environ.get(
-    "MEMEX_GEMMA_URL", "http://127.0.0.1:18081",
+    "MEMEXA_GEMMA_URL", "http://127.0.0.1:18081",
 ).rstrip("/")
 _GEMMA_BACKEND_MODEL = os.environ.get(
-    "MEMEX_GEMMA_MODEL", "mlx-community/gemma-3-12b-it-4bit",
+    "MEMEXA_GEMMA_MODEL", "mlx-community/gemma-3-12b-it-4bit",
 )
 
 

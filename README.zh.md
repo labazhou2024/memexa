@@ -15,15 +15,15 @@ repository-topics:
   - report-generation
 -->
 
-# Memex · 镜我
+# Memexa · 镜我
 
 [English](README.md) · **中文**
 
 > **Your personal Pensieve.**
 > 把你散落在 6 个 silo 的数据，按你当下要做的事，编成一份能直接交付/带走的文档。
 
-[![CI](https://github.com/labazhou2024/memex/actions/workflows/ci.yml/badge.svg)](https://github.com/labazhou2024/memex/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/labazhou2024/memex/actions/workflows/codeql.yml/badge.svg)](https://github.com/labazhou2024/memex/actions/workflows/codeql.yml)
+[![CI](https://github.com/labazhou2024/memexa/actions/workflows/ci.yml/badge.svg)](https://github.com/labazhou2024/memexa/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/labazhou2024/memexa/actions/workflows/codeql.yml/badge.svg)](https://github.com/labazhou2024/memexa/actions/workflows/codeql.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -31,7 +31,7 @@ repository-topics:
 
 ## 这是什么
 
-`memex` 摄入你 6 类中文日常数据（微信、QQ、邮件、浏览、AI 对话、语音备忘），
+`memexa` 摄入你 6 类中文日常数据（微信、QQ、邮件、浏览、AI 对话、语音备忘），
 用双 LLM 抽取实体 / 关系 / 时间证据，存进 PostgreSQL + pgvector 记忆图谱，
 然后用 **14 个查询子命令** 把当下要用的东西捞出来 — 谁找过我？这件事的全过程？
 我有哪些待办？X 项目跨源动态？
@@ -58,7 +58,7 @@ repository-topics:
 > 🚀 **第一次看？** 直接跳 [Example walkthroughs ↓](#-example-walkthroughs--5-个-reproducible-实例) 看 5 个真实场景怎么用。
 
 > 🤖 **设计上就是 AI agent 兼容的**。绝大多数真实用户是让 AI agent
-> (Claude Code / Cursor / Cline / 自己写的 agent) 替自己调用 memex,
+> (Claude Code / Cursor / Cline / 自己写的 agent) 替自己调用 memexa,
 > 而不是手敲子命令。14 个查询子命令是一个小协议; 给 agent 的协议文档在
 > [docs/for_agents.zh.md](docs/for_agents.zh.md) (硬规则 / 决策表 /
 > 组合模式 / 常见坑)。如果你在做需要中文数据记忆层的 agent, 从那开始。
@@ -67,8 +67,8 @@ repository-topics:
 
 | 人群 | 触发场景 | 当下可用 (v0.1) | 路线图 (v0.2+) |
 |---|---|---|---|
-| **科研 / 学生** | 实验做完 → 写报告；导师约谈 → 准备 | 14 个 query 手动 + LaTeX 模板 | `memex lab-report X` / `memex brief <人>` |
-| **办事人 / 打工人** | 错过 ddl → 补做；出门办事 → 怕漏 | `memex pending` + `memex quick` | `memex action-card X` / `memex dashboard` |
+| **科研 / 学生** | 实验做完 → 写报告；导师约谈 → 准备 | 14 个 query 手动 + LaTeX 模板 | `memexa lab-report X` / `memexa brief <人>` |
+| **办事人 / 打工人** | 错过 ddl → 补做；出门办事 → 怕漏 | `memexa pending` + `memexa quick` | `memexa action-card X` / `memexa dashboard` |
 
 两类人共用同一套底层（ingestion + 双 LLM 抽取 + 图谱 + 查询），上层模板包不同。
 
@@ -89,8 +89,8 @@ repository-topics:
 # 1. 装包
 pip install -e .
 
-# 2. 初始化配置 (创建 ~/.memex/ + 3 个示例文件)
-memex init                          # → ~/.memex/{aliases,identity}.yaml + .env
+# 2. 初始化配置 (创建 ~/.memexa/ + 3 个示例文件)
+memexa init                          # → ~/.memexa/{aliases,identity}.yaml + .env
 
 # 3. 起后端
 docker compose -f docker-compose.example.yml up -d
@@ -99,8 +99,8 @@ docker compose -f docker-compose.example.yml up -d
 python -m examples.demo_dataset.ingest --dry-run
 
 # 5. 自检 + 第一次查询
-memex doctor                        # 验证后端 + LLM provider
-memex quick "<你的关键词>"
+memexa doctor                        # 验证后端 + LLM provider
+memexa quick "<你的关键词>"
 ```
 
 完整步骤: [docs/quickstart.zh.md](docs/quickstart.zh.md)
@@ -138,7 +138,7 @@ memex quick "<你的关键词>"
 ## 查询 CLI
 
 ```bash
-memex <subcmd> "<query>" [options]
+memexa <subcmd> "<query>" [options]
 ```
 
 14 个子命令分三档（基础 / 高级 / 复合链）。最常用的 8 个：
@@ -158,7 +158,7 @@ memex <subcmd> "<query>" [options]
 
 ## 📖 Example walkthroughs — 5 个 reproducible 实例
 
-> 装包 → `make demo-ingest` → 跟着 walkthrough 跑命令 → 看 memex 实际怎么工作。
+> 装包 → `make demo-ingest` → 跟着 walkthrough 跑命令 → 看 memexa 实际怎么工作。
 > 全程基于合成 demo dataset (Alice / Bob / Carol / advisor@example.com)，
 > 任何人 1:1 复现，**没有任何真实个人数据**。
 
@@ -199,16 +199,16 @@ memex <subcmd> "<query>" [options]
 
 ## 两种跑 LLM 的方式
 
-`memex` 的核心是双 LLM 抽取 pipeline。OSS 完整自带，可以本地跑。
+`memexa` 的核心是双 LLM 抽取 pipeline。OSS 完整自带，可以本地跑。
 
 ```bash
 # 默认：OSS bundled prompt + 你自己的 LLM provider
 #   你只要在 .env 设置 OpenAI / DeepSeek / 本地 vLLM 的 base_url + key
-export MEMEX_EXTRACTOR_TIER=bundled
+export MEMEXA_EXTRACTOR_TIER=bundled
 
 # BYO：你自填 prompt（已有自己 prompt 工程的高级用户）
-export MEMEX_EXTRACTOR_TIER=byo
-export MEMEX_PROMPT_PATH=/path/to/your_prompts.py
+export MEMEXA_EXTRACTOR_TIER=byo
+export MEMEXA_PROMPT_PATH=/path/to/your_prompts.py
 ```
 
 **路线图**：v0.5 会上线一个可选的付费 API endpoint，

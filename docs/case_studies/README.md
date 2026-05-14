@@ -2,8 +2,8 @@
 
 **English** · [中文](README.zh.md)
 
-> Reproducible methodology write-ups, distilled from real-world memex
-> deployments. Each case study answers "I have a memex bank with my data
+> Reproducible methodology write-ups, distilled from real-world memexa
+> deployments. Each case study answers "I have a memexa bank with my data
 > in it — how do I turn it into something useful?"
 >
 > All examples use the synthetic [`demo_dataset/`](../../examples/demo_dataset/)
@@ -22,7 +22,7 @@
 - `docs/lessons_learned/` — **engineering retrospectives**. Bugs we hit, fixes
   we shipped, debt we paid. Audience: contributors.
 - `docs/case_studies/` (this dir) — **user-facing recipes**. Multi-command
-  workflows that compose `memex` subcommands into a deliverable. Audience:
+  workflows that compose `memexa` subcommands into a deliverable. Audience:
   end users.
 
 ## How to write your own

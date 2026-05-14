@@ -20,8 +20,8 @@ winget install --id Docker.DockerDesktop
 ## 2. Clone + 安装
 
 ```powershell
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
@@ -33,11 +33,11 @@ pip install -e ".[dev]"
 Copy-Item .env.example .env
 notepad .env
 
-New-Item -ItemType Directory -Force $HOME\.memex | Out-Null
-Copy-Item config\aliases.example.yaml  $HOME\.memex\aliases.yaml
-Copy-Item config\identity.example.yaml $HOME\.memex\identity.yaml
-notepad $HOME\.memex\aliases.yaml
-notepad $HOME\.memex\identity.yaml
+New-Item -ItemType Directory -Force $HOME\.memexa | Out-Null
+Copy-Item config\aliases.example.yaml  $HOME\.memexa\aliases.yaml
+Copy-Item config\identity.example.yaml $HOME\.memexa\identity.yaml
+notepad $HOME\.memexa\aliases.yaml
+notepad $HOME\.memexa\identity.yaml
 ```
 
 ## 4. 起后端

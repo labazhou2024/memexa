@@ -2,20 +2,20 @@
 
 **English** · [中文](email.zh.md)
 
-`memex` reads email via IMAP. It does not assume a particular provider;
+`memexa` reads email via IMAP. It does not assume a particular provider;
 anything with `imap.example.com:993` works (Gmail, Outlook, Tencent
 Exmail, Fastmail, ProtonMail Bridge, self-hosted Dovecot).
 
 ## Wire-up
 
 ```bash
-# 1. Add IMAP config to ~/.memex/identity.yaml
-$EDITOR ~/.memex/identity.yaml
+# 1. Add IMAP config to ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/identity.yaml
 # imap:
 #   host: imap.example.com
 #   port: 993
 #   user: alice@example.com
-#   password_env: MEMEX_IMAP_PASSWORD    # name of an env var, NOT the literal password
+#   password_env: MEMEXA_IMAP_PASSWORD    # name of an env var, NOT the literal password
 #   folders:
 #     - INBOX
 #     - "Sent"
@@ -23,7 +23,7 @@ $EDITOR ~/.memex/identity.yaml
 #   since_days: 90                       # only pull messages newer than this
 
 # 2. Set the password env var
-export MEMEX_IMAP_PASSWORD='<your-imap-app-specific-password>'
+export MEMEXA_IMAP_PASSWORD='<your-imap-app-specific-password>'
 
 # 3. Smoke test the connection
 python -m src.ingestion.v5_email_batch_builder --probe

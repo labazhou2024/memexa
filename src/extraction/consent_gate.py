@@ -2,7 +2,7 @@
 
 Behavior:
   - Default: ALL contacts (1on1 + 群聊) → consent='*_default_on'
-  - Manual blocklist: `memex/data/chat_consent_blocklist.json` lists wxids
+  - Manual blocklist: `memexa/data/chat_consent_blocklist.json` lists wxids
     explicitly opted-out by CEO; those become consent='manual_blocked' (drop)
   - Missing blocklist file → empty list (all default ON)
   - Group chats: detected by chat_name ending with '@chatroom'

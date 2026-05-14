@@ -1,7 +1,7 @@
 """big_loop_trigger — TU-A5 self_evolution_reconnect (2026-05-04).
 
 post-commit hook entry. Increments commits_since_last_big_loop counter.
-When counter ≥ MEMEX_BIG_LOOP_THRESHOLD (default 10) → background spawn
+When counter ≥ MEMEXA_BIG_LOOP_THRESHOLD (default 10) → background spawn
 big_loop full cycle + reset counter. Fail-soft: never blocks commit.
 
 CLI:
@@ -79,7 +79,7 @@ def _record_big_loop_fired() -> None:
 
 def trigger_check() -> dict:
     """Increment counter; if ≥ threshold → spawn + reset."""
-    threshold = int(os.environ.get("MEMEX_BIG_LOOP_THRESHOLD",
+    threshold = int(os.environ.get("MEMEXA_BIG_LOOP_THRESHOLD",
                                    str(DEFAULT_THRESHOLD)))
     n = _read_counter() + 1
     _write_counter(n)
@@ -118,7 +118,7 @@ def main() -> int:
     if args.status:
         result = {
             "counter": _read_counter(),
-            "threshold": int(os.environ.get("MEMEX_BIG_LOOP_THRESHOLD",
+            "threshold": int(os.environ.get("MEMEXA_BIG_LOOP_THRESHOLD",
                                             str(DEFAULT_THRESHOLD))),
             "last_loop_path": str(LAST_LOOP_PATH),
             "last_loop_exists": LAST_LOOP_PATH.exists(),

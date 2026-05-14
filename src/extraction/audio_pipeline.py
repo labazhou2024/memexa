@@ -250,7 +250,7 @@ class _EcapaSingleton:
             cls._model = EncoderClassifier.from_hparams(
                 source=ECAPA_MODEL,
                 run_opts={"device": "cpu"},  # MPS sometimes unstable for ECAPA
-                savedir=str(Path.home() / "MEMEX_audio" / "models" / "ecapa"),
+                savedir=str(Path.home() / "MEMEXA_audio" / "models" / "ecapa"),
             )
         return cls._model
 
@@ -582,7 +582,7 @@ def process_audio_file(
 def main():
     parser = argparse.ArgumentParser(description="Audio ASR + diarization pipeline")
     parser.add_argument("--input", required=True, help="Path to audio file")
-    parser.add_argument("--output-dir", default="~/MEMEX_audio/transcripts",
+    parser.add_argument("--output-dir", default="~/MEMEXA_audio/transcripts",
                         help="Base output dir; per-session subdir created")
     parser.add_argument("--session-id", default=None,
                         help="Override auto-derived session_id")

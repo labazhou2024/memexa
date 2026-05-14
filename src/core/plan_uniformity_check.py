@@ -378,7 +378,7 @@ def _check_r16_corpus_completeness(text: str) -> List[str]:
         r"(?:^|[\s`(])(tests/[\w/.-]+\.py)\b", text, re.MULTILINE))
     test_dirs = set(re.findall(
         r"(?:^|[\s`(])(tests/[\w/.-]+/)\b", text, re.MULTILINE))
-    workspace_root = Path(__file__).resolve().parents[2]  # memex/
+    workspace_root = Path(__file__).resolve().parents[2]  # memexa/
     workspace_root_resolved = workspace_root.resolve()
     paths_to_check: List[Path] = []
 
@@ -571,7 +571,7 @@ _R20_HEREDOC_PYTHON_C_RE = re.compile(
     re.MULTILINE,
 )
 # Additional category: nested-quote `python -c "..."` with single-quoted strings inside.
-# memory_syste evidence.jsonl LIVE-failure: `python -c "...os.chdir('memex')..."` triggered
+# memory_syste evidence.jsonl LIVE-failure: `python -c "...os.chdir('memexa')..."` triggered
 # bash escape misparse on Win Git Bash. Distinct from legacy U1 `python -c "import x"` (no nested).
 _R20_PYTHON_C_NESTED_QUOTES_RE = re.compile(
     r"""python\s+-c\s+"[^"]*'[^']*'[^"]*\"""",
@@ -645,7 +645,7 @@ def _check_r21_tu_outputs_required(text: str) -> List[str]:
 # Per HARD RULE feedback_trace_event_emit_or_assert.
 # Per logic-iter1-1 fix: scope LIMITED to ### TU-N blocks; Stage Plan §5-§9
 # trace event declarations are autopilot-infrastructure spec, not TU code.
-# Env override: MEMEX_SKIP_R22=1.
+# Env override: MEMEXA_SKIP_R22=1.
 # ----------------------------------------------------------------------------
 
 _R22_DECLARED_EVENT_RE = re.compile(
@@ -735,7 +735,7 @@ def _check_r22_trace_event_emit_or_assert(
 
     Per logic-iter1-1 fix: TU-only scope.
     """
-    if os.environ.get("MEMEX_SKIP_R22") == "1":
+    if os.environ.get("MEMEXA_SKIP_R22") == "1":
         return []
     workspace_root: Optional[Path] = None
     if plan_path is not None:
@@ -778,9 +778,9 @@ def _check_r22_trace_event_emit_or_assert(
                 if workspace_root is not None:
                     candidates.append(workspace_root / rel_path)
                 candidates.append(Path(rel_path))
-                # Also try stripping leading "memex/" if path doesn't exist
-                if rel_path.startswith("memex/") and workspace_root is not None:
-                    candidates.append(workspace_root / rel_path[len("memex/"):])
+                # Also try stripping leading "memexa/" if path doesn't exist
+                if rel_path.startswith("memexa/") and workspace_root is not None:
+                    candidates.append(workspace_root / rel_path[len("memexa/"):])
                 for fp in candidates:
                     try:
                         if fp.is_file():

@@ -118,7 +118,7 @@ class AppState:
 
 def build_ui(state: AppState) -> None:
     root = tk.Tk()
-    root.title("memex sys_monitor")
+    root.title("memexa sys_monitor")
     root.geometry("360x180")
     root.resizable(False, False)
     try:
@@ -135,7 +135,7 @@ def build_ui(state: AppState) -> None:
     container = ttk.Frame(root, padding=14)
     container.pack(fill="both", expand=True)
 
-    ttk.Label(container, text="memex sys_monitor", font=("Segoe UI", 13, "bold")).pack(anchor="w")
+    ttk.Label(container, text="memexa sys_monitor", font=("Segoe UI", 13, "bold")).pack(anchor="w")
     ttk.Label(container, text="监控 Win + Mac Studio + your-org GPU server", foreground="#555").pack(anchor="w", pady=(0, 8))
 
     status_var = tk.StringVar(value="启动中…")

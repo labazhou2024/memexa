@@ -6,9 +6,9 @@ calls mlx_lm_wrapper.extract_chat_triples via router case 5 (force local),
 emits FactRow with bi-temporal metadata.
 
 TU-Phase2-2: paired_extract_for_chat adapter:
-  - Default ON (MEMEX_CHAT_EXTRACT_PAIRED=1): calls paired_eval.paired_extract
+  - Default ON (MEMEXA_CHAT_EXTRACT_PAIRED=1): calls paired_eval.paired_extract
     for dual-model agreement; attests factrows with paired_eval_attested="paired_v1".
-  - MEMEX_CHAT_EXTRACT_PAIRED=0: legacy single-Qwen path; attests with
+  - MEMEXA_CHAT_EXTRACT_PAIRED=0: legacy single-Qwen path; attests with
     paired_eval_attested="single_qwen_v1".
   - CrossModelUnavailableError: emit trace chat_extract_paired_unavailable + raise.
 
@@ -63,7 +63,7 @@ def paired_extract_for_chat(
     """Adapter: extract triples from a chat message using paired_eval or legacy path.
 
     Environment control:
-        MEMEX_CHAT_EXTRACT_PAIRED (default "1"):
+        MEMEXA_CHAT_EXTRACT_PAIRED (default "1"):
             "1" / "true" / unset → dual-model paired_eval path (default ON).
             "0" / "false" → legacy single-Qwen path.
 
@@ -75,7 +75,7 @@ def paired_extract_for_chat(
             non-200. NEVER silently falls back (fail-loud per architect-5/verifier-5).
             Emits trace event chat_extract_paired_unavailable before raising.
     """
-    paired_env = os.environ.get("MEMEX_CHAT_EXTRACT_PAIRED", "1").lower().strip()
+    paired_env = os.environ.get("MEMEXA_CHAT_EXTRACT_PAIRED", "1").lower().strip()
     use_paired = paired_env not in {"0", "false"}
 
     # R-3 HARD RULE no-deferral fix: read calibration file; if recent
@@ -252,7 +252,7 @@ def extract_msgs(
       5. for each triple → FactRow
 
     TU-Phase2-2: `use_paired_adapter` (default None = read from env
-    MEMEX_CHAT_EXTRACT_PAIRED). When enabled, extract_triples is replaced
+    MEMEXA_CHAT_EXTRACT_PAIRED). When enabled, extract_triples is replaced
     by paired_extract_for_chat adapter for dual-model attestation.
     CrossModelUnavailableError propagates unchanged (fail-loud).
 
@@ -260,7 +260,7 @@ def extract_msgs(
     """
     # TU-Phase2-2: determine if we override extract_triples with paired adapter
     if use_paired_adapter is None:
-        paired_env = os.environ.get("MEMEX_CHAT_EXTRACT_PAIRED", "1").lower().strip()
+        paired_env = os.environ.get("MEMEXA_CHAT_EXTRACT_PAIRED", "1").lower().strip()
         use_paired_adapter = paired_env not in {"0", "false"}
 
     if use_paired_adapter:
@@ -325,7 +325,7 @@ def extract_msgs(
 
 
 def _append_chat_episode(chat_room_hash: str, topic: str, predicate: str, confidence: float) -> None:
-    """Atomic append to memex/data/episodes_chat.jsonl. RP-LOG-8 atomic append.
+    """Atomic append to memexa/data/episodes_chat.jsonl. RP-LOG-8 atomic append.
     PII-stripped: NEVER includes raw message body (RP-SEC-8)."""
     import json as _json, time as _t
     from pathlib import Path as _P
@@ -362,7 +362,7 @@ def extract_from_recent_dump(
       entity_pseudonym (U8 integration); requires passphrase on first call.
 
     TU-Phase2-2: use_paired_adapter (default None = read from env
-    MEMEX_CHAT_EXTRACT_PAIRED). When enabled and not mock_llm, the
+    MEMEXA_CHAT_EXTRACT_PAIRED). When enabled and not mock_llm, the
     paired_extract_for_chat adapter is used (dual-model attestation).
     mock_llm=True always uses legacy mock extractor (bypasses paired).
     """

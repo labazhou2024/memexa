@@ -26,8 +26,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-_MEMEX = Path(__file__).resolve().parents[2]
-_LOG = _MEMEX / "memex" / "data" / "subagent_payload_log.jsonl"
+_MEMEXA = Path(__file__).resolve().parents[2]
+_LOG = _MEMEXA / "memexa" / "data" / "subagent_payload_log.jsonl"
 _MAX_ENTRIES = 100
 
 # Allowlist (security B1 fix): only these keys are persisted.

@@ -13,15 +13,15 @@ Goals (plan v3.1 §4 R13, §5 AC-18, §7 T6.5):
   * Crash-safe: if a holder is SIGKILL'd mid-reserve, the next acquirer
     can take over after a stale-TTL window (60s, cheap to revisit).
   * Daily reset: a new calendar day silently clears counters, preserves cap.
-  * Env override: MEMEX_HAIKU_DAILY_USD (default 2.0 USD).
+  * Env override: MEMEXA_HAIKU_DAILY_USD (default 2.0 USD).
 
 Lock library: filelock (per R3 E3 — unified choice across the codebase,
 already used by trace_sink.py and soft_signal_classifier.py).
 
 Storage:
-  state:    memex/memex/data/llm_budget_state.json
-  lock:     memex/memex/data/llm_budget.lock
-  sentinel: memex/memex/data/llm_budget.pid (pid of current holder, for
+  state:    memexa/memexa/data/llm_budget_state.json
+  lock:     memexa/memexa/data/llm_budget.lock
+  sentinel: memexa/memexa/data/llm_budget.pid (pid of current holder, for
             stale-TTL detection when lock file mtime > _STALE_TTL_SEC)
 
 State shape:
@@ -56,7 +56,7 @@ from typing import Dict, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # ----- Paths -----
-# memex/memex/core/llm_budget.py -> memex/memex/data/
+# memexa/memexa/core/llm_budget.py -> memexa/memexa/data/
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _STATE_FILE = _DATA_DIR / "llm_budget_state.json"
 _LOCK_FILE = _DATA_DIR / "llm_budget.lock"
@@ -70,12 +70,12 @@ _ALLOWED_MODULES = {"ingest", "governance", "promotion"}
 
 
 def _daily_cap_usd() -> float:
-    """Env override MEMEX_HAIKU_DAILY_USD (default 2.0).
+    """Env override MEMEXA_HAIKU_DAILY_USD (default 2.0).
 
     Read each call so tests can monkeypatch env between operations.
     Invalid values silently fall back to 2.0.
     """
-    raw = os.environ.get("MEMEX_HAIKU_DAILY_USD", "2.0")
+    raw = os.environ.get("MEMEXA_HAIKU_DAILY_USD", "2.0")
     try:
         val = float(raw)
         if val < 0:

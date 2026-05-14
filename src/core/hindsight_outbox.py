@@ -13,7 +13,7 @@ Design (per plan_v2):
 - Bounded growth: rotate at >5MB or >10000 entries; refuse enqueue at
   >10MB (returns False → hook falls back to legacy ingest).
 - Crash safety: `_reclaim_zombies` resets in_flight entries older than
-  TTL=300s (configurable via MEMEX_OUTBOX_ZOMBIE_TTL).
+  TTL=300s (configurable via MEMEXA_OUTBOX_ZOMBIE_TTL).
 - Security: outbox dir env override REQUIRES allowlisted parent set
   (per feedback_env_override_parent_allowlist.md HARD RULE).
   Drain re-validates file_path with `_is_memory_file` before reading.
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # Zombie reclaim TTL aligned with 30-min cron schedule (2026-05-01 cadence change).
 # Prior 300s assumed 5-min cron; raised to 1800s to avoid premature reclaim of
 # in_flight entries that legitimately wait through one 30-min drain cycle.
-# Override via MEMEX_OUTBOX_ZOMBIE_TTL env if a faster cron is reinstated.
+# Override via MEMEXA_OUTBOX_ZOMBIE_TTL env if a faster cron is reinstated.
 _DEFAULT_ZOMBIE_TTL_SEC = 1800.0
 _DEFAULT_LOCK_TIMEOUT_SEC = 5.0
 _DEFAULT_ROTATE_BYTES = 5 * 1024 * 1024  # 5 MB
@@ -70,7 +70,7 @@ _REQUIRED_KEYS = ("outbox_id", "file_path", "content_sha256", "status",
 
 
 class OutboxDirRejected(Exception):
-    """Raised when MEMEX_OUTBOX_DIR env points outside allowlisted parents."""
+    """Raised when MEMEXA_OUTBOX_DIR env points outside allowlisted parents."""
 
 
 @dataclass
@@ -113,7 +113,7 @@ class OutboxEntry:
 
 def _workspace_root() -> Path:
     """Return claude workspace root: 3 parents up from this file."""
-    # this file: <ws>/memex/memex/core/hindsight_outbox.py
+    # this file: <ws>/memexa/memexa/core/hindsight_outbox.py
     return Path(__file__).resolve().parents[3]
 
 
@@ -178,7 +178,7 @@ def _resolve_outbox_dir(env_dir: Optional[str] = None) -> Path:
 
     Raises OutboxDirRejected if env-dir falls outside allowlist.
     """
-    chosen = env_dir or os.environ.get("MEMEX_OUTBOX_DIR")
+    chosen = env_dir or os.environ.get("MEMEXA_OUTBOX_DIR")
     if chosen:
         p = Path(chosen)
         if not _is_under_allowlisted_parent(p):
@@ -201,10 +201,10 @@ def _resolve_pid_dir() -> Path:
     """Resolve PID file directory.
 
     Per security S-4: PID file is at FIXED workspace path, NOT
-    user-controlled MEMEX_OUTBOX_DIR. Test isolation uses
-    MEMEX_PID_FILE_DIR env (also allowlist-restricted).
+    user-controlled MEMEXA_OUTBOX_DIR. Test isolation uses
+    MEMEXA_PID_FILE_DIR env (also allowlist-restricted).
     """
-    env_dir = os.environ.get("MEMEX_PID_FILE_DIR")
+    env_dir = os.environ.get("MEMEXA_PID_FILE_DIR")
     if env_dir:
         p = Path(env_dir)
         if not _is_under_allowlisted_parent(p):
@@ -536,7 +536,7 @@ def stats(dir: Optional[str] = None) -> Dict[str, Any]:
 
 
 def _zombie_ttl() -> float:
-    raw = os.environ.get("MEMEX_OUTBOX_ZOMBIE_TTL")
+    raw = os.environ.get("MEMEXA_OUTBOX_ZOMBIE_TTL")
     if raw:
         try:
             return float(raw)
@@ -585,7 +585,7 @@ def _acquire_pid_lock():
     """Acquire singleton PID-file lock for drain.
 
     PID file at FIXED `<workspace>/.claude/harness/hindsight_outbox.pid`
-    (NOT user-controlled MEMEX_OUTBOX_DIR; per security S-4).
+    (NOT user-controlled MEMEXA_OUTBOX_DIR; per security S-4).
 
     Yields True if acquired (caller should drain), False if another
     instance holds it.
@@ -702,7 +702,7 @@ def _is_safe_memory_file_at_drain(file_path: str) -> bool:
     """Re-validate file_path BEFORE drain reads bytes.
 
     Per S-2: outbox JSONL might be tampered (writable by attacker via
-    MEMEX_OUTBOX_DIR override). Drain re-checks via the same allowlist
+    MEMEXA_OUTBOX_DIR override). Drain re-checks via the same allowlist
     used at hook-write time.
 
     Per HARD RULE feedback_ntfs_junction_reparse_point.md (SEC-5 fix):

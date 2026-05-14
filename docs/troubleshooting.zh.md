@@ -8,12 +8,12 @@
 ## Layer 0 — 装机是否正常?
 
 ```bash
-memex version            # 打印 memex + python + 依赖版本
-memex config             # 打印所有解析后的 env + 文件路径
-memex doctor             # 端到端检 backend + LLM + identity
+memexa version            # 打印 memexa + python + 依赖版本
+memexa config             # 打印所有解析后的 env + 文件路径
+memexa doctor             # 端到端检 backend + LLM + identity
 ```
 
-`memex doctor` 全 `[ok]` 说明装机没问题, 故障在你的数据路径上。直接跳
+`memexa doctor` 全 `[ok]` 说明装机没问题, 故障在你的数据路径上。直接跳
 "Layer 2"。
 
 ## Layer 1 — 后端起不来
@@ -59,7 +59,7 @@ curl -s http://127.0.0.1:8888/v1/default/banks/memory_full_v5/stats
    ```bash
    ls data/l0_v5/work/cards_v2_*/qwen.jsonl 2>/dev/null | head
    ```
-   空 → Stage A LLM 在挂。检查 `memex doctor` 的 LLM gate 探测。
+   空 → Stage A LLM 在挂。检查 `memexa doctor` 的 LLM gate 探测。
 
 3. Stage B 出卡了吗?
    ```bash
@@ -83,7 +83,7 @@ curl -s http://127.0.0.1:8888/v1/default/banks/memory_full_v5/stats
 
 ```bash
 ls -la data/maintenance_logs/ | tail
-tail -100 data/maintenance_logs/memex_core_cron_orchestrator_*.log
+tail -100 data/maintenance_logs/memexa_core_cron_orchestrator_*.log
 ```
 
 找 per-driver 的 `dispatch '<id>' ...` 行。下一行告诉你 exit code +
@@ -102,18 +102,18 @@ python -m src.core.pg_bid_cache all --force-refresh
 
 ## Layer 3 — LLM provider 问题
 
-### 症状: `memex doctor` LLM 探测返 401 / 403
+### 症状: `memexa doctor` LLM 探测返 401 / 403
 
-API key 错或过期。`memex config` 看 masked 值; 需要的话重发。
+API key 错或过期。`memexa config` 看 masked 值; 需要的话重发。
 
 ### 症状: 探测返 200 但 cron 静默产 0 卡
 
 provider 在响应但返坏 JSON。抓一次真调用:
 
 ```bash
-MEMEX_HINDSIGHT_TRACE_LOG=/tmp/memex_trace.jsonl \
+MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
   python -m src.drivers.backfill_v5_wechat_driver --once --verbose
-jq . /tmp/memex_trace.jsonl
+jq . /tmp/memexa_trace.jsonl
 ```
 
 常见病:
@@ -133,7 +133,7 @@ jq . /tmp/memex_trace.jsonl
 vLLM 具体:
 
 - GPU OOM → 缩 `--max-model-len` 或 batch size
-- 高并发 engine 死锁 → 设 `MEMEX_EXTRACT_CONCURRENT=5` (大多数 vLLM 部署
+- 高并发 engine 死锁 → 设 `MEMEXA_EXTRACT_CONCURRENT=5` (大多数 vLLM 部署
   甜点)
 
 ## Layer 4 — 查询返回无用结果
@@ -146,7 +146,7 @@ vLLM 具体:
 - 查人用了 `topic` 而不是 `arc` (见 hard rule)
 - 默认 `--salience 0.3` 过滤掉所有低优先级。传 `--salience 0.0` 看完整分布
 - 不小心查到了 legacy `memory_full` bank。默认是 `_v5`; 如果你 shadow 了
-  `MEMEX_HINDSIGHT_BANK` 先 unset
+  `MEMEXA_HINDSIGHT_BANK` 先 unset
 - Windows GBK 终端把中文输出搞乱码。设 `PYTHONIOENCODING=utf-8` 或用
   Windows Terminal
 
@@ -171,7 +171,7 @@ RC。一个 8 小时前 RC=0 的任务在 dashboard 看是 "健康" 在 `schtask
 
 ### 症状: dashboard 渲染但每个面板都显示 "—"
 
-仅 localhost 装机。设 `MEMEX_DASHBOARD_HOSTS` env 成 JSON 数组点亮
+仅 localhost 装机。设 `MEMEXA_DASHBOARD_HOSTS` env 成 JSON 数组点亮
 远程 host 面板。Schema 见
 [`src/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
 docstring。
@@ -193,7 +193,7 @@ ls -la $(python -c "from src.core.memory_query import _QUERY_LOG_PATH; print(_QU
 
 提 issue 时附上:
 
-1. `memex version` + `memex config` + `memex doctor` 输出
+1. `memexa version` + `memexa config` + `memexa doctor` 输出
 2. 失败的精确命令 + 完整 traceback
 3. 相关 cron 日志切片 (`data/maintenance_logs/*.log`)
 

@@ -21,8 +21,8 @@ Sunday night. You need to send a one-paragraph status update to your advisor:
         │                   │                   │
         └─────────┐         │         ┌─────────┘
                   ▼         ▼         ▼
-              memex topic "midterm report"
-              memex trends --by sender --window-days 7
+              memexa topic "midterm report"
+              memexa trends --by sender --window-days 7
                             │
                             ▼
                 ┌────────────────────────┐
@@ -34,7 +34,7 @@ Sunday night. You need to send a one-paragraph status update to your advisor:
 ## Step 1 — what was the project's heartbeat this week?
 
 ```bash
-memex topic "midterm report" --window-days 7
+memexa topic "midterm report" --window-days 7
 ```
 
 `topic` fans out **11 semantic variants** by default — for a project name
@@ -65,7 +65,7 @@ Expected output:
 ## Step 2 — who actually did what?
 
 ```bash
-memex trends --by sender --window-days 7 --filter "topic:midterm"
+memexa trends --by sender --window-days 7 --filter "topic:midterm"
 ```
 
 `trends` aggregates by sender/source/room/type. For "credit assignment" — i.e.
@@ -107,15 +107,15 @@ Bob 完成 ppt 第 5 页 + Carol 跑完实验数据（均 1-09 交付）；
 ## Adapt to your own data
 
 ```bash
-memex topic "<project-name>" --window-days 7
-memex trends --by sender --window-days 7 --filter "topic:<project-keyword>"
+memexa topic "<project-name>" --window-days 7
+memexa trends --by sender --window-days 7 --filter "topic:<project-keyword>"
 ```
 
 If you'd rather see *which source* dominated (e.g. "are we mostly meeting on
 WeChat or email lately?"):
 
 ```bash
-memex trends --by source --window-days 7
+memexa trends --by source --window-days 7
 ```
 
 ## See also

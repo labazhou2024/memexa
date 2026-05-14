@@ -32,9 +32,9 @@ import os
 import subprocess
 from typing import Any, Dict, List, Sequence, Tuple
 
-SSH_ALIAS = os.environ.get("MEMEX_MAC_SSH_ALIAS", "primary-host")
-BGE_PORT = int(os.environ.get("MEMEX_BGE_PORT", "18082"))
-DEFAULT_THRESHOLD = float(os.environ.get("MEMEX_QUORUM_THRESHOLD", "0.85"))
+SSH_ALIAS = os.environ.get("MEMEXA_MAC_SSH_ALIAS", "primary-host")
+BGE_PORT = int(os.environ.get("MEMEXA_BGE_PORT", "18082"))
+DEFAULT_THRESHOLD = float(os.environ.get("MEMEXA_QUORUM_THRESHOLD", "0.85"))
 
 
 class BGEUnavailableError(RuntimeError):
@@ -170,7 +170,7 @@ if __name__ == "__main__":  # pragma: no cover - smoke
     if args.smoke:
         a = [
             {"s": "user", "p": "studies", "o": "physics"},
-            {"s": "memex", "p": "is", "o": "an assistant"},
+            {"s": "memexa", "p": "is", "o": "an assistant"},
         ]
         b = [
             {"s": "user", "p": "is studying", "o": "physics"},

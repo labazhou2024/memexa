@@ -1,5 +1,5 @@
 """
-memex Core - Infrastructure Components
+memexa Core - Infrastructure Components
 
 Core infrastructure including:
 - EpisodicLog: Event sourcing

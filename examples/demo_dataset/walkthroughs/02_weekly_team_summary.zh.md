@@ -19,8 +19,8 @@
         │                   │                   │
         └─────────┐         │         ┌─────────┘
                   ▼         ▼         ▼
-              memex topic "中期报告"
-              memex trends --by sender --window-days 7
+              memexa topic "中期报告"
+              memexa trends --by sender --window-days 7
                             │
                             ▼
                 ┌────────────────────────┐
@@ -31,7 +31,7 @@
 ## Step 1 — 项目本周心跳
 
 ```bash
-memex topic "midterm report" --window-days 7
+memexa topic "midterm report" --window-days 7
 ```
 
 `topic` 默认扇出 **11 个语义变体** — 查项目名正合适: 它会同时召回
@@ -61,7 +61,7 @@ memex topic "midterm report" --window-days 7
 ## Step 2 — 谁干了哪部分?
 
 ```bash
-memex trends --by sender --window-days 7 --filter "topic:midterm"
+memexa trends --by sender --window-days 7 --filter "topic:midterm"
 ```
 
 `trends` 按 sender/source/room/types 聚合。**贡献认定** —即 *谁实际露面* —
@@ -103,14 +103,14 @@ Bob 完成 ppt 第 5 页 + Carol 跑完实验数据（均 1-09 交付）；
 ## 用到你自己的数据
 
 ```bash
-memex topic "<你的项目名>" --window-days 7
-memex trends --by sender --window-days 7 --filter "topic:<你的项目关键词>"
+memexa topic "<你的项目名>" --window-days 7
+memexa trends --by sender --window-days 7 --filter "topic:<你的项目关键词>"
 ```
 
 如果想看"哪个 source 主导" (比如"我们最近在微信还是邮件多?"):
 
 ```bash
-memex trends --by source --window-days 7
+memexa trends --by source --window-days 7
 ```
 
 ## 相关

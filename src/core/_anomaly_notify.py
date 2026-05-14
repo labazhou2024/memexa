@@ -28,7 +28,7 @@ from filelock import FileLock
 logger = logging.getLogger(__name__)
 
 _DATA_DIR = Path(os.environ.get(
-    "MEMEX_DATA_DIR",
+    "MEMEXA_DATA_DIR",
     str(Path(__file__).resolve().parent.parent / "data"),
 ))
 _PENDING_FILE = _DATA_DIR / "pending_approvals.json"
@@ -75,7 +75,7 @@ def notify(
         return False
 
     # Opt-out kill switch (for tests that specifically don't want notifications).
-    if os.environ.get("MEMEX_ANOMALY_NOTIFY_DISABLE") == "1":
+    if os.environ.get("MEMEXA_ANOMALY_NOTIFY_DISABLE") == "1":
         return False
 
     entry = {

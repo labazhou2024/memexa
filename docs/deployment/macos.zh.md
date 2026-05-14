@@ -14,8 +14,8 @@ brew install --cask docker  # 没装 Docker Desktop 就装
 ## 2. Clone + 安装
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
@@ -27,11 +27,11 @@ pip install -e ".[dev]"
 cp .env.example .env
 $EDITOR .env
 
-mkdir -p ~/.memex
-cp config/aliases.example.yaml  ~/.memex/aliases.yaml
-cp config/identity.example.yaml ~/.memex/identity.yaml
-$EDITOR ~/.memex/aliases.yaml
-$EDITOR ~/.memex/identity.yaml
+mkdir -p ~/.memexa
+cp config/aliases.example.yaml  ~/.memexa/aliases.yaml
+cp config/identity.example.yaml ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/aliases.yaml
+$EDITOR ~/.memexa/identity.yaml
 ```
 
 ## 4. 起后端
@@ -54,14 +54,14 @@ bash scripts/macos/install_launchd.sh
 
 | Label                                 | 调度       | 任务                                              |
 |---------------------------------------|-----------|--------------------------------------------------|
-| `org.memex.cron6h`                    | 6 小时    | `python -m src.cron.cron_orchestrator run-incremental --all` |
-| `org.memex.audio_recorder_watch`      | 2 分钟    | 从 `data/audio/inbox/` 拉新文件, 跑 ASR              |
-| `org.memex.dashboard`                 | KeepAlive | `python -m src.dashboard.sys_monitor.server`       |
+| `org.memexa.cron6h`                    | 6 小时    | `python -m src.cron.cron_orchestrator run-incremental --all` |
+| `org.memexa.audio_recorder_watch`      | 2 分钟    | 从 `data/audio/inbox/` 拉新文件, 跑 ASR              |
+| `org.memexa.dashboard`                 | KeepAlive | `python -m src.dashboard.sys_monitor.server`       |
 
 验证:
 
 ```bash
-launchctl list | grep org.memex
+launchctl list | grep org.memexa
 ```
 
 ## 6. MLX whisper 离线模式

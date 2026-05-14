@@ -442,7 +442,7 @@ class EvolutionOrchestrator:
 
         # Cost tracking (feature flag gated)
         try:
-            from memex.config_loader import get_feature_flag
+            from memexa.config_loader import get_feature_flag
             if get_feature_flag("cost_tracking", False):
                 from .event_bus import read_events
                 recent = read_events(last_n=100)

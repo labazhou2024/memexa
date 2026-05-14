@@ -10,7 +10,7 @@ When a Claude Code interactive session ends (Stop hook), this module:
 6. Updates harness_state with session metadata
 
 Usage (Stop hook in settings.json):
-  python memex/memex/core/session_exit_gate.py
+  python memexa/memexa/core/session_exit_gate.py
 """
 
 import json

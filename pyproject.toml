@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "memex"
+name = "memexa"
 version = "0.1.0a0"
 description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
 readme = "README.md"
@@ -42,7 +42,7 @@ dependencies = [
     "numpy>=1.26",
     "rich>=13.7",
     "json-repair>=0.30",
-    # NOTE: memex talks to a Hindsight FastAPI server over HTTP. The plain
+    # NOTE: memexa talks to a Hindsight FastAPI server over HTTP. The plain
     # `hindsight_client.py` shipped here is a pure httpx wrapper and needs
     # no extra package. The `bench` extra adds the upstream `hindsight` SDK
     # only when you want to run the in-process benchmark harness.
@@ -82,15 +82,15 @@ bench = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/labazhou2024/memex"
-Documentation = "https://github.com/labazhou2024/memex/tree/main/docs"
-Issues = "https://github.com/labazhou2024/memex/issues"
-"Pro tier" = "https://github.com/labazhou2024/memex/blob/main/docs/saas.md"
+Homepage = "https://github.com/labazhou2024/memexa"
+Documentation = "https://github.com/labazhou2024/memexa/tree/main/docs"
+Issues = "https://github.com/labazhou2024/memexa/issues"
+"Pro tier" = "https://github.com/labazhou2024/memexa/blob/main/docs/saas.md"
 
 [project.scripts]
-memex = "src.cli.main:main"
+memexa = "src.cli.main:main"
 "镜我" = "src.cli.main:main"
-memex-query = "src.cli.main:main"
+memexa-query = "src.cli.main:main"
 
 [tool.setuptools]
 package-dir = { "" = "." }

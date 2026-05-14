@@ -45,8 +45,8 @@ _ARCHIVE_MAX_AGE_S = 3600              # 1 h — older archives ignored
 
 
 def _flags_dir() -> Path:
-    # cmd_retry_tracker.py sits at memex/memex/core/
-    # .claude sits at workspace root = parent of memex
+    # cmd_retry_tracker.py sits at memexa/memexa/core/
+    # .claude sits at workspace root = parent of memexa
     d = Path(__file__).resolve().parent.parent.parent.parent / ".claude" / "harness" / "flags"
     d.mkdir(parents=True, exist_ok=True)
     return d

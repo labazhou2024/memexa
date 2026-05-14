@@ -18,8 +18,8 @@ should I avoid?*
 │  You at 11pm:                                                       │
 │  "wait — what was Alice working on again? did I owe her anything?"  │
 │                                                                     │
-│                          memex arc "Alice" → relationship baseline  │
-│                          memex quick "Alice 1月" → most-recent week │
+│                          memexa arc "Alice" → relationship baseline  │
+│                          memexa quick "Alice 1月" → most-recent week │
 │                          → 5-min mental model rebuilt               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -27,7 +27,7 @@ should I avoid?*
 ## Step 1 — relationship baseline
 
 ```bash
-memex arc "Alice" --max-cards 60
+memexa arc "Alice" --max-cards 60
 ```
 
 `arc` is the relationship-aware subcommand. It fans out **8 semantic
@@ -69,7 +69,7 @@ she's the schedule-keeper.
 buried under the 2024-01-05 first-met card. Patch with `quick`:
 
 ```bash
-memex quick "Alice 1月" --max-k 20
+memexa quick "Alice 1月" --max-k 20
 ```
 
 ```
@@ -104,8 +104,8 @@ The moment you ingest your own WeChat / QQ history, the *same* two commands
 just work. Replace `Alice` with anyone you talk to regularly:
 
 ```bash
-memex arc "<your-friend>" --max-cards 60
-memex quick "<your-friend> $(date +%Y)年$(date +%m)月" --max-k 20
+memexa arc "<your-friend>" --max-cards 60
+memexa quick "<your-friend> $(date +%Y)年$(date +%m)月" --max-k 20
 ```
 
 Most people end up wrapping this as a 2-line shell function called `who`.

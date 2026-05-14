@@ -48,16 +48,16 @@ logger = logging.getLogger(__name__)
 
 # ────────────────────────── Config (env-driven) ──────────────────────────
 
-QWEN3_URL = os.environ.get("MEMEX_QWEN3_URL", "http://<remote-server-ip>:8001")
-QWEN3_MODEL = os.environ.get("MEMEX_QWEN3_MODEL", "memex-gatekeeper")
+QWEN3_URL = os.environ.get("MEMEXA_QWEN3_URL", "http://<remote-server-ip>:8001")
+QWEN3_MODEL = os.environ.get("MEMEXA_QWEN3_MODEL", "memexa-gatekeeper")
 
-GEMMA31B_URL = os.environ.get("MEMEX_GEMMA31B_URL", "http://<remote-server-ip>:8011")
-GEMMA31B_MODEL = os.environ.get("MEMEX_GEMMA31B_MODEL", "memex-extractor")
+GEMMA31B_URL = os.environ.get("MEMEXA_GEMMA31B_URL", "http://<remote-server-ip>:8011")
+GEMMA31B_MODEL = os.environ.get("MEMEXA_GEMMA31B_MODEL", "memexa-extractor")
 
-MAC_GEMMA31B_URL = os.environ.get("MEMEX_MAC_GEMMA31B_URL", "http://localhost:18081")
-MAC_GEMMA31B_MODEL = os.environ.get("MEMEX_MAC_GEMMA31B_MODEL", "gemma-4-31b-it-4bit")
+MAC_GEMMA31B_URL = os.environ.get("MEMEXA_MAC_GEMMA31B_URL", "http://localhost:18081")
+MAC_GEMMA31B_MODEL = os.environ.get("MEMEXA_MAC_GEMMA31B_MODEL", "gemma-4-31b-it-4bit")
 
-DEFAULT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+DEFAULT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 PAIRED_EVAL_CONFIDENCE_THRESHOLD = 0.85
 

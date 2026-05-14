@@ -178,7 +178,7 @@ polls live state on a 2-second tick:
   `tools/recover_phaseB_dead_letter.py`.
 - Stage D 500/422 → exponential backoff (0/30/300/1800/14400 s) up to
   5 retries; final failure writes `.dead`.
-- Hindsight daemon unreachable → fall back to `MEMEX_HINDSIGHT_FALLBACK_URL`
+- Hindsight daemon unreachable → fall back to `MEMEXA_HINDSIGHT_FALLBACK_URL`
   if set; otherwise propagate to caller.
 - Subprocess timeout (Windows) → Job Object guarantees grandchild
   cleanup. See [lessons_learned/04_win_job_subprocess.md](lessons_learned/04_win_job_subprocess.md).

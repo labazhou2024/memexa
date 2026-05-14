@@ -32,7 +32,7 @@ from typing import Any
 
 _REPO = Path(__file__).resolve().parents[1]
 # OSS: writable data lives in the user's workspace, resolved via env
-# (MEMEX_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
+# (MEMEXA_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
 from src.core._path_resolver import data_dir as _resolve_data_dir
 _DATA = _resolve_data_dir()
 
@@ -47,11 +47,11 @@ _API_WORKER = _REPO / "extraction" / "l0_worker_api.py"
 _STREAMING_POST = _REPO / "extraction" / "streaming_post_v5.py"
 
 _DEFAULT_LOOKBACK_DAYS = 3
-_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEX_V5_BATCH_LIMIT", "5"))
+_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEXA_V5_BATCH_LIMIT", "5"))
 _SOURCE = "browser"  # → pg metadata.source == "browser_session"
 
-_HINDSIGHT_BASE_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-_HINDSIGHT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+_HINDSIGHT_BASE_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+_HINDSIGHT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 
 def _atomic_write_json(path: Path, payload: Any) -> None:
@@ -226,7 +226,7 @@ def _stage_run_worker(pending: list[str], max_batches: int,
         "--batches-dir", str(_INPUT_BATCHES_DIR),
         "--done-dir", str(done_dir),
         "--out-dir", str(_CARDS_DIR),
-        "--concurrent", str(int(os.environ.get("MEMEX_your-org_CONCURRENT", "5")) if mode == "api" else 1),
+        "--concurrent", str(int(os.environ.get("MEMEXA_your-org_CONCURRENT", "5")) if mode == "api" else 1),
         "--max-batches", str(max_batches),
     ]
     if dry_run:
@@ -257,8 +257,8 @@ def _stage_post_cards(dry_run: bool, verbose: bool) -> dict:
     if verbose:
         print(f"[step5] streaming_post to {_HINDSIGHT_BASE_URL}/{_HINDSIGHT_BANK}")
     env = {**os.environ,
-           "MEMEX_HINDSIGHT_URL": _HINDSIGHT_BASE_URL,
-           "MEMEX_HINDSIGHT_BANK": _HINDSIGHT_BANK}
+           "MEMEXA_HINDSIGHT_URL": _HINDSIGHT_BASE_URL,
+           "MEMEXA_HINDSIGHT_BANK": _HINDSIGHT_BANK}
     r = _run_subprocess(cmd, timeout=900, verbose=verbose)
     return {"returncode": r["returncode"], "duration_sec": r["duration_sec"]}
 
@@ -272,7 +272,7 @@ def main() -> int:
     p.add_argument("--skip-post", action="store_true")
     p.add_argument("--verbose", action="store_true")
     p.add_argument("--mode", choices=["local", "api"],
-                   default=os.environ.get("MEMEX_V5_WORKER_MODE", "local"),
+                   default=os.environ.get("MEMEXA_V5_WORKER_MODE", "local"),
                    help="Extractor mode: local=Mac dual-LLM, api=your-org API")
     args = p.parse_args()
 

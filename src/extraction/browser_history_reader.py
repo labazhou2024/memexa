@@ -141,7 +141,7 @@ class BrowserHistoryReader:
         )
         # Where to copy History files for safe reading
         self.copy_dir = copy_dir or (
-            Path(tempfile.gettempdir()) / "memex_browser_copies"
+            Path(tempfile.gettempdir()) / "memexa_browser_copies"
         )
         self.copy_dir.mkdir(parents=True, exist_ok=True)
 

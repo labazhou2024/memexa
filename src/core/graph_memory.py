@@ -71,7 +71,7 @@ _driver_error: Optional[str] = None
 def _get_driver():
     """Lazy singleton. Returns None on failure (fail-soft).
 
-    TU-α2 (2026-04-21): honor MEMEX_GRAPH_BACKEND env:
+    TU-α2 (2026-04-21): honor MEMEXA_GRAPH_BACKEND env:
       - "blocked" (test tree default): raise RuntimeError immediately — any
         test path reaching production Neo4j is a bug (use an explicit
         opt-in fixture instead).
@@ -79,15 +79,15 @@ def _get_driver():
       - unset or "neo4j": current behavior (connect to bolt:// URI).
     """
     global _driver, _driver_error
-    backend = os.environ.get("MEMEX_GRAPH_BACKEND", "neo4j").lower()
+    backend = os.environ.get("MEMEXA_GRAPH_BACKEND", "neo4j").lower()
     if backend == "blocked":
         raise RuntimeError(
-            "graph_memory._get_driver() called under MEMEX_GRAPH_BACKEND=blocked. "
+            "graph_memory._get_driver() called under MEMEXA_GRAPH_BACKEND=blocked. "
             "Tests must opt into an explicit backend fixture (e.g. mock_graph_driver) "
             "rather than hit production Neo4j. See tests/graph_closure/conftest.py."
         )
     if backend == "none":
-        _driver_error = "MEMEX_GRAPH_BACKEND=none"
+        _driver_error = "MEMEXA_GRAPH_BACKEND=none"
         return None
     if _driver is not None:
         return _driver
@@ -284,7 +284,7 @@ def write_fact(
       being written into the production neo4j database (NEO4J_DATABASE
       unset or == 'neo4j').
 
-      Escape hatch: set env MEMEX_ALLOW_PRODUCTION_TMP=1 (legacy tests
+      Escape hatch: set env MEMEXA_ALLOW_PRODUCTION_TMP=1 (legacy tests
       that cannot yet use isolated NEO4J_DATABASE). Escape logs a warning.
     """
     # Production-graph pollution guard (2026-04-22 H1 closure)
@@ -292,16 +292,16 @@ def write_fact(
                      ":\\Temp\\", ":\\tmp\\", "pytest-of-")
     _prod_db = (os.environ.get("NEO4J_DATABASE", "neo4j") or "neo4j").lower() == "neo4j"
     _is_tmp = source_episode_id and any(p in source_episode_id for p in _TMP_PATTERNS)
-    _allow = os.environ.get("MEMEX_ALLOW_PRODUCTION_TMP", "0") == "1"
+    _allow = os.environ.get("MEMEXA_ALLOW_PRODUCTION_TMP", "0") == "1"
     if _prod_db and _is_tmp and not _allow:
         raise ProductionGraphPollutionError(
             f"Refusing write: tmp-path source_episode_id {source_episode_id!r} "
             f"into production graph (NEO4J_DATABASE={os.environ.get('NEO4J_DATABASE','neo4j')}). "
-            f"Fix: set NEO4J_DATABASE=test_<scope> OR MEMEX_ALLOW_PRODUCTION_TMP=1 (legacy opt-in)."
+            f"Fix: set NEO4J_DATABASE=test_<scope> OR MEMEXA_ALLOW_PRODUCTION_TMP=1 (legacy opt-in)."
         )
     if _prod_db and _is_tmp and _allow:
         logger.warning(
-            "write_fact: legacy opt-in (MEMEX_ALLOW_PRODUCTION_TMP=1) allowed "
+            "write_fact: legacy opt-in (MEMEXA_ALLOW_PRODUCTION_TMP=1) allowed "
             "tmp-path into production graph: %s", source_episode_id[:120]
         )
 

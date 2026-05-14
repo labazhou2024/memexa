@@ -8,7 +8,7 @@
 ## 怎么寻求帮助
 
 - 问 *怎么用* → 在 Q&A 类目开 **Discussion**。先搜现有讨论
-- 怀疑 bug → 用 bug-report 模板开 **Issue**。附 `memex version`, OS,
+- 怀疑 bug → 用 bug-report 模板开 **Issue**。附 `memexa version`, OS,
   Python 版本, 完整 traceback
 - 功能请求 → 用 feature-request 模板开 **Issue**。说明*什么*你需要 +
   *为什么*现有 CLI 不够
@@ -33,5 +33,5 @@
 1. [docs/troubleshooting.zh.md](docs/troubleshooting.zh.md) — 六层
    诊断阶梯
 2. [docs/faq.zh.md](docs/faq.zh.md) — 已答过的问题
-3. `memex doctor` — 自动自检
+3. `memexa doctor` — 自动自检
 4. `docs/lessons_learned/` — 常见 pipeline 陷阱 + 修法

@@ -1,7 +1,7 @@
 """memory_sync_cli — on-demand drain + backfill for graph memory ingest.
 
 Problem: the heartbeat service enqueues memory edits into
-`memex/data/ingest_queue.jsonl` via ``_check_memory_staleness``, but
+`memexa/data/ingest_queue.jsonl` via ``_check_memory_staleness``, but
 ``_check_drain_queue`` only runs when the heartbeat itself runs — i.e.,
 as a daemon or cron job. In sessions where heartbeat doesn't fire
 (normal user coding), the queue grows unbounded and memory files never

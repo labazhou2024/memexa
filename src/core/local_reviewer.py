@@ -16,7 +16,7 @@ Designed to be called:
 
 Usage:
     from src.core.local_reviewer import review_files, review_file
-    results = review_files(["memex/core/auto_dream.py"])
+    results = review_files(["memexa/core/auto_dream.py"])
     if results["blocking"]:
         print("CHANGES_REQUIRED:", results["findings"])
     else:

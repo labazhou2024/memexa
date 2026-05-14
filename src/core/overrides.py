@@ -1,6 +1,6 @@
 """P4 (2026-04-23): scoped env-var override module.
 
-Closes deep-audit S2 partially: of 64 MEMEX_* env reads, the 10 most
+Closes deep-audit S2 partially: of 64 MEMEXA_* env reads, the 10 most
 DANGEROUS ones (operator SKIP / ALLOW gates + autorun toggles) are now
 read through this single module rather than scattered `os.environ.get`
 call sites. This adds an audit trail (`get_override` logs when a gate
@@ -12,7 +12,7 @@ that pretool_gate Rule 13 allowlist already covers.
 
 API:
   from src.core.overrides import get_override
-  if get_override("MEMEX_ALLOW_PRODUCTION_TMP"):
+  if get_override("MEMEXA_ALLOW_PRODUCTION_TMP"):
       ...  # operator bypass active
 
 All access goes through `get_override` which:
@@ -41,43 +41,43 @@ logger = logging.getLogger(__name__)
 # Each entry: {name: (default, type, description)}
 # type is one of: "bool" (truthy / "1"/"true"/"yes"), "int", "str"
 MIGRATED: dict = {
-    "MEMEX_ALLOW_PRODUCTION_TMP": (
+    "MEMEXA_ALLOW_PRODUCTION_TMP": (
         "0", "bool",
         "skip tmp-path guard in graph_memory.write_fact (legacy tests)",
     ),
-    "MEMEX_ALLOW_COLD_START_OVER": (
+    "MEMEXA_ALLOW_COLD_START_OVER": (
         "0", "bool",
         "skip pretool_gate Rule 12 cold_start_meter size block",
     ),
-    "MEMEX_SKIP_PLAN_RETRO": (
+    "MEMEXA_SKIP_PLAN_RETRO": (
         "0", "bool",
         "skip plan_retro_gate block (operator, when plan file corrupt)",
     ),
-    "MEMEX_SKIP_SAMPLE_GATE": (
+    "MEMEXA_SKIP_SAMPLE_GATE": (
         "0", "bool",
         "skip prompt_evolver sample validation (evolution debugging)",
     ),
-    "MEMEX_L6_AUTORUN": (
+    "MEMEXA_L6_AUTORUN": (
         "0", "bool",
         "auto-deploy evolved prompts without CEO approval",
     ),
-    "MEMEX_L6_EVOLUTION": (
+    "MEMEXA_L6_EVOLUTION": (
         "0", "bool",
         "master switch for self-evolution prompt engine",
     ),
-    "MEMEX_SESSION_START_VERBOSE": (
+    "MEMEXA_SESSION_START_VERBOSE": (
         "0", "bool",
         "print full KAIROS narrative on SessionStart (4583B -> 920B compact)",
     ),
-    "MEMEX_GRAPHITI_ENABLED": (
+    "MEMEXA_GRAPHITI_ENABLED": (
         "shadow", "str",
         "graphiti backend: '0' / 'shadow' / '1' (enabled)",
     ),
-    "MEMEX_GRAPH_BACKEND": (
+    "MEMEXA_GRAPH_BACKEND": (
         "neo4j", "str",
         "graph driver: 'neo4j' / 'none' / 'blocked'",
     ),
-    "MEMEX_MAX_REINFORCEMENTS": (
+    "MEMEXA_MAX_REINFORCEMENTS": (
         "12", "int",
         "persistent_mode reinforcement budget (1-200)",
     ),
@@ -85,7 +85,7 @@ MIGRATED: dict = {
     # Primary channel is ~/.claude_gates_override file (written by gates_override CLI).
     # Env var is secondary/backward-compat only when file not present.
     # Registered here so get_override emits audit event on every read.
-    "MEMEX_GATES_OVERRIDE": (
+    "MEMEXA_GATES_OVERRIDE": (
         "", "str",
         "OWASP LLM01 out-of-band override channel for plan_retro gate skip",
     ),

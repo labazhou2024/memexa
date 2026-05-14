@@ -157,9 +157,9 @@ def _verify_enforces_at(value: str) -> Tuple[bool, str]:
     # Resolve relative to workspace root
     target = _WORKSPACE_ROOT / rel_path
     if not target.is_file():
-        # Also try without leading "memex/"
-        if rel_path.startswith("memex/"):
-            target2 = _WORKSPACE_ROOT / rel_path[len("memex/"):]
+        # Also try without leading "memexa/"
+        if rel_path.startswith("memexa/"):
+            target2 = _WORKSPACE_ROOT / rel_path[len("memexa/"):]
             if target2.is_file():
                 target = target2
             else:

@@ -2,8 +2,8 @@
 
 [English](README.md) · **中文**
 
-> 可复现的方法论 write-up, 蒸馏自真实 memex 部署经验。每篇 case study
-> 回答的是: "我已经有了 memex bank 装着自己的数据 — 怎么把它变成有用的
+> 可复现的方法论 write-up, 蒸馏自真实 memexa 部署经验。每篇 case study
+> 回答的是: "我已经有了 memexa bank 装着自己的数据 — 怎么把它变成有用的
 > 东西?"
 >
 > 全部示例都用合成 [`demo_dataset/`](../../examples/demo_dataset/) 角色
@@ -22,7 +22,7 @@
 - `docs/lessons_learned/` — **工程复盘**。我们踩过的 bug, 修过的实现,
   还的债。受众: contributor。
 - `docs/case_studies/` (本目录) — **面向用户的食谱**。多命令工作流, 把
-  `memex` 子命令拼成一个交付物。受众: 终端用户。
+  `memexa` 子命令拼成一个交付物。受众: 终端用户。
 
 ## 怎么写自己的
 

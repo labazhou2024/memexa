@@ -7,7 +7,7 @@ an HMAC-signed approval mechanism using a key only the CEO holds in their
 shell environment.
 
 Workflow:
-  1. CEO sets `MEMEX_CEO_HMAC_KEY` env (≥32 hex chars; one-time `setx`)
+  1. CEO sets `MEMEXA_CEO_HMAC_KEY` env (≥32 hex chars; one-time `setx`)
   2. CEO runs `python -m src.core.ceo_approve <task_id> [--reason "..."]`
   3. Module writes `<workspace>/.claude/harness/approvals/<task_id>.json`
      with HMAC-SHA256 over `task_id|ts|reason`
@@ -32,16 +32,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Tuple
 
-_KEY_ENV = "MEMEX_CEO_HMAC_KEY"
+_KEY_ENV = "MEMEXA_CEO_HMAC_KEY"
 _MIN_KEY_BYTES = 32
 
 # U6 TU-3: known bypass tokens enrolled with this approval system.
-# Each token is HMAC-signed via MEMEX_HMAC_KEY (separate from CEO key);
-# bench_gate bypass via MEMEX_BENCH_BYPASS_TOKEN env. Token format
+# Each token is HMAC-signed via MEMEXA_HMAC_KEY (separate from CEO key);
+# bench_gate bypass via MEMEXA_BENCH_BYPASS_TOKEN env. Token format
 # = first 32 hex chars of HMAC_SHA256(key, "bench_gate:YYYY-MM-DD").
 # Verifier in src.core._hook_utils._verify_bench_bypass_token.
 _KNOWN_BYPASS_TOKENS = (
-    "BENCH_BYPASS",  # MEMEX_BENCH_BYPASS_TOKEN; bench_gate (U6 TU-3)
+    "BENCH_BYPASS",  # MEMEXA_BENCH_BYPASS_TOKEN; bench_gate (U6 TU-3)
 )
 
 
@@ -52,13 +52,13 @@ def _workspace_root() -> Path:
 def _approvals_dir() -> Path:
     """Resolve approvals directory.
 
-    Honors MEMEX_CEO_APPROVALS_DIR env override (T-2 fix; per
+    Honors MEMEXA_CEO_APPROVALS_DIR env override (T-2 fix; per
     feedback_env_override_parent_allowlist.md HARD RULE — verify the override
     is under an allowed parent set before honoring). Allowed parents:
     workspace .claude/, $TEMP, $TMPDIR. Override outside the allowlist logs
     a stderr warning and falls through to default.
     """
-    env_override = os.environ.get("MEMEX_CEO_APPROVALS_DIR", "").strip()
+    env_override = os.environ.get("MEMEXA_CEO_APPROVALS_DIR", "").strip()
     if env_override:
         try:
             override_path = Path(env_override).resolve()
@@ -91,7 +91,7 @@ def _approvals_dir() -> Path:
                     override_path.mkdir(parents=True, exist_ok=True)
                     return override_path
             print(
-                f"[ceo_approve] MEMEX_CEO_APPROVALS_DIR={env_override!r} "
+                f"[ceo_approve] MEMEXA_CEO_APPROVALS_DIR={env_override!r} "
                 f"outside allowed parent set; using default",
                 file=sys.stderr,
             )
@@ -178,7 +178,7 @@ def verify_approval(task_id: str, phase: Optional[int] = None) -> Tuple[bool, st
     """Verify a previously-written approval record.
 
     Returns (ok, reason). ok=True iff:
-      - MEMEX_CEO_HMAC_KEY is set (caller env)
+      - MEMEXA_CEO_HMAC_KEY is set (caller env)
       - approvals/<task_id>.json exists and parses
       - HMAC over (task_id, ts, reason) matches stored hmac_sha256
       - key_fingerprint matches current key (catches key rotation)

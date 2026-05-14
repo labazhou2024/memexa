@@ -1,5 +1,5 @@
 """
-canonicalizer.py -- Entity and predicate normalization for memex knowledge graph.
+canonicalizer.py -- Entity and predicate normalization for memexa knowledge graph.
 
 Loads aliases.json (bootstrap map), normalizes raw strings to canonical names,
 and logs unrecognized tokens to unknown_entities.log for later review.

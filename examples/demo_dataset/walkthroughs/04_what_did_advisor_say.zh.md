@@ -29,10 +29,10 @@
 ## Step 1 — `person` 查询
 
 ```bash
-memex person "advisor@example.com" --window-days 30
+memexa person "advisor@example.com" --window-days 30
 ```
 
-(你也可以用名字: `memex person "Dr. Smith"`, 前提是 aliases.yaml 配好了。
+(你也可以用名字: `memexa person "Dr. Smith"`, 前提是 aliases.yaml 配好了。
 不确定时用邮箱形式最稳。)
 
 预期输出:
@@ -84,7 +84,7 @@ commitment。
 
 ## 为啥这个比搜邮箱强
 
-| 搜邮箱 | `memex person` |
+| 搜邮箱 | `memexa person` |
 |---|---|
 | 3 封长邮件全文 | 2 行高信号 |
 | 容易漏 "必须含 X" 那个限定语 | 限定语排序在 deadline 之上 |
@@ -95,16 +95,16 @@ commitment。
 
 ```bash
 # 模式: 单个对手方
-memex person "<boss@company.com>"          --window-days 14
-memex person "<professor-name>"            --window-days 90
-memex person "<client-contact>"            --window-days 30
+memexa person "<boss@company.com>"          --window-days 14
+memexa person "<professor-name>"            --window-days 90
+memexa person "<client-contact>"            --window-days 30
 ```
 
 频繁对手方 (经理 / 导师) — 设个日刷新 alias:
 
 ```bash
 # 在 ~/.bashrc 或 .zshrc
-alias say-what='memex person "boss@company.com" --window-days 7'
+alias say-what='memexa person "boss@company.com" --window-days 7'
 ```
 
 ## 何时不用 `person`

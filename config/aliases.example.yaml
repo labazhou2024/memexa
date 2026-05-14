@@ -1,5 +1,5 @@
-# Copy to ~/.memex/aliases.yaml and edit, OR set
-# MEMEX_ALIASES_FILE=/path/to/your/aliases.yaml.
+# Copy to ~/.memexa/aliases.yaml and edit, OR set
+# MEMEXA_ALIASES_FILE=/path/to/your/aliases.yaml.
 #
 # All values here are used by speaker_role classification, entity
 # resolution, and the calendar grounding pipeline. Keep this file out of

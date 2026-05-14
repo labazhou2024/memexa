@@ -10,7 +10,7 @@ Schema: {rule_id, fired_count_30d, fired_count_90d, last_fired_ts, scanned_at}
 Signal sources (rolling window):
   - .claude/data/traces.jsonl (top-level trace)
   - .claude/harness/tasks/*/traces.jsonl (per-task)
-  - memex git log subjects (recent_commits referencing rule keyword)
+  - memexa git log subjects (recent_commits referencing rule keyword)
 
 Keyword extraction per rule_id:
   - basename minus 'feedback_' prefix tokenized on underscore
@@ -34,7 +34,7 @@ from src.core._path_resolver import memory_dir
 
 _WORKSPACE = Path(__file__).resolve().parents[3]
 _MEMORY_DIR = memory_dir()
-_DATA_DIR = _WORKSPACE / "memex" / "data"
+_DATA_DIR = _WORKSPACE / "memexa" / "data"
 _OUT_FILE = _DATA_DIR / "hard_rule_fire_count.jsonl"
 
 _TRACE_FILES: Tuple[Path, ...] = (

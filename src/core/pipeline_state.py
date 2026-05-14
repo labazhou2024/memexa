@@ -14,7 +14,7 @@ Phases:
 Usage:
     from src.core.pipeline_state import PipelineState
     ps = PipelineState()
-    ps.start_task("fix auto_dream", ["memex/core/auto_dream.py"])
+    ps.start_task("fix auto_dream", ["memexa/core/auto_dream.py"])
     ps.mark_phase("A")
     ps.mark_phase("B")
     ps.mark_phase("B5")

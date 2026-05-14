@@ -6,13 +6,13 @@
 
 ## v0.1.x — 让 demo 在干净盒子上端到端跑
 
-- [x] CLI dispatcher (`memex init / version / config / doctor / query`)
+- [x] CLI dispatcher (`memexa init / version / config / doctor / query`)
 - [x] PII 脱敏 pre-commit hook
 - [x] Demo 数据集 (6 source, 公有领域)
 - [x] 直接 psycopg2 PG 访问 (默认不走 ssh shell-out)
 - [x] Hindsight failover URL 自动重试
 - [x] 14 个查询子命令文档化
-- [x] `memex doctor` 端到端检 LLM provider
+- [x] `memexa doctor` 端到端检 LLM provider
 - [x] PII 残留扫描器 + 自引用 SKIP-list
 - [ ] CI 上 Win + macOS + Linux 的 fresh-clone smoke test 通过
 
@@ -22,14 +22,14 @@
 模板 = 一个子命令 + 一份 Markdown/LaTeX 布局 + 底下两三个 `memory_query`
 调用。
 
-- [ ] `memex lab-report <实验名>` — 课前报告 (LaTeX → PDF, 含官方讲义
+- [ ] `memexa lab-report <实验名>` — 课前报告 (LaTeX → PDF, 含官方讲义
       WebSearch fallback)
-- [ ] `memex weekly-report` — git log + session-end narrative + project
+- [ ] `memexa weekly-report` — git log + session-end narrative + project
       跨源 summary → 一页 Markdown
-- [ ] `memex action-card <ddl>` — 出门 checklist + Q&A 速答表
-- [ ] `memex brief <人>` — 见面前 brief (基线 / 上次联系 / 开放话题 /
+- [ ] `memexa action-card <ddl>` — 出门 checklist + Q&A 速答表
+- [ ] `memexa brief <人>` — 见面前 brief (基线 / 上次联系 / 开放话题 /
       雷区), 建在 `arc` + `quick` 上
-- [ ] `memex dashboard` — 截止面板, `pending` 的 4 栏 triage
+- [ ] `memexa dashboard` — 截止面板, `pending` 的 4 栏 triage
 
 ## v0.2 — QQ db-only 适配器移植 (用户影响最大的待办)
 
@@ -37,7 +37,7 @@
 - [ ] 同样移植 `jarvis/qq_reader.py` (剪贴板兜底)
 - [ ] 把两个 reader 接进 `backfill_v5_qq_driver.py`，让 `--mode dump` 和 `--mode clipboard` 开箱可用
 - [ ] 加 SQLCipher synthetic fixture smoke 测试 (不需要真 QQ)
-- [ ] 把 OSS 端 NapCat / OneBot 适配器从代码树删掉 (当前还藏在 `MEMEX_QQ_NAPCAT_FORCE=1` 后面)
+- [ ] 把 OSS 端 NapCat / OneBot 适配器从代码树删掉 (当前还藏在 `MEMEXA_QQ_NAPCAT_FORCE=1` 后面)
 
 ## v0.2 — Linux 一级公民 (平行 track)
 
@@ -64,7 +64,7 @@
 - [ ] Dashboard server 的 Prometheus `/metrics` endpoint
 - [ ] Per-driver SLO dashboard
 - [ ] 自动化夜间 recall regression 套件
-- [ ] 被遗忘权 CLI (`memex forget <canonical-id>`)
+- [ ] 被遗忘权 CLI (`memexa forget <canonical-id>`)
 
 ## v1.0 — schema 稳定承诺
 

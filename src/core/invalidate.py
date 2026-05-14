@@ -33,7 +33,7 @@ from src.core.hindsight_client import HindsightHttpClient, get_client
 _CACHE: dict[str, tuple[set[str], float]] = {}
 _CACHE_TTL_S = 300  # 5 minutes
 
-_TRACE_LOG_PATH = os.environ.get("MEMEX_INVALIDATE_TRACE_LOG", "")
+_TRACE_LOG_PATH = os.environ.get("MEMEXA_INVALIDATE_TRACE_LOG", "")
 
 
 def _emit_trace(event: str, payload: dict[str, Any]) -> None:

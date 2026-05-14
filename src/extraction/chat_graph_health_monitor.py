@@ -31,7 +31,7 @@ HEALTH_LOG_FILE = DATA_DIR / "grayscale_health_log.jsonl"
 # ---------------------------------------------------------------------------
 
 def _emit_trace(event: str, payload: dict) -> None:
-    path = os.environ.get("MEMEX_GMV2_STUB_TRACE_LOG", "")
+    path = os.environ.get("MEMEXA_GMV2_STUB_TRACE_LOG", "")
     if not path:
         return
     try:

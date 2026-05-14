@@ -1,10 +1,10 @@
 """TU-R7-lite (2026-04-23): CI env-var grep gate.
 
-Policy: all `os.environ.get("MEMEX_*")` reads must be pre-declared in
-`memex/data/env_allowlist.json`. New env reads require CEO approval via
+Policy: all `os.environ.get("MEMEXA_*")` reads must be pre-declared in
+`memexa/data/env_allowlist.json`. New env reads require CEO approval via
 the `add-allowed` CLI.
 
-Rationale (deep audit B2 + security-reviewer B2): 64+ MEMEX_* env reads
+Rationale (deep audit B2 + security-reviewer B2): 64+ MEMEXA_* env reads
 across 37 files form an OWASP LLM01 attack surface. Full runtime migration
 to a single `overrides` module is 500+ LoC — out of scope. This lite gate
 instead prevents NEW env reads from being added without CEO signoff, via
@@ -31,16 +31,16 @@ import re
 import sys
 from pathlib import Path
 
-_MEMEX = Path(__file__).resolve().parents[2]
-_ALLOWLIST = _MEMEX / "memex" / "data" / "env_allowlist.json"
+_MEMEXA = Path(__file__).resolve().parents[2]
+_ALLOWLIST = _MEMEXA / "memexa" / "data" / "env_allowlist.json"
 
-_ENV_RE = re.compile(r'os\.environ\.get\s*\(\s*[\'"](MEMEX_[A-Z0-9_]+)[\'"]')
+_ENV_RE = re.compile(r'os\.environ\.get\s*\(\s*[\'"](MEMEXA_[A-Z0-9_]+)[\'"]')
 
 
 def _scan_workspace() -> set:
-    """Scan memex/ for all MEMEX_* env var names."""
+    """Scan memexa/ for all MEMEXA_* env var names."""
     names = set()
-    for root, _, files in os.walk(_MEMEX):
+    for root, _, files in os.walk(_MEMEXA):
         if "__pycache__" in root or "worktree" in root:
             continue
         for f in files:
@@ -99,8 +99,8 @@ def add_allowed(name: str, ceo_approved: bool, reason: str = "") -> int:
     if not ceo_approved:
         print("ERROR: add-allowed requires --ceo-approved flag.", file=sys.stderr)
         return 2
-    if not re.fullmatch(r"MEMEX_[A-Z0-9_]+", name):
-        print(f"ERROR: name {name!r} must match MEMEX_[A-Z0-9_]+.", file=sys.stderr)
+    if not re.fullmatch(r"MEMEXA_[A-Z0-9_]+", name):
+        print(f"ERROR: name {name!r} must match MEMEXA_[A-Z0-9_]+.", file=sys.stderr)
         return 1
     data = _load_allowlist()
     names = set(data.get("names", []))

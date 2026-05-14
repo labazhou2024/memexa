@@ -15,7 +15,7 @@ from typing import Optional
 from ._path_resolver import workspace_root
 
 
-CONFIG_REL = ".memex/identity.yaml"
+CONFIG_REL = ".memexa/identity.yaml"
 
 
 def _load_config() -> dict:
@@ -36,10 +36,10 @@ def _load_config() -> dict:
 def qq_id() -> Optional[str]:
     """Return the QQ numeric id for this user.
 
-    Resolution: ``MEMEX_QQ_ID`` env, then ``identity.yaml:qq_id``,
+    Resolution: ``MEMEXA_QQ_ID`` env, then ``identity.yaml:qq_id``,
     then ``None`` if neither is set.
     """
-    raw = os.environ.get("MEMEX_QQ_ID", "").strip()
+    raw = os.environ.get("MEMEXA_QQ_ID", "").strip()
     if raw:
         return raw
     val = _load_config().get("qq_id")
@@ -48,7 +48,7 @@ def qq_id() -> Optional[str]:
 
 @lru_cache(maxsize=1)
 def primary_email() -> Optional[str]:
-    raw = os.environ.get("MEMEX_PRIMARY_EMAIL", "").strip()
+    raw = os.environ.get("MEMEXA_PRIMARY_EMAIL", "").strip()
     if raw:
         return raw
     val = _load_config().get("primary_email")

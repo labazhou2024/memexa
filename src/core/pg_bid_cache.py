@@ -17,7 +17,7 @@ a tunneled port).
 
 Optional = ``ssh <host> psql ...`` when the PG port is firewalled and
 you can only reach it via a remote shell. Set
-``MEMEX_PG_SSH_TARGET`` to enable.
+``MEMEXA_PG_SSH_TARGET`` to enable.
 
 Usage in drivers:
 
@@ -35,17 +35,17 @@ Cache file (JSON):
 
 Env overrides:
 
-    MEMEX_PG_DSN          full DSN (overrides host/port/user/db)
-    MEMEX_PG_HOST         default: 127.0.0.1
-    MEMEX_PG_PORT         default: 5433
-    MEMEX_PG_USER         default: $USER (i.e. whoami)
-    MEMEX_PG_DB           default: hindsight
-    MEMEX_HINDSIGHT_BANK  default: memory_full_v5
-    MEMEX_PG_BID_TTL_SEC  default: 3600
+    MEMEXA_PG_DSN          full DSN (overrides host/port/user/db)
+    MEMEXA_PG_HOST         default: 127.0.0.1
+    MEMEXA_PG_PORT         default: 5433
+    MEMEXA_PG_USER         default: $USER (i.e. whoami)
+    MEMEXA_PG_DB           default: hindsight
+    MEMEXA_HINDSIGHT_BANK  default: memory_full_v5
+    MEMEXA_PG_BID_TTL_SEC  default: 3600
 
     # SSH-mode (optional, only needed when PG port is firewalled):
-    MEMEX_PG_SSH_TARGET   default: '' (disabled — use direct psycopg2)
-    MEMEX_PG_PSQL_BIN     default: 'psql' (must be on PATH on the remote)
+    MEMEXA_PG_SSH_TARGET   default: '' (disabled — use direct psycopg2)
+    MEMEXA_PG_PSQL_BIN     default: 'psql' (must be on PATH on the remote)
 
 CLI smoke-test:
 
@@ -68,16 +68,16 @@ _REPO = Path(__file__).resolve().parents[2]
 _CACHE_DIR = _REPO / "data" / "pg_bid_cache"
 
 # ssh-mode (opt-in: leave empty to use psycopg2 directly)
-_SSH_TARGET = os.environ.get("MEMEX_PG_SSH_TARGET", "").strip()
-_PSQL_BIN = os.environ.get("MEMEX_PG_PSQL_BIN", "psql")
+_SSH_TARGET = os.environ.get("MEMEXA_PG_SSH_TARGET", "").strip()
+_PSQL_BIN = os.environ.get("MEMEXA_PG_PSQL_BIN", "psql")
 
-_PG_DSN = os.environ.get("MEMEX_PG_DSN", "").strip()
-_PG_DB = os.environ.get("MEMEX_PG_DB", "hindsight")
-_PG_HOST = os.environ.get("MEMEX_PG_HOST", "127.0.0.1")
-_PG_PORT = os.environ.get("MEMEX_PG_PORT", "5433")
-_PG_USER = os.environ.get("MEMEX_PG_USER", "") or getpass.getuser()
-_PG_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
-_DEFAULT_TTL = int(os.environ.get("MEMEX_PG_BID_TTL_SEC", "3600"))
+_PG_DSN = os.environ.get("MEMEXA_PG_DSN", "").strip()
+_PG_DB = os.environ.get("MEMEXA_PG_DB", "hindsight")
+_PG_HOST = os.environ.get("MEMEXA_PG_HOST", "127.0.0.1")
+_PG_PORT = os.environ.get("MEMEXA_PG_PORT", "5433")
+_PG_USER = os.environ.get("MEMEXA_PG_USER", "") or getpass.getuser()
+_PG_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
+_DEFAULT_TTL = int(os.environ.get("MEMEXA_PG_BID_TTL_SEC", "3600"))
 
 # Driver source → PG metadata source value
 _DRIVER_TO_PG_SOURCE = {
@@ -141,7 +141,7 @@ def _query_pg_direct(pg_source: str, timeout: int = 60) -> set[str]:
     except ImportError as exc:
         raise RuntimeError(
             "psycopg2 not installed; install with `pip install psycopg2-binary` "
-            "or set MEMEX_PG_SSH_TARGET to use the ssh fallback"
+            "or set MEMEXA_PG_SSH_TARGET to use the ssh fallback"
         ) from exc
 
     if _PG_DSN:

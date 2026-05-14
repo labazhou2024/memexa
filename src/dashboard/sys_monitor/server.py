@@ -3,13 +3,13 @@ sys_monitor — multi-host CPU/RAM/GPU dashboard with per-pid GPU attribution.
 
 Pulls metrics from
   - localhost via psutil
-  - any host listed in ``MEMEX_DASHBOARD_HOSTS`` via embedded ssh probe
+  - any host listed in ``MEMEXA_DASHBOARD_HOSTS`` via embedded ssh probe
 
 The host list is a JSON array of ``{label, ssh_args}`` records (env value
 example below) so the dashboard runs out-of-the-box with localhost only,
 and lights up the remote panels as the operator wires them in.
 
-  MEMEX_DASHBOARD_HOSTS='[
+  MEMEXA_DASHBOARD_HOSTS='[
     {"label":"mac",  "ssh_args":["mac-host"]},
     {"label":"gpu",  "ssh_args":["-J","mac-host","-p","22","user@gpu-host"]}
   ]'
@@ -56,7 +56,7 @@ ROUTE_TTL_S = 60.0
 
 
 def _load_ssh_routes() -> Dict[str, List[Tuple[str, List[str]]]]:
-    """Read SSH_ROUTES from ``MEMEX_DASHBOARD_HOSTS`` (JSON array).
+    """Read SSH_ROUTES from ``MEMEXA_DASHBOARD_HOSTS`` (JSON array).
 
     Empty / unset env → empty dict (dashboard will only show localhost).
     Malformed JSON → log + empty dict (graceful degradation).
@@ -76,13 +76,13 @@ def _load_ssh_routes() -> Dict[str, List[Tuple[str, List[str]]]]:
            ]}
         ]
     """
-    raw = os.environ.get("MEMEX_DASHBOARD_HOSTS", "").strip()
+    raw = os.environ.get("MEMEXA_DASHBOARD_HOSTS", "").strip()
     if not raw:
         return {}
     try:
         records = json.loads(raw)
     except Exception as exc:
-        LOG.warning("MEMEX_DASHBOARD_HOSTS is not valid JSON: %s", exc)
+        LOG.warning("MEMEXA_DASHBOARD_HOSTS is not valid JSON: %s", exc)
         return {}
     out: Dict[str, List[Tuple[str, List[str]]]] = {}
     for rec in records or []:
@@ -706,13 +706,13 @@ def gather() -> Dict[str, Any]:
 # API usage & memory system probes (added 2026-05-12)
 # --------------------------------------------------------------------------
 def _find_repo_root() -> Optional[Path]:
-    """Walk up to find memex repo root (has data/l0_v5 and tools/).
+    """Walk up to find memexa repo root (has data/l0_v5 and tools/).
 
     When running as PyInstaller .exe, __file__ is in a temp extract dir.
-    sys.executable points to the actual .exe at memex/tools/sys_monitor/dist/sys_monitor.exe
-    — walking up from there finds memex/. Also accept env override.
+    sys.executable points to the actual .exe at memexa/tools/sys_monitor/dist/sys_monitor.exe
+    — walking up from there finds memexa/. Also accept env override.
     """
-    env_override = os.environ.get("MEMEX_REPO_ROOT")
+    env_override = os.environ.get("MEMEXA_REPO_ROOT")
     if env_override:
         p = Path(env_override).resolve()
         if (p / "data" / "l0_v5").is_dir():
@@ -878,8 +878,8 @@ def gather_api_usage() -> Dict[str, Any]:
         pass
 
     # Read models from env (loaded by cron_silent or directly)
-    gk_model = os.environ.get("MEMEX_your-org_GATEKEEPER_MODEL", "?")
-    ext_model = os.environ.get("MEMEX_your-org_EXTRACTOR_MODEL", "?")
+    gk_model = os.environ.get("MEMEXA_your-org_GATEKEEPER_MODEL", "?")
+    ext_model = os.environ.get("MEMEXA_your-org_EXTRACTOR_MODEL", "?")
     # If env not set, try reading the env file
     if gk_model == "?" or ext_model == "?":
         try:
@@ -890,9 +890,9 @@ def gather_api_usage() -> Dict[str, Any]:
                     if "=" in line and not line.startswith("#"):
                         k, v = line.split("=", 1)
                         k, v = k.strip(), v.strip()
-                        if k == "MEMEX_your-org_GATEKEEPER_MODEL" and gk_model == "?":
+                        if k == "MEMEXA_your-org_GATEKEEPER_MODEL" and gk_model == "?":
                             gk_model = v
-                        elif k == "MEMEX_your-org_EXTRACTOR_MODEL" and ext_model == "?":
+                        elif k == "MEMEXA_your-org_EXTRACTOR_MODEL" and ext_model == "?":
                             ext_model = v
         except Exception:
             pass
@@ -960,7 +960,7 @@ def _http_get_json(url: str, timeout: float = 4.0) -> Tuple[bool, Any]:
 
 
 def gather_memory_system() -> Dict[str, Any]:
-    """Aggregate the memex memory system control plane:
+    """Aggregate the memexa memory system control plane:
       - hindsight :8888 banks/memory_full_v5 stats (PG node count)
       - outbox queue depth (data/outbox/*)
       - schtask_health (read cached data/schtask_health.json)
@@ -979,10 +979,10 @@ def gather_memory_system() -> Dict[str, Any]:
     out: Dict[str, Any] = {"ok": True, "scanned_at": now}
 
     # 1. Hindsight bank stats (HTTP GET, fast)
-    # 2026-05-13: align with rest of codebase — accept MEMEX_HINDSIGHT_URL env override
+    # 2026-05-13: align with rest of codebase — accept MEMEXA_HINDSIGHT_URL env override
     # (other 9 callsites do this; dashboard was the only outlier hardcoded).
-    bank_base = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-    bank_id = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+    bank_base = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+    bank_id = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
     bank_url = f"{bank_base}/v1/default/banks/{bank_id}/stats"
     ok, val = _http_get_json(bank_url, timeout=3.0)
     if ok and isinstance(val, dict):
@@ -1023,15 +1023,15 @@ def gather_memory_system() -> Dict[str, Any]:
     except Exception as exc:
         out["outbox"]["error"] = f"{type(exc).__name__}: {exc}"
 
-    # 2c. PG snapshot health — polls $MEMEX_PG_SNAPSHOT_DIR on the remote host
+    # 2c. PG snapshot health — polls $MEMEXA_PG_SNAPSHOT_DIR on the remote host
     # for latest *.sql.gz and reports age + size + count. SSH adds ~1-2 s
-    # latency; cached 5 min. Skipped if MEMEX_PG_SNAPSHOT_DIR is unset.
+    # latency; cached 5 min. Skipped if MEMEXA_PG_SNAPSHOT_DIR is unset.
     snap_cache = _PG_SNAPSHOT_CACHE
-    snap_dir = os.environ.get("MEMEX_PG_SNAPSHOT_DIR", "").strip()
-    snap_host = os.environ.get("MEMEX_PG_SNAPSHOT_HOST", "").strip()
+    snap_dir = os.environ.get("MEMEXA_PG_SNAPSHOT_DIR", "").strip()
+    snap_host = os.environ.get("MEMEXA_PG_SNAPSHOT_HOST", "").strip()
     if not (snap_dir and snap_host):
         out["pg_snapshot"] = {"ok": False, "skipped": True,
-                              "reason": "MEMEX_PG_SNAPSHOT_DIR/HOST unset"}
+                              "reason": "MEMEXA_PG_SNAPSHOT_DIR/HOST unset"}
     elif snap_cache["data"] is not None and (now - snap_cache["ts"]) < _PG_SNAPSHOT_TTL_S:
         out["pg_snapshot"] = snap_cache["data"]
     else:
@@ -1099,7 +1099,7 @@ def gather_memory_system() -> Dict[str, Any]:
     # 2b. v5 bank 24h growth tracker (NEW 2026-05-12)
     # Persist last-seen bank size + ts so we can compute delta over time.
     # This is what user actually cares about for "cards posted in last 24h".
-    growth_path = repo / "memex" / "data" / ".bank_size_history.jsonl"
+    growth_path = repo / "memexa" / "data" / ".bank_size_history.jsonl"
     out["bank_growth"] = {"history_path": growth_path.as_posix()}
     try:
         current_total = (out.get("bank") or {}).get("total_nodes") or 0
@@ -1274,13 +1274,13 @@ def gather_memory_system() -> Dict[str, Any]:
         return bids
 
     # PG truth queried via the same cache module the driver uses.
-    # Load via absolute path import to bypass memex/__init__.py chain
+    # Load via absolute path import to bypass memexa/__init__.py chain
     # (PyInstaller bundles strip transitive deps like asyncio/aiosqlite when
     # `src.core` is loaded as a package — direct file-path import avoids
     # the heavy package init).
     pg_bids_by_src: Dict[str, set] = {}
     pg_import_err: Optional[str] = None
-    pbc_path = repo / "memex" / "core" / "pg_bid_cache.py"
+    pbc_path = repo / "memexa" / "core" / "pg_bid_cache.py"
     _pbc = None
     if pbc_path.exists():
         try:
@@ -1425,7 +1425,7 @@ CACHE: Optional[_Cache] = None
 # 谁正在查询 / 最近查了什么 / 结果数 / latency.
 #
 # 2026-05-13 fix: PyInstaller frozen exe 把 __file__ 解析到 PyInstaller temp
-# 提取目录 → _MEMEX_ROOT = HERE.parent.parent 拿到 AppData\Local\memex 假根.
+# 提取目录 → _MEMEXA_ROOT = HERE.parent.parent 拿到 AppData\Local\memexa 假根.
 # 结果 log_exists=False 永远空面板. 改用 _find_repo_root() 找真 repo (扫描
 # data/l0_v5 + tools 标志目录).
 def _resolve_log_paths() -> tuple[Path, Path]:
@@ -1435,7 +1435,7 @@ def _resolve_log_paths() -> tuple[Path, Path]:
         # 兜底: 用 HERE.parent.parent (开发模式可用)
         root = HERE.parent.parent
     return (
-        root / "memex" / "data" / "memory_query_log.jsonl",
+        root / "memexa" / "data" / "memory_query_log.jsonl",
         root / "data" / "phaseB_monitor" / "status.json",
     )
 
@@ -1833,7 +1833,7 @@ def _read_identity_state() -> Dict[str, Any]:
 
 
 def _read_cron_health() -> Dict[str, Any]:
-    """Query Windows Task Scheduler for all memex\\* tasks + cache 30s.
+    """Query Windows Task Scheduler for all memexa\\* tasks + cache 30s.
 
     Returns:
         {
@@ -1863,7 +1863,7 @@ def _read_cron_health() -> Dict[str, Any]:
     }
     try:
         ps_cmd = (
-            "Get-ScheduledTask -TaskPath '\\memex\\*' -ErrorAction SilentlyContinue | "
+            "Get-ScheduledTask -TaskPath '\\memexa\\*' -ErrorAction SilentlyContinue | "
             "ForEach-Object { $t=$_; $i=Get-ScheduledTaskInfo -InputObject $_; "
             "[PSCustomObject]@{"
             "Name=$t.TaskName; State=$t.State.ToString(); "
@@ -2110,7 +2110,7 @@ def _read_cron_activity() -> Dict[str, Any]:
     orch = {"drivers": [], "current": None}
     audio_log = None
     if log_dir.exists():
-        orch_logs = sorted(log_dir.glob("memex_core_cron_orchestrator_*.log"),
+        orch_logs = sorted(log_dir.glob("memexa_core_cron_orchestrator_*.log"),
                            key=lambda p: p.stat().st_mtime, reverse=True)
         if orch_logs:
             orch = _parse_orch_log(orch_logs[0])

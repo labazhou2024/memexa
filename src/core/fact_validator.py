@@ -293,18 +293,18 @@ def _check_paired_eval_attestation(
     Args:
         fact: fact dict (may or may not contain paired_eval_attested).
         env_required: override for env check (for testing). If None, reads
-            MEMEX_PAIRED_EVAL_REQUIRED env var (default "1").
+            MEMEXA_PAIRED_EVAL_REQUIRED env var (default "1").
         emit_trace: optional trace emitter; if None uses trace_sink.
 
     Returns:
         (ok, reason). ok=True means check passed.
 
-    Enforcement mode (MEMEX_PAIRED_EVAL_REQUIRED=1, default):
+    Enforcement mode (MEMEXA_PAIRED_EVAL_REQUIRED=1, default):
         - Missing field OR value="none" → FAIL; trace fact_paired_eval_invalid_value.
         - Value in {"paired_v1", "single_qwen_v1"} → PASS.
         - Value not in valid set → FAIL; trace fact_paired_eval_invalid_value.
 
-    Grandfather mode (MEMEX_PAIRED_EVAL_REQUIRED=0):
+    Grandfather mode (MEMEXA_PAIRED_EVAL_REQUIRED=0):
         - Always PASS; trace fact_paired_eval_grandfather_skipped.
     """
     def _trace(event: str, payload: dict) -> None:
@@ -322,7 +322,7 @@ def _check_paired_eval_attestation(
 
     # Resolve env_required from environment if not explicitly passed
     if env_required is None:
-        env_required = os.environ.get("MEMEX_PAIRED_EVAL_REQUIRED", "1") == "1"
+        env_required = os.environ.get("MEMEXA_PAIRED_EVAL_REQUIRED", "1") == "1"
 
     if not env_required:
         # Grandfather mode: accept unconditionally + emit informational trace

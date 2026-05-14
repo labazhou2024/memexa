@@ -6,14 +6,14 @@ L6 Evolution Trigger (Phase 4, 2026-04-18)
 Design (per verifier R3):
 - Counter key in harness_state.json: prompt_evolution.sessions_since_last_evolve
 - Two AND conditions:
-    sessions >= MEMEX_EVOLUTION_SESSION_THRESHOLD (default 10)
+    sessions >= MEMEXA_EVOLUTION_SESSION_THRESHOLD (default 10)
     AND
     elapsed_since_last_evolve >= 72h
 - "New session" = cold start only (resume/clear NOT counted)
     detect: harness_state.auto_dream.last_shutdown_reason != "resume"
 - Clear counter on success (not on trigger) — avoid retry storm
 - filelock cross-platform (filelock lib, already installed)
-- ENV flag: MEMEX_L6_EVOLUTION=0 default (CEO must opt in explicitly)
+- ENV flag: MEMEXA_L6_EVOLUTION=0 default (CEO must opt in explicitly)
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ _WORKSPACE = Path(__file__).parent.parent.parent.parent
 _HARNESS_STATE = _WORKSPACE / ".claude" / "config" / "harness_state.json"
 _LOCK_FILE = _WORKSPACE / ".claude" / "config" / ".harness_state.lock"
 
-_DEFAULT_THRESHOLD = int(os.environ.get("MEMEX_EVOLUTION_SESSION_THRESHOLD", "10"))
+_DEFAULT_THRESHOLD = int(os.environ.get("MEMEXA_EVOLUTION_SESSION_THRESHOLD", "10"))
 _MIN_ELAPSED_HOURS = 72
 _EXCLUDE_SHUTDOWN_REASONS = {"resume", "clear"}
 
@@ -221,9 +221,9 @@ def _evolve_one_agent(agent_name: str) -> dict:
 
 def is_enabled() -> bool:
     """ENV flag. Default OFF — prompt evolution modifies .md files,
-    CEO must explicitly enable via MEMEX_L6_EVOLUTION=1.
+    CEO must explicitly enable via MEMEXA_L6_EVOLUTION=1.
     """
-    return os.environ.get("MEMEX_L6_EVOLUTION", "0") == "1"
+    return os.environ.get("MEMEXA_L6_EVOLUTION", "0") == "1"
 
 
 def _get_lock():
@@ -388,7 +388,7 @@ def check_and_trigger() -> dict:
                 _write_harness_state(state)
             return {"triggered": False, "reason": f"import_error:{e}"}
 
-        # [B2 fix 2026-04-18] Honor MEMEX_EVOLVE_AGENTS env var (single source
+        # [B2 fix 2026-04-18] Honor MEMEXA_EVOLVE_AGENTS env var (single source
         # of truth in prompt_evolver._ELIGIBLE_AGENTS). Previous hardcoded
         # tuple silently ignored env override.
         eligible = sorted(a for a in _ELIGIBLE_AGENTS if is_agent_eligible(a))
@@ -402,7 +402,7 @@ def check_and_trigger() -> dict:
                 _write_harness_state(state)
             return {"triggered": False, "reason": "no_eligible_agents"}
 
-        autorun = os.environ.get("MEMEX_L6_AUTORUN", "0") == "1"
+        autorun = os.environ.get("MEMEXA_L6_AUTORUN", "0") == "1"
 
         if not autorun:
             # Queue for CEO approval, release in_progress claim (counter stays 0

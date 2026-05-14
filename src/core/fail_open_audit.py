@@ -1,6 +1,6 @@
 """TU-R2 (2026-04-23): fail-open audit CLI.
 
-Reads memex/memex/data/events.jsonl and reports per-gate / per-reason
+Reads memexa/memexa/data/events.jsonl and reports per-gate / per-reason
 fail-open counts over a time window. Used as weekly CI digest to detect
 gate bypass trends (see `feedback_autopilot_depth_and_dont_return_early.md`
 and 2026-04-23 deep audit B2: session_gate silently bypassed on 13/20
@@ -19,8 +19,8 @@ from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-_MEMEX = Path(__file__).resolve().parents[2]
-_EVENTS = _MEMEX / "memex" / "data" / "events.jsonl"
+_MEMEXA = Path(__file__).resolve().parents[2]
+_EVENTS = _MEMEXA / "memexa" / "data" / "events.jsonl"
 
 # B3 fix (security review blocker 3): sanitize task_id / gate name for
 # ANSI injection before printing. Attacker-controlled directory name must

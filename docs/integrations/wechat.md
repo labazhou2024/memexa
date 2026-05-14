@@ -2,7 +2,7 @@
 
 **English** · [中文](wechat.zh.md)
 
-`memex` ingests WeChat chat history via per-batch JSON envelopes. It
+`memexa` ingests WeChat chat history via per-batch JSON envelopes. It
 does **not** export the data itself — you bring the export, the builder
 normalizes it, the extractor pulls cards.
 
@@ -50,7 +50,7 @@ the extractor.
 
 ```bash
 # 1. Point the builder at your export
-export MEMEX_WECHAT_EXPORT_DIR=/path/to/wechat/export
+export MEMEXA_WECHAT_EXPORT_DIR=/path/to/wechat/export
 
 # 2. Run the builder once (writes batch files to data/l0_v5/input_batches/)
 python -m src.ingestion.v5_wechat_batch_builder
@@ -62,12 +62,12 @@ ls data/l0_v5/input_batches/$(date +%Y-%m-%d)/ | head
 python -m src.drivers.backfill_v5_wechat_driver --once --verbose
 
 # 5. Query
-memex quick "<an entity name from the export>"
+memexa quick "<an entity name from the export>"
 ```
 
 ## Schema you actually need to fill in
 
-The builder reads `~/.memex/aliases.yaml` to decide which `wxid_hash`
+The builder reads `~/.memexa/aliases.yaml` to decide which `wxid_hash`
 values are "you". Make sure your own hash appears in `self_aliases`,
 otherwise every card will be tagged speaker_role=`third_party`.
 
@@ -87,7 +87,7 @@ timezone: "Asia/Shanghai"
 
 ### "Builder finds 0 messages"
 
-- Path mismatch — confirm `ls $MEMEX_WECHAT_EXPORT_DIR` lists chat
+- Path mismatch — confirm `ls $MEMEXA_WECHAT_EXPORT_DIR` lists chat
   directories, not raw `.db` files.
 - Tool used "HTML" or "CSV" output, not "JSON". Re-export with JSON.
 - Tool emitted UTF-16 BOM. The builder reads UTF-8; re-encode with

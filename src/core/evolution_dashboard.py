@@ -192,11 +192,11 @@ def render_brief() -> str:
             f"Haiku cost today: ${cost_today:.3f}",
             f"Semantic index (L4): {sem}",
             f"Prompt evolution (L6): {l6}",
-            f"Layers: L1=ON  L2={_env_flag('MEMEX_L2_SOFT_SIGNAL', '1')}  "
-            f"L3={_env_flag('MEMEX_L3_REFLECTION', '1')}  "
-            f"L4={_env_flag('MEMEX_L4_SEMANTIC_KB', '1')}  "
-            f"L6={_env_flag('MEMEX_L6_EVOLUTION', '0')}  "
-            f"L7={_env_flag('MEMEX_L7_DASHBOARD', '1')}",
+            f"Layers: L1=ON  L2={_env_flag('MEMEXA_L2_SOFT_SIGNAL', '1')}  "
+            f"L3={_env_flag('MEMEXA_L3_REFLECTION', '1')}  "
+            f"L4={_env_flag('MEMEXA_L4_SEMANTIC_KB', '1')}  "
+            f"L6={_env_flag('MEMEXA_L6_EVOLUTION', '0')}  "
+            f"L7={_env_flag('MEMEXA_L7_DASHBOARD', '1')}",
             "================================",
         ]
         return "\n".join(lines)
@@ -284,7 +284,7 @@ def render_full() -> str:
 
 
 def is_enabled() -> bool:
-    return os.environ.get("MEMEX_L7_DASHBOARD", "1") == "1"
+    return os.environ.get("MEMEXA_L7_DASHBOARD", "1") == "1"
 
 
 def main():

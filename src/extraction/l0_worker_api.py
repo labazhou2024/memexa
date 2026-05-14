@@ -73,8 +73,8 @@ from src.extraction.ustc_llm_client import (  # noqa: E402
 
 logger = logging.getLogger("l0_worker_api")
 
-GATEKEEPER_MODEL = os.environ.get("MEMEX_your-org_GATEKEEPER_MODEL", "qwen3.6-chat")
-EXTRACTOR_MODEL = os.environ.get("MEMEX_your-org_EXTRACTOR_MODEL",
+GATEKEEPER_MODEL = os.environ.get("MEMEXA_your-org_GATEKEEPER_MODEL", "qwen3.6-chat")
+EXTRACTOR_MODEL = os.environ.get("MEMEXA_your-org_EXTRACTOR_MODEL",
                                   "deepseek-v4-flash-ascend")
 
 

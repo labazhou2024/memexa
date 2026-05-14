@@ -9,7 +9,7 @@ Per-source realtime mode flags evaluated independently — if WeChat is in
 realtime mode but QQ is not, only WeChat skips.
 
 Flag stash protocol (per plan TU-6 action 5 + Stage 5 pre-commit protocol):
-  - MEMEX_ACTIVE_TASK_ID env pin REQUIRED for backfill driver invocations
+  - MEMEXA_ACTIVE_TASK_ID env pin REQUIRED for backfill driver invocations
     (long-running shells); checked at run() entry.
   - autopilot_active.json conflict detection: if flag.task_id != ENV task_id,
     callers (the backfill driver scripts) must stash flag → run → restore.
@@ -57,7 +57,7 @@ def _check_env_pin() -> tuple[bool, Optional[str]]:
     Returns (ok, mismatch_value). For non-backfill production GraphMaintenance6h
     invocation, env pin not required (returns (True, None)).
     """
-    env_tid = os.environ.get("MEMEX_ACTIVE_TASK_ID")
+    env_tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID")
     if not env_tid:
         return True, None  # not required outside backfill
     if env_tid != _BACKFILL_TASK_ID:
@@ -75,7 +75,7 @@ def _check_autopilot_flag_conflict() -> tuple[bool, Optional[str]]:
     try:
         d = json.loads(_AUTOPILOT_FLAG.read_text(encoding="utf-8"))
         owner = d.get("task_id") or ""
-        env_tid = os.environ.get("MEMEX_ACTIVE_TASK_ID")
+        env_tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID")
         if env_tid and owner and owner != env_tid:
             return True, owner
         return False, owner

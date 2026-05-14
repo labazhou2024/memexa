@@ -1,9 +1,9 @@
 """DEPRECATED — 27B arbiter permanently archived 2026-05-07.
 
-See memex/core/paired_eval.py docstring. CEO directive: archive entire
+See memexa/core/paired_eval.py docstring. CEO directive: archive entire
 Mac dual-LLM + 27B arbiter swap stack.
 
-Archived sources: archive/2026_05_07_paired_eval_archived/memex/core/arbiter_27b.py
+Archived sources: archive/2026_05_07_paired_eval_archived/memexa/core/arbiter_27b.py
 """
 from __future__ import annotations
 

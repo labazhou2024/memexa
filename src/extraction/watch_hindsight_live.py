@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 
 from src.core.memory_card_v2 import MemoryCard
 
-HINDSIGHT_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
+HINDSIGHT_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
 
 
 def fetch_bank_stats(bank_id: str) -> Dict:
