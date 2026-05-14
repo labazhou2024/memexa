@@ -7,7 +7,7 @@ isolates namespace from chat-realtime.
 
 This module is the **superset schema** for all 14 backfill sources (WeChat / WeChat
 dump / .claude/data/traces.jsonl / evidence.jsonl / task trace.jsonl /
-桌面/日志 2026.docx / schedule_data.json / research/ / lab_reports/ / memex git /
+桌面/日志 2026.docx / schedule_data.json / research/ / lab_reports/ / memexa git /
 your-org GPU / QQ NapCat / Email / memory frontmatter / task_dirs synthesis).
 
 Existing chat.metadata_builder._build_chat_metadata (10 fields) is the CHAT-REALTIME
@@ -59,7 +59,7 @@ EXTRACTED_BY_BACKFILL: FrozenSet[str] = frozenset({
     "backfill-traces",       # TU-9 .claude/data/traces.jsonl + task trace.jsonl
     "backfill-evidence",     # TU-9 evidence.jsonl
     "backfill-schedule",     # TU-9 schedule_data.json
-    "backfill-git",          # TU-9 memex git history
+    "backfill-git",          # TU-9 memexa git history
     "backfill-memory",       # TU-9 memory/*.md frontmatter
     "backfill-tasks",        # TU-9 .claude/harness/tasks/ synthesis
     "backfill-diary",        # TU-10 桌面/日志 2026.docx

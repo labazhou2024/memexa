@@ -3,7 +3,7 @@
 [English](02_meeting_brief_pattern.md) · **中文**
 
 > **问题一句话**: 你 30 分钟后要见 X。基线是什么? 上次说啥? 开放话题
-> 在哪? 雷区在哪? 大多数人靠翻聊天记录 — 慢且容易错。memex 把它做成
+> 在哪? 雷区在哪? 大多数人靠翻聊天记录 — 慢且容易错。memexa 把它做成
 > 5 分钟产出 4 段简报。
 
 ## 受众
@@ -48,7 +48,7 @@
               ┌─────────────────────┼─────────────────────┐
               ▼                     ▼                     ▼
        ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-       │  memex arc   │     │ memex quick  │     │ memex quick  │
+       │  memexa arc   │     │ memexa quick  │     │ memexa quick  │
        │  (60 卡,     │     │ "<名> 这周"  │     │ "<名> 问"    │
        │  关系全史)   │     │ (近因)       │     │ (开放诉求)   │
        └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
@@ -68,7 +68,7 @@
 ### 查询 1 — `arc` 拿关系广度
 
 ```bash
-memex arc "Alice" --max-cards 60
+memexa arc "Alice" --max-cards 60
 ```
 
 你从上到下读, 抽出:
@@ -83,7 +83,7 @@ memex arc "Alice" --max-cards 60
 ### 查询 2 — `quick` 拿最近 7 天
 
 ```bash
-memex quick "Alice 1月" --max-k 20
+memexa quick "Alice 1月" --max-k 20
 ```
 
 - 2024-01-22: 她把组会推迟到 2024-01-30 (节假日)
@@ -95,7 +95,7 @@ memex quick "Alice 1月" --max-k 20
 ### 查询 3 — `quick` 拿开放诉求
 
 ```bash
-memex quick "Alice 等 待 问" --max-k 15
+memexa quick "Alice 等 待 问" --max-k 15
 ```
 
 这个语义会抓住 "等" / "需要" / "能不能" 这些询问/期待语义。
@@ -134,7 +134,7 @@ memex quick "Alice 等 待 问" --max-k 15
 - Note: 不要主动提节假日安排 (是她做的延期决定)
 ```
 
-5 分钟从 "memex arc Alice" 到填好 brief。你带着已经扫过整个关系的状态
+5 分钟从 "memexa arc Alice" 到填好 brief。你带着已经扫过整个关系的状态
 进会议 — 否则要花 30 分钟翻聊天记录。
 
 ## 为啥就这个模板?
@@ -167,13 +167,13 @@ memex quick "Alice 等 待 问" --max-k 15
 # ~/.bashrc 或 PowerShell profile
 function brief {
   echo "=== §1 基线 ==="
-  memex arc "$1" --max-cards 60
+  memexa arc "$1" --max-cards 60
   echo ""
   echo "=== §2 最近 7 天 ==="
-  memex quick "$1 最近" --max-k 15
+  memexa quick "$1 最近" --max-k 15
   echo ""
   echo "=== §3 开放话题 ==="
-  memex quick "$1 等 待 问 还没" --max-k 15
+  memexa quick "$1 等 待 问 还没" --max-k 15
 }
 
 # 用法
@@ -194,7 +194,7 @@ brief "<你的对手方>"
 
 ## 何时这个不适用
 
-- **从未联系过对方** — memex 没数据。用 LinkedIn / 简历代替。
+- **从未联系过对方** — memexa 没数据。用 LinkedIn / 简历代替。
 - **纯信息会议 (听课/讲座)** — 不需关系层。跳 §3-§4, 用
   [03_project_status_check.zh.md](../../examples/demo_dataset/walkthroughs/03_project_status_check.zh.md)
   做主题准备。

@@ -37,7 +37,7 @@ def _find_workspace() -> Path:
             return cwd
     except OSError:
         pass
-    # Strategy 2: __file__ parent chain (fixed depth: core/memex/memex/workspace)
+    # Strategy 2: __file__ parent chain (fixed depth: core/memexa/memexa/workspace)
     try:
         candidate = Path(__file__).parent.parent.parent.parent
         if (candidate / marker).exists():
@@ -232,7 +232,7 @@ def check_root_directory(file_path: str) -> tuple:
         if pattern.match(filename):
             return False, (
                 f"BLOCKED: '{filename}' violates root directory rules (CLAUDE.md §3.5). "
-                f"Use archive/reports/ or memex/ subdirectories instead."
+                f"Use archive/reports/ or memexa/ subdirectories instead."
             )
     return True, ""
 
@@ -288,7 +288,7 @@ def check_python_syntax(content: str, file_path: str) -> tuple:
 _SUBAGENT_SPAWN_PATTERNS = [
     re.compile(r"\bclaude\s+-p\b"),
     re.compile(r"\bAgent\s*\("),
-    re.compile(r"python\s+-m\s+memex\.[a-z_]*executor", re.IGNORECASE),
+    re.compile(r"python\s+-m\s+memexa\.[a-z_]*executor", re.IGNORECASE),
     re.compile(r"\bspawn_(?:agent|subagent)\b"),
 ]
 
@@ -297,11 +297,11 @@ def _resolve_active_tid_for_budget() -> "str | None":
     """Resolve active task_id for budget gate. Tier-1 env / Tier-2 flag / Tier-3 None.
 
     Per HARD RULE feedback_value_resolution_chain_explicit: enumerate sources.
-    Tier-1: MEMEX_ACTIVE_TASK_ID env var (set by stripped-env subprocess paths)
+    Tier-1: MEMEXA_ACTIVE_TASK_ID env var (set by stripped-env subprocess paths)
     Tier-2: <workspace>/.claude/harness/autopilot_active.json (flag file)
     Tier-3: None (no active task; allow all)
     """
-    tid = os.environ.get("MEMEX_ACTIVE_TASK_ID")
+    tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID")
     if tid:
         return tid.strip() or None
     try:
@@ -390,7 +390,7 @@ def _check_sonnet_quarantine_block(cmd: str) -> "str | None":
         return None
     try:
         ws = _find_workspace()
-        flag = ws / "memex" / "data" / "sonnet_quarantine_blocked.flag"
+        flag = ws / "memexa" / "data" / "sonnet_quarantine_blocked.flag"
     except OSError:
         return None
     if not flag.exists():
@@ -443,7 +443,7 @@ def _check_memory_runaway_block(cmd: str) -> "str | None":
         return None
     try:
         ws = _find_workspace()
-        flag = ws / "memex" / "data" / "memory_runaway_blocked.flag"
+        flag = ws / "memexa" / "data" / "memory_runaway_blocked.flag"
     except OSError:
         return None
     if not flag.exists():
@@ -462,13 +462,13 @@ def _check_memory_runaway_block(cmd: str) -> "str | None":
         f"Rule 18 memory_runaway_blocked (state={state}, vms_gb={vms_gb:.2f}, "
         f"tripped_at={ts}). A high-memory pipeline command was denied because "
         "an earlier process crossed the commit-charge threshold. Inspect "
-        "memex/data/memory_guardrail_dumps/ for thread stacks. After root-causing, "
+        "memexa/data/memory_guardrail_dumps/ for thread stacks. After root-causing, "
         "run `python -m src.core.memory_guardrail clear` to release the gate."
     )
 
 
 def _rule14_owasp_env_inline(tool_name: str, tool_input: dict):
-    """Rule 14 (TU-5 2026-04-24): block MEMEX_GATES_OVERRIDE inline assignments per OWASP LLM01.
+    """Rule 14 (TU-5 2026-04-24): block MEMEXA_GATES_OVERRIDE inline assignments per OWASP LLM01.
 
     Returns (decision, reason) tuple to deny, or None to allow (rule did not match).
     Token-position-aware: only rejects where env var is the SUBJECT of an assignment,
@@ -485,24 +485,24 @@ def _rule14_owasp_env_inline(tool_name: str, tool_input: dict):
         return None
     if not tokens:
         return None
-    # Pattern 1: tokens[0] starts with MEMEX_GATES_OVERRIDE= (POSIX inline)
-    if tokens[0].startswith("MEMEX_GATES_OVERRIDE="):
+    # Pattern 1: tokens[0] starts with MEMEXA_GATES_OVERRIDE= (POSIX inline)
+    if tokens[0].startswith("MEMEXA_GATES_OVERRIDE="):
         return ("deny",
-                "Rule 14 OWASP LLM01: MEMEX_GATES_OVERRIDE must be set via dedicated CEO CLI "
+                "Rule 14 OWASP LLM01: MEMEXA_GATES_OVERRIDE must be set via dedicated CEO CLI "
                 "(`python -m src.cli.gates_override mint`), not LLM-authored inline shell. "
                 "See memory/feedback_override_channel_owasp.md HARD RULE.")
-    # Pattern 2: ['export', 'MEMEX_GATES_OVERRIDE=...'] (POSIX export)
-    if len(tokens) >= 2 and tokens[0] == "export" and tokens[1].startswith("MEMEX_GATES_OVERRIDE="):
+    # Pattern 2: ['export', 'MEMEXA_GATES_OVERRIDE=...'] (POSIX export)
+    if len(tokens) >= 2 and tokens[0] == "export" and tokens[1].startswith("MEMEXA_GATES_OVERRIDE="):
         return ("deny",
-                "Rule 14 OWASP LLM01: `export MEMEX_GATES_OVERRIDE=` rejected; use CEO CLI.")
-    # Pattern 3: ['set', 'MEMEX_GATES_OVERRIDE=...'] (Windows set, case-insensitive)
-    if len(tokens) >= 2 and tokens[0].lower() == "set" and tokens[1].startswith("MEMEX_GATES_OVERRIDE="):
+                "Rule 14 OWASP LLM01: `export MEMEXA_GATES_OVERRIDE=` rejected; use CEO CLI.")
+    # Pattern 3: ['set', 'MEMEXA_GATES_OVERRIDE=...'] (Windows set, case-insensitive)
+    if len(tokens) >= 2 and tokens[0].lower() == "set" and tokens[1].startswith("MEMEXA_GATES_OVERRIDE="):
         return ("deny",
-                "Rule 14 OWASP LLM01: `set MEMEX_GATES_OVERRIDE=` rejected; use CEO CLI.")
-    # Pattern 4: ['setx', 'MEMEX_GATES_OVERRIDE', value] (Windows setx persistent)
-    if len(tokens) >= 3 and tokens[0].lower() == "setx" and tokens[1] == "MEMEX_GATES_OVERRIDE":
+                "Rule 14 OWASP LLM01: `set MEMEXA_GATES_OVERRIDE=` rejected; use CEO CLI.")
+    # Pattern 4: ['setx', 'MEMEXA_GATES_OVERRIDE', value] (Windows setx persistent)
+    if len(tokens) >= 3 and tokens[0].lower() == "setx" and tokens[1] == "MEMEXA_GATES_OVERRIDE":
         return ("deny",
-                "Rule 14 OWASP LLM01: `setx MEMEX_GATES_OVERRIDE` rejected; use CEO CLI.")
+                "Rule 14 OWASP LLM01: `setx MEMEXA_GATES_OVERRIDE` rejected; use CEO CLI.")
     # All other forms (grep/findstr/git log/python literal etc.) → allow
     return None
 
@@ -640,7 +640,7 @@ def main():
             except Exception:
                 pass  # fail-open if module missing
 
-    # Rule 14 (TU-5 2026-04-24): OWASP LLM01 — MEMEX_GATES_OVERRIDE inline-env-assignment block.
+    # Rule 14 (TU-5 2026-04-24): OWASP LLM01 — MEMEXA_GATES_OVERRIDE inline-env-assignment block.
     # Token-position-aware: rejects assignment patterns at token[0] / export / set / setx.
     # Allows search payloads (grep/git-log/python-literal) where the env name appears as ARGUMENT.
     if tool_name in ("Bash", "PowerShell"):
@@ -648,7 +648,7 @@ def main():
         if _r14 is not None:
             decision, reason = _r14
             _respond(decision, reason, rule="owasp_env_inline",
-                     target="MEMEX_GATES_OVERRIDE")
+                     target="MEMEXA_GATES_OVERRIDE")
             return
 
     # ESCAPE-PROOF: Intercept Bash commands targeting protected enforcement files.
@@ -670,7 +670,7 @@ def main():
             if pf in cmd and any(v in cmd_lower for v in write_verbs):
                 # Check if autopilot is active (don't block when not in autopilot)
                 try:
-                    state_file = _WORKSPACE / "memex" / "memex" / "data" / "persistent_mode_state.json"
+                    state_file = _WORKSPACE / "memexa" / "memexa" / "data" / "persistent_mode_state.json"
                     if state_file.exists():
                         st = json.loads(state_file.read_text(encoding="utf-8"))
                         if st.get("active", False):
@@ -796,13 +796,13 @@ def main():
     # any further rule checks. Rationale: autopilot pipeline owns the
     # task_dir and its discipline is enforced by Stage 1-6 council/
     # reviewer/plan_retro/ac_verifier — pretool_gate prompts here are
-    # noise that breaks the "submit /memex-pilot, walk away" UX.
+    # noise that breaks the "submit /memexa-pilot, walk away" UX.
     # Rule 16 (autopilot_active.json) and Rule 7 (task_spec/persistent
     # state) still apply because their Write paths are NOT inside the
     # task_dir; they live at workspace-level critical-state locations.
     #
     # Multi-source tid resolution (LIVE-witnessed 2026-05-04 18:14Z bug:
-    # MEMEX_ACTIVE_TASK_ID env stale → wrong tid → Rule 0 misses):
+    # MEMEXA_ACTIVE_TASK_ID env stale → wrong tid → Rule 0 misses):
     # check ALL of {env, autopilot_active.json, harness_state.last_task_id}
     # — if path contains ANY of them in `.claude/harness/tasks/<tid>/`,
     # bypass.
@@ -810,7 +810,7 @@ def main():
     try:
         candidate_tids: list = []
         # 1. env var (may be stale)
-        _env_tid = os.environ.get("MEMEX_ACTIVE_TASK_ID", "").strip()
+        _env_tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID", "").strip()
         if _env_tid:
             candidate_tids.append(_env_tid)
         # 2. autopilot_active.json (most authoritative for "now")
@@ -889,14 +889,14 @@ def main():
     # precursor to adding unauthorized env var reads). Security-reviewer B2 fix.
     if tool_name in ("Write", "Edit"):
         fp_norm = file_path.replace("\\", "/").lower()
-        if fp_norm.endswith("/memex/data/env_allowlist.json") or \
-           fp_norm.endswith("memex/memex/data/env_allowlist.json"):
+        if fp_norm.endswith("/memexa/data/env_allowlist.json") or \
+           fp_norm.endswith("memexa/memexa/data/env_allowlist.json"):
             _respond(
                 "deny",
                 "Rule 13 env_allowlist.json: direct Write/Edit not permitted. "
                 "Use: python -m src.core.ci_env_grep_gate add-allowed "
                 "<NAME> --ceo-approved --reason '<text>'. This enforces OWASP "
-                "LLM01 out-of-band CEO signoff for new MEMEX_* env reads.",
+                "LLM01 out-of-band CEO signoff for new MEMEXA_* env reads.",
                 rule="env_allowlist_protection",
                 target=file_path,
             )
@@ -906,13 +906,13 @@ def main():
     # Direct Write/Edit to .claude/harness/autopilot_active.json bypasses
     # set_flag() ValueError in persistent_mode.activate() — historically this
     # path enabled 11 parallel-collision incidents (#1-#11) over 4 weeks.
-    # Default fail-closed; override via env MEMEX_AUTOPILOT_FLAG_WRITE_AUTHORIZED
+    # Default fail-closed; override via env MEMEXA_AUTOPILOT_FLAG_WRITE_AUTHORIZED
     # with len(reason.strip()) >= 80 (security-iter1-1 fix).
     # Per LIVE-witnessed collision #11 2026-04-30 02:23Z + HARD RULE
     # feedback_parallel_autopilot_collision_gate.
     if tool_name in ("Write", "Edit"):
         if Path(file_path).name == "autopilot_active.json":
-            _AUTH_ENV = "MEMEX_AUTOPILOT_FLAG_WRITE_AUTHORIZED"
+            _AUTH_ENV = "MEMEXA_AUTOPILOT_FLAG_WRITE_AUTHORIZED"
             reason_raw = os.environ.get(_AUTH_ENV, "")
             reason_stripped = reason_raw.strip()
             if reason_stripped and len(reason_stripped) >= 80:
@@ -960,7 +960,7 @@ def main():
 
     # Rule 12 (TU-R5 2026-04-23): cold_start_meter enforcement.
     # Write (not Edit) of CLAUDE.md or MEMORY.md that exceeds byte limit
-    # is blocked unless MEMEX_ALLOW_COLD_START_OVER=1 is set.
+    # is blocked unless MEMEXA_ALLOW_COLD_START_OVER=1 is set.
     # This closes the own-goal from 20260423_200000_reduce_cold_start where
     # cold_start_meter.py was built but never wired — CLAUDE.md could
     # re-inflate with no enforcement. Edit is excluded because diff-apply
@@ -973,14 +973,14 @@ def main():
         if (is_claude_md or is_memory_md) and content:
             size_bytes = len(content.encode("utf-8"))
             # Thresholds mirror cold_start_meter.LIMITS
-            if is_claude_md and "memex" in fp_lower:
-                limit = 500  # memex/CLAUDE.md
+            if is_claude_md and "memexa" in fp_lower:
+                limit = 500  # memexa/CLAUDE.md
             elif is_claude_md:
                 limit = 20000  # workspace CLAUDE.md
             else:
                 limit = 24000  # MEMORY.md
             if size_bytes > limit and os.environ.get(
-                "MEMEX_ALLOW_COLD_START_OVER", "0"
+                "MEMEXA_ALLOW_COLD_START_OVER", "0"
             ) != "1":
                 _respond(
                     "deny",
@@ -988,7 +988,7 @@ def main():
                     f"is {size_bytes} bytes > limit {limit}. This would inflate "
                     f"cold-start context (see cold_start_meter.py). Options: "
                     f"(a) trim content, (b) move detail to .claude/reference/, "
-                    f"(c) set MEMEX_ALLOW_COLD_START_OVER=1 (operator override, "
+                    f"(c) set MEMEXA_ALLOW_COLD_START_OVER=1 (operator override, "
                     f"logged).",
                     rule="cold_start_meter",
                     target=file_path,
@@ -999,7 +999,7 @@ def main():
     # If scope_validation_pending.flag exists, block or remind based on task complexity
     if file_path.endswith(".py"):
         try:
-            scope_flag = _WORKSPACE / "memex" / "memex" / "data" / "scope_validation_pending.flag"
+            scope_flag = _WORKSPACE / "memexa" / "memexa" / "data" / "scope_validation_pending.flag"
             if scope_flag.exists():
                 # TTL: auto-expire after 30 minutes
                 import time as _time
@@ -1011,7 +1011,7 @@ def main():
                     # Default to True (fail-closed) to prevent race condition bypass
                     is_complex = True
                     try:
-                        spec_file = _WORKSPACE / "memex" / "memex" / "data" / "task_spec.json"
+                        spec_file = _WORKSPACE / "memexa" / "memexa" / "data" / "task_spec.json"
                         if spec_file.exists():
                             spec = json.loads(spec_file.read_text(encoding="utf-8"))
                             is_complex = spec.get("complexity") == "complex"
@@ -1024,7 +1024,7 @@ def main():
                         "SCOPE VALIDATION PENDING: Answer the 4 scope questions before writing code. "
                         "(1. What problem? 2. Impact of not doing? 3. Simpler alternative? "
                         "4. Minimum viable implementation?) "
-                        "Then: Bash(rm memex/memex/data/scope_validation_pending.flag)"
+                        "Then: Bash(rm memexa/memexa/data/scope_validation_pending.flag)"
                     )
                     if is_complex:
                         _respond("deny", scope_msg, rule="scope_flag", target=file_path)
@@ -1052,7 +1052,7 @@ def main():
     # Rule 6: PLAN GATE — complex tasks must have approved plan before writing .py
     if file_path.endswith(".py"):
         try:
-            spec_file = _WORKSPACE / "memex" / "memex" / "data" / "task_spec.json"
+            spec_file = _WORKSPACE / "memexa" / "memexa" / "data" / "task_spec.json"
             if spec_file.exists():
                 spec = json.loads(spec_file.read_text(encoding="utf-8"))
                 if spec.get("complexity") == "complex" and spec.get("status") == "in_progress":
@@ -1078,8 +1078,8 @@ def main():
     # Blocking Write/Edit prevents the easiest tampering vector.
     protected_basenames = {"task_spec.json", "persistent_mode_state.json"}
     protected_full_paths = [
-        "memex/memex/data/task_spec.json",
-        "memex/memex/data/persistent_mode_state.json",
+        "memexa/memexa/data/task_spec.json",
+        "memexa/memexa/data/persistent_mode_state.json",
     ]
     # Check by full relative path (primary) OR basename fallback (for CJK path garbling)
     basename = Path(file_path).name

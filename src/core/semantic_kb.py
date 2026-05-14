@@ -11,7 +11,7 @@ Design (per verifier R1):
 - Persist: embeddings.npy (float32) + embeddings_meta.json (id + mtime + model_name)
 - Incremental: compare pattern file mtime + id set; only re-embed added/changed
 - Brute-force cosine: fine for N<5000; upgrade threshold documented
-- ENV: MEMEX_L4_SEMANTIC_KB=1 default on, graceful degrade when =0
+- ENV: MEMEXA_L4_SEMANTIC_KB=1 default on, graceful degrade when =0
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ _model_load_attempted = False
 
 def is_enabled() -> bool:
     """ENV flag. Default on (graceful degrade safe)."""
-    return os.environ.get("MEMEX_L4_SEMANTIC_KB", "1") == "1"
+    return os.environ.get("MEMEXA_L4_SEMANTIC_KB", "1") == "1"
 
 
 def is_available() -> bool:
@@ -52,7 +52,7 @@ def is_available() -> bool:
 def _get_model():
     """Lazy-load sentence transformer. Returns None on failure.
 
-    [2026-04-21 hot-path guard] When MEMEX_HOOK_FAST=1 (set by
+    [2026-04-21 hot-path guard] When MEMEXA_HOOK_FAST=1 (set by
     UserPromptSubmit hook context), fail fast: model load costs ~20s
     cold (torch + sentence_transformers). Hook path falls back to
     keyword-only prime which is ~500ms. Explicit Bash `semantic_kb
@@ -63,7 +63,7 @@ def _get_model():
         return _model
     if _model_load_attempted:
         return None  # don't retry in-process
-    if os.environ.get("MEMEX_HOOK_FAST") == "1":
+    if os.environ.get("MEMEXA_HOOK_FAST") == "1":
         # Mark as attempted so a later call in the same process after the
         # env var flips does not surprise-load bge (keeps the "don't retry"
         # contract consistent with the success-path path below).
@@ -253,7 +253,7 @@ def semantic_search_boosted(
     Rationale: bge-small-zh gets "your-org" and "your-org" embedding-close,
     but shared canonical entity ("ustc") is a stronger signal than cosine
     and should lift near-miss matches. alpha defaults to 0.2 (env
-    MEMEX_ENTITY_BOOST_ALPHA); alpha=0 reduces to semantic_search.
+    MEMEXA_ENTITY_BOOST_ALPHA); alpha=0 reduces to semantic_search.
 
     Complexity: O(K + N) — one pass over N=len(patterns) to build
     id_to_entry dict, then K lookups inside the top-k loop. Verifier
@@ -263,7 +263,7 @@ def semantic_search_boosted(
     """
     if alpha is None:
         try:
-            alpha = float(os.environ.get("MEMEX_ENTITY_BOOST_ALPHA", "0.2"))
+            alpha = float(os.environ.get("MEMEXA_ENTITY_BOOST_ALPHA", "0.2"))
         except (TypeError, ValueError):
             alpha = 0.2
 
@@ -339,8 +339,8 @@ def semantic_search_boosted(
     # Phase B (2026-04-21): graph augmentation. When the query
     # canonicalizes to a known entity, pull in source_episode_id's of
     # facts about that entity from Neo4j graph and upweight patterns
-    # that share the episode source. Kill-switch: MEMEX_GRAPH_RETRIEVE=0.
-    use_graph = os.environ.get("MEMEX_GRAPH_RETRIEVE", "1") != "0" and q_canon
+    # that share the episode source. Kill-switch: MEMEXA_GRAPH_RETRIEVE=0.
+    use_graph = os.environ.get("MEMEXA_GRAPH_RETRIEVE", "1") != "0" and q_canon
     if use_graph:
         try:
             # v2 facade per 2026-04-30 daemon repair (was v1 Neo4j)
@@ -354,7 +354,7 @@ def semantic_search_boosted(
             import threading
             import time as _t_sk
             _SK_BUDGET_S = float(
-                os.environ.get("MEMEX_SEMANTIC_KB_GRAPH_BUDGET_S", "4.0"))
+                os.environ.get("MEMEXA_SEMANTIC_KB_GRAPH_BUDGET_S", "4.0"))
             graph_sources: set = set()
             _t_start = _t_sk.monotonic()
             for canon in list(q_canon)[:3]:  # cap at 3 entities

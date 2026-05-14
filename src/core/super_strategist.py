@@ -40,8 +40,8 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_WORKSPACE = _MEMEX_ROOT.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_WORKSPACE = _MEMEXA_ROOT.parent
 _DATA = Path(__file__).parent.parent / "data"
 
 
@@ -230,14 +230,14 @@ class SuperStrategist:
 
         # Check WeChat DB for latest messages
         try:
-            from memex.reader import read_latest_messages
+            from memexa.reader import read_latest_messages
             channels["wechat"] = "reader module available"
         except Exception:
             channels["wechat"] = "reader unavailable"
 
         # Check QQ
         try:
-            from memex.qq_reader import read_latest_messages
+            from memexa.qq_reader import read_latest_messages
             channels["qq"] = "qq_reader available"
         except Exception:
             channels["qq"] = "qq_reader unavailable"
@@ -337,8 +337,8 @@ class SuperStrategist:
         gaps = []
 
         # Check which core modules have no tests
-        core = _MEMEX_ROOT / "memex" / "core"
-        tests = _MEMEX_ROOT / "tests"
+        core = _MEMEXA_ROOT / "memexa" / "core"
+        tests = _MEMEXA_ROOT / "tests"
         if core.exists() and tests.exists():
             tested = {f.stem.replace("test_", "") for f in tests.glob("test_*.py")}
             untested = [f.stem for f in sorted(core.glob("*.py"))
@@ -347,7 +347,7 @@ class SuperStrategist:
                 gaps.append(f"Untested modules ({len(untested)}): {', '.join(untested[:5])}")
 
         # Check dashboard API coverage vs data available
-        dashboard_file = _MEMEX_ROOT / "memex" / "api" / "dashboard_server.py"
+        dashboard_file = _MEMEXA_ROOT / "memexa" / "api" / "dashboard_server.py"
         if dashboard_file.exists():
             content = dashboard_file.read_text(encoding="utf-8")
             has_social = "wechat" in content.lower() or "message" in content.lower()
@@ -385,7 +385,7 @@ class SuperStrategist:
         }
 
         # --- Audit dashboard.html ---
-        html_file = _MEMEX_ROOT / "memex" / "api" / "static" / "dashboard.html"
+        html_file = _MEMEXA_ROOT / "memexa" / "api" / "static" / "dashboard.html"
         if not html_file.exists():
             result["html_missing"] = True
             return result
@@ -404,7 +404,7 @@ class SuperStrategist:
         in_style = False
         i18n_pattern = re.compile(r'data-i18n')
         # Strings that are obviously not user-facing
-        skip_tokens = {"", "memex", "CTO", "CEO", "KAIROS", "API", "DDL",
+        skip_tokens = {"", "memexa", "CTO", "CEO", "KAIROS", "API", "DDL",
                        "A/B", "SVG", "UTF-8"}
 
         for lineno, line in enumerate(html_lines, 1):
@@ -519,7 +519,7 @@ class SuperStrategist:
                 })
 
         # --- Audit dashboard_server.py ---
-        server_file = _MEMEX_ROOT / "memex" / "api" / "dashboard_server.py"
+        server_file = _MEMEXA_ROOT / "memexa" / "api" / "dashboard_server.py"
         if not server_file.exists():
             result["server_missing"] = True
             return result
@@ -678,12 +678,12 @@ class SuperStrategist:
                 tasks.append({
                     "title": "STRATEGIC: Dashboard social channel integration (WeChat/QQ feed)",
                     "prompt": (
-                        "Integrate WeChat and QQ message feeds into the memex CEO Dashboard.\n\n"
+                        "Integrate WeChat and QQ message feeds into the memexa CEO Dashboard.\n\n"
                         "## Available Data Sources\n"
-                        "- memex/data/chat_history.db (SQLite, recent messages)\n"
-                        "- memex/reader.py (WeChat message reader)\n"
-                        "- memex/qq_reader.py (QQ message reader)\n"
-                        "- memex/hooks/history_manager.py (message history)\n\n"
+                        "- memexa/data/chat_history.db (SQLite, recent messages)\n"
+                        "- memexa/reader.py (WeChat message reader)\n"
+                        "- memexa/qq_reader.py (QQ message reader)\n"
+                        "- memexa/hooks/history_manager.py (message history)\n\n"
                         "## Requirements\n"
                         "1. New dashboard section: 'Social Feed' showing recent messages\n"
                         "2. Backend: GET /api/social-feed reading from chat_history.db\n"
@@ -701,11 +701,11 @@ class SuperStrategist:
                 tasks.append({
                     "title": "STRATEGIC: Dashboard API usage analytics panel",
                     "prompt": (
-                        "Add API usage/cost analytics to the memex CEO Dashboard.\n\n"
+                        "Add API usage/cost analytics to the memexa CEO Dashboard.\n\n"
                         "## Data Sources\n"
-                        "- memex/core/llm_router.py has get_stats() with model_usage, cost\n"
-                        "- memex/data/events.jsonl has API call events\n"
-                        "- memex/data/kairos_feedback.jsonl has per-project cost\n\n"
+                        "- memexa/core/llm_router.py has get_stats() with model_usage, cost\n"
+                        "- memexa/data/events.jsonl has API call events\n"
+                        "- memexa/data/kairos_feedback.jsonl has per-project cost\n\n"
                         "## Requirements\n"
                         "1. New section: 'API Usage' with:\n"
                         "   - Total calls by model (Kimi 8k/32k/128k, Claude Opus/Sonnet)\n"
@@ -725,11 +725,11 @@ class SuperStrategist:
                 tasks.append({
                     "title": "STRATEGIC: Dashboard heartbeat history & detail view",
                     "prompt": (
-                        "Add heartbeat monitoring detail to memex CEO Dashboard.\n\n"
+                        "Add heartbeat monitoring detail to memexa CEO Dashboard.\n\n"
                         "## Data Sources\n"
-                        "- memex/data/log/YYYY-MM-DD.md (daily heartbeat logs)\n"
-                        "- memex/data/kairos_heartbeat.json (current status)\n"
-                        "- memex/data/evolution_metrics.json (health snapshots)\n\n"
+                        "- memexa/data/log/YYYY-MM-DD.md (daily heartbeat logs)\n"
+                        "- memexa/data/kairos_heartbeat.json (current status)\n"
+                        "- memexa/data/evolution_metrics.json (health snapshots)\n\n"
                         "## Requirements\n"
                         "1. New section: 'Heartbeat Monitor' showing:\n"
                         "   - Timeline of heartbeat events (last 24h)\n"
@@ -748,11 +748,11 @@ class SuperStrategist:
                 tasks.append({
                     "title": "STRATEGIC: Dashboard agent execution log viewer",
                     "prompt": (
-                        "Add agent work detail viewer to memex CEO Dashboard.\n\n"
+                        "Add agent work detail viewer to memexa CEO Dashboard.\n\n"
                         "## Data Sources\n"
-                        "- memex/data/project_reports/proj_*.json (full execution reports)\n"
-                        "- memex/data/kairos_feedback.jsonl (scored summaries)\n"
-                        "- memex/data/events.jsonl (agent events)\n\n"
+                        "- memexa/data/project_reports/proj_*.json (full execution reports)\n"
+                        "- memexa/data/kairos_feedback.jsonl (scored summaries)\n"
+                        "- memexa/data/events.jsonl (agent events)\n\n"
                         "## Requirements\n"
                         "1. Enhance existing Projects panel to show detailed execution:\n"
                         "   - Full output text (expandable, with syntax highlighting)\n"

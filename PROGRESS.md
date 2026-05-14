@@ -1,7 +1,7 @@
 # OSS Prep Progress
 
 > Phase 1–11 of M-tier code preparation complete (Phase 11 = naming +
-> module migration, finalised 2026-05-14 in the `memex / 镜我` rename pass).
+> module migration, finalised 2026-05-14 in the `memexa / 镜我` rename pass).
 > Storytelling (README narrative) and traffic-promotion (knowledge-base /
 > awesome-list PR) are intentionally NOT part of this pass.
 
@@ -40,7 +40,7 @@
 
 1. **README storytelling** — engineering scaffold only; narrative TBD per CEO.
 2. **PyPI registration** — pending CEO release approval.
-3. **GitHub repo creation** — pending CEO `gh repo create labazhou2024/memex`.
+3. **GitHub repo creation** — pending CEO `gh repo create labazhou2024/memexa`.
 4. **Traffic / launch content** — only awesome-ai-memory PR per CEO directive (post-release).
 5. **Optional plugin stubs** — `src.wechat_db` ships as stub; users plug in WeChatMsg-style exporter via `docs/integrations/wechat.md`.
 
@@ -49,18 +49,18 @@
 | Owner | Task                                                       | Time est. |
 |-------|------------------------------------------------------------|-----------|
 | CEO   | Pick project name + English slug                            | 5–30 min  |
-| Claude| Find-and-replace `memex` and `memex` across 12 files | 2 min |
+| Claude| Find-and-replace `memexa` and `memexa` across 12 files | 2 min |
 | Claude| Migrate the 25 modules still tagged `TODO(memgraph-oss)` to use `_path_resolver` | 3–4 h |
 | Claude| Add `__init__.py` stubs and ensure absolute imports work | 2 h |
 | CEO   | Create the GitHub repo (public)                             | 2 min     |
 | Claude| Push initial squashed commit                                | 1 min     |
 | Claude| Cut the v0.1.0 tag                                          | 30 sec    |
 
-## Main repo (memex) — touched zero files in this session
+## Main repo (memexa) — touched zero files in this session
 
 Verified at the end of each phase with `git diff --name-only HEAD | wc -l`.
 The count fluctuated 38–40 because cron daemons (calendar / sys_monitor /
-hindsight_outbox) keep appending to JSONL log files in `memex/data/`.
+hindsight_outbox) keep appending to JSONL log files in `memexa/data/`.
 None of those edits originated from this Claude session.
 
 ## Disk layout

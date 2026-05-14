@@ -29,10 +29,10 @@ from src.core.memory_card_v2 import MemoryCard
 logger = logging.getLogger("query_demo")
 
 
-HINDSIGHT_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-BANK_ID = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
-REMOTE_QWEN3_URL = os.environ.get("MEMEX_QWEN3_URL", "http://<remote-server-ip>:8001")
-REMOTE_GEMMA_URL = os.environ.get("MEMEX_GEMMA31B_URL", "http://<remote-server-ip>:8011")
+HINDSIGHT_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+BANK_ID = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
+REMOTE_QWEN3_URL = os.environ.get("MEMEXA_QWEN3_URL", "http://<remote-server-ip>:8001")
+REMOTE_GEMMA_URL = os.environ.get("MEMEXA_GEMMA31B_URL", "http://<remote-server-ip>:8011")
 
 
 def query_rewrite_with_llm(query: str, manifest_summary: str) -> Dict[str, Any]:
@@ -47,7 +47,7 @@ def query_rewrite_with_llm(query: str, manifest_summary: str) -> Dict[str, Any]:
         r = httpx.post(
             f"{REMOTE_GEMMA_URL}/v1/chat/completions",
             json={
-                "model": "memex-extractor",
+                "model": "memexa-extractor",
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
@@ -126,7 +126,7 @@ def reflect_synthesize(question: str, hits: List[Dict]) -> str:
         r = httpx.post(
             f"{REMOTE_GEMMA_URL}/v1/chat/completions",
             json={
-                "model": "memex-extractor",
+                "model": "memexa-extractor",
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_prompt},

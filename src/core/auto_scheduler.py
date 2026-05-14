@@ -41,9 +41,9 @@ DISCARD_PATH = PLAN_DIR / "discarded_low_conf.jsonl"
 APPROVED_PATH = PLAN_DIR / "approved_events.jsonl"
 HISTORY_PATH = PLAN_DIR / "approval_history.jsonl"
 
-AUTO_THRESH = float(os.environ.get("MEMEX_DDL_AUTO_THRESH", "0.75"))
-MIN_THRESH = float(os.environ.get("MEMEX_DDL_MIN_THRESH", "0.40"))
-DEFAULT_HORIZON_DAYS = int(os.environ.get("MEMEX_DDL_HORIZON", "60"))
+AUTO_THRESH = float(os.environ.get("MEMEXA_DDL_AUTO_THRESH", "0.75"))
+MIN_THRESH = float(os.environ.get("MEMEXA_DDL_MIN_THRESH", "0.40"))
+DEFAULT_HORIZON_DAYS = int(os.environ.get("MEMEXA_DDL_HORIZON", "60"))
 
 # Sources that represent the user's real life (personal DDLs come from these).
 USER_SOURCES = {"wechat", "qq", "email", "browser_search", "browser_session"}
@@ -116,7 +116,7 @@ def _compose_summary(what: str, sources: Iterable[str], detector: str) -> str:
 
 
 def _compose_notes(events: list[dict]) -> str:
-    lines = ["[memex auto-planned] DDL aggregated from graph cards."]
+    lines = ["[memexa auto-planned] DDL aggregated from graph cards."]
     for e in events[:5]:
         snippet = (e.get("narrative_head") or e.get("reason") or "")[:160]
         cid = e.get("card_id", "")[:12]
@@ -248,7 +248,7 @@ def dedup_and_score(
 def conflict_check(events: list[PlannedEvent], lookahead_days: int = 60) -> list[PlannedEvent]:
     """Mark events that look like duplicates of existing Calendar items."""
     try:
-        from memex.integrations.mac_calendar import read_events, DEFAULT_PLAN_CALENDAR
+        from memexa.integrations.mac_calendar import read_events, DEFAULT_PLAN_CALENDAR
     except ImportError:
         return events
     try:
@@ -266,7 +266,7 @@ def conflict_check(events: list[PlannedEvent], lookahead_days: int = 60) -> list
         (ev.calendar, ev.summary.strip(), ev.start_iso[:10]) for ev in existing
     }
     for ev in events:
-        if ("memex-自动规划", ev.summary.strip(), ev.due_iso) in existing_keys:
+        if ("memexa-自动规划", ev.summary.strip(), ev.due_iso) in existing_keys:
             ev.conflict_warn = "duplicate_in_plan_calendar"
         elif ("个人", ev.summary.strip(), ev.due_iso) in existing_keys:
             ev.conflict_warn = "duplicate_in_personal_calendar"
@@ -329,7 +329,7 @@ def approve_and_write(
                                  "due_iso": e["due_iso"]} for e in todo],
                 "skipped": skip}
 
-    from memex.integrations.mac_calendar import (
+    from memexa.integrations.mac_calendar import (
         ensure_plan_calendar, create_event, DEFAULT_PLAN_CALENDAR,
     )
     ensure_plan_calendar()
@@ -376,7 +376,7 @@ def approve_and_write(
 
 def _compose_notes_from_event(e: dict) -> str:
     lines = [
-        f"[memex auto-planned]",
+        f"[memexa auto-planned]",
         f"plan_id: {e.get('plan_id')}",
         f"due: {e.get('due_iso')}  conf={e.get('confidence')}  sal={e.get('salience')}",
         f"why: {e.get('why', '')[:200]}",

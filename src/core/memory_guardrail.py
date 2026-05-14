@@ -64,7 +64,7 @@ def _workspace_root() -> Path:
 
 
 _WS = _workspace_root()
-_DATA_DIR = _WS / "memex" / "data"
+_DATA_DIR = _WS / "memexa" / "data"
 _FLAG_FILE = _DATA_DIR / "memory_runaway_blocked.flag"
 _ALERTS_JSONL = _DATA_DIR / "memory_guardrail_alerts.jsonl"
 _DUMP_DIR = _DATA_DIR / "memory_guardrail_dumps"
@@ -107,14 +107,14 @@ class MemoryGuardrail:
         """Idempotent helper: install a daemon watchdog with default thresholds.
 
         Reads env overrides:
-          MEMEX_MEM_WARN_GB / MEMEX_MEM_BLOCK_GB / MEMEX_MEM_KILL_GB / MEMEX_MEM_INTERVAL_S
-          MEMEX_MEM_HARD_KILL ∈ {"1","true","yes"}
+          MEMEXA_MEM_WARN_GB / MEMEXA_MEM_BLOCK_GB / MEMEXA_MEM_KILL_GB / MEMEXA_MEM_INTERVAL_S
+          MEMEXA_MEM_HARD_KILL ∈ {"1","true","yes"}
         """
-        warn = float(os.environ.get("MEMEX_MEM_WARN_GB", _WARN_GB_DEFAULT))
-        block = float(os.environ.get("MEMEX_MEM_BLOCK_GB", _BLOCK_GB_DEFAULT))
-        kill = float(os.environ.get("MEMEX_MEM_KILL_GB", _KILL_GB_DEFAULT))
-        interval = float(os.environ.get("MEMEX_MEM_INTERVAL_S", _INTERVAL_S_DEFAULT))
-        hard = os.environ.get("MEMEX_MEM_HARD_KILL", "").strip().lower() in ("1", "true", "yes")
+        warn = float(os.environ.get("MEMEXA_MEM_WARN_GB", _WARN_GB_DEFAULT))
+        block = float(os.environ.get("MEMEXA_MEM_BLOCK_GB", _BLOCK_GB_DEFAULT))
+        kill = float(os.environ.get("MEMEXA_MEM_KILL_GB", _KILL_GB_DEFAULT))
+        interval = float(os.environ.get("MEMEXA_MEM_INTERVAL_S", _INTERVAL_S_DEFAULT))
+        hard = os.environ.get("MEMEXA_MEM_HARD_KILL", "").strip().lower() in ("1", "true", "yes")
         g = cls(threshold_warn_gb=warn, threshold_block_gb=block,
                 threshold_kill_gb=kill, interval_s=interval, hard_kill=hard)
         g.start_monitor()

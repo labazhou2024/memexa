@@ -22,7 +22,7 @@ paste the full traceback (or the JSON error response) here
 
 - OS:
 - Python version:
-- Output of `pip freeze | grep -iE "memex|hindsight|bge"`:
+- Output of `pip freeze | grep -iE "memexa|hindsight|bge"`:
 - Memory backend: `docker compose` / standalone PostgreSQL / other
 
 ## Privacy check

@@ -27,9 +27,9 @@ Concurrency:
 Usage (your-org side):
   python l0_worker_v2_ustc.py \
     --pass {1,2} \
-    --batches-dir /tmp/memex_l0_ustc/data/.../batches/shard0 \
-    --done-dir   /tmp/memex_l0_ustc/data/.../done/shard0 \
-    --out-dir    /tmp/memex_l0_ustc/data/.../<pass1_out|cards_v2>/shard0 \
+    --batches-dir /tmp/memexa_l0_ustc/data/.../batches/shard0 \
+    --done-dir   /tmp/memexa_l0_ustc/data/.../done/shard0 \
+    --out-dir    /tmp/memexa_l0_ustc/data/.../<pass1_out|cards_v2>/shard0 \
     --gatekeeper-url http://127.0.0.1:8001  # Qwen3-14B (pass2 only)
     --extractor-url  http://127.0.0.1:8011  # Gemma 4 31B AWQ
     --concurrent 4
@@ -514,10 +514,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--gatekeeper-url", type=str, default=None,
                         help="vLLM URL of Qwen3-14B-AWQ (Pass-2 only)")
-    parser.add_argument("--gatekeeper-model", type=str, default="memex-gatekeeper")
+    parser.add_argument("--gatekeeper-model", type=str, default="memexa-gatekeeper")
     parser.add_argument("--extractor-url", type=str, required=True,
                         help="vLLM URL of Gemma 4 31B AWQ")
-    parser.add_argument("--extractor-model", type=str, default="memex-extractor")
+    parser.add_argument("--extractor-model", type=str, default="memexa-extractor")
     parser.add_argument("--concurrent", type=int, default=4)
     parser.add_argument("--max-batches", type=int, default=None,
                         help="Stop after N processed batches (debug)")

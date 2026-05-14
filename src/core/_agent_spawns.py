@@ -17,19 +17,19 @@ from pathlib import Path
 def agent_spawns_dir() -> Path:
     """Return the agent_spawns directory, creating if missing.
 
-    Respects `MEMEX_AGENT_SPAWNS_DIR` env var IFF its resolved path is
+    Respects `MEMEXA_AGENT_SPAWNS_DIR` env var IFF its resolved path is
     under workspace OR system tempdir (SEC-R1-2 HIGH fix). Env values
     outside these roots are silently ignored and the default is used.
 
     Default = `<workspace>/.claude/harness/agent_spawns/` where workspace
-    is this file's parent 4 levels up (memex/memex/core/ → workspace).
+    is this file's parent 4 levels up (memexa/memexa/core/ → workspace).
     """
     # Default = project_root/.claude/harness/agent_spawns
     default = (
         Path(__file__).resolve().parent.parent.parent.parent
         / ".claude" / "harness" / "agent_spawns"
     )
-    env_override = os.environ.get("MEMEX_AGENT_SPAWNS_DIR")
+    env_override = os.environ.get("MEMEXA_AGENT_SPAWNS_DIR")
     if env_override:
         try:
             override_path = Path(env_override).resolve(strict=False)

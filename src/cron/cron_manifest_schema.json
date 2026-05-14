@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "memex Cron Manifest",
+  "title": "memexa Cron Manifest",
   "description": "JSON Schema for data/cron_manifest.yaml (R-5 registry)",
   "type": "object",
   "required": ["version", "drivers", "schtasks"],

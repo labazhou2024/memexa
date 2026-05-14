@@ -1,8 +1,8 @@
-# Using memex from an AI agent
+# Using memexa from an AI agent
 
 **English** · [中文](for_agents.zh.md)
 
-> **What this is**: a protocol document. memex is built to be queried by
+> **What this is**: a protocol document. memexa is built to be queried by
 > AI agents — Claude Code, Cursor, Cline, or any agent you wrap yourself —
 > on behalf of a human user. This doc is the contract every agent must
 > honor to return useful answers.
@@ -13,9 +13,9 @@
 
 ## 0. Why this document exists
 
-memex's 14 subcommands look like 14 ways to query a graph. They are
+memexa's 14 subcommands look like 14 ways to query a graph. They are
 actually a small protocol with predictable failure modes. Most agents
-that fail at memex queries fail in the same 5-6 ways:
+that fail at memexa queries fail in the same 5-6 ways:
 
 1. Calling `topic` on a person's name (returns shopping noise)
 2. Trying to answer state questions ("did X happen?") with a single recall
@@ -33,7 +33,7 @@ This document is the short version of all those failures.
 Run these reads **once per session**, in order, before any query:
 
 ```
-1. README.md            — what memex is, what it isn't
+1. README.md            — what memexa is, what it isn't
 2. usage_guide.md       — 14 subcommands + decision table
 3. for_agents.md        — this file
 4. (optional) the user's MEMORY.md or equivalent — what they've told you
@@ -55,10 +55,10 @@ shopping noise. Empirically: `arc("<person>")` returns 6/6 hits,
 
 ```bash
 # WRONG
-memex topic "Alice"
+memexa topic "Alice"
 
 # RIGHT
-memex arc "Alice"
+memexa arc "Alice"
 ```
 
 ### HR-2 — State questions require the 5-phase workflow
@@ -73,16 +73,16 @@ Chain → Counter.
 
 ```bash
 # WRONG — semantic recall on the word "pending" returns garbage
-memex topic "我的待办"
+memexa topic "我的待办"
 
 # RIGHT — direct read, returns structured commitment rows
-memex pending
+memexa pending
 ```
 
 ### HR-4 — Tags are OR, not AND
 
 Hindsight's recall API treats `tags=[a, b]` as a disjunction. If you
-need AND semantics, post-filter client-side. memex's internal helper
+need AND semantics, post-filter client-side. memexa's internal helper
 `_post_filter()` does this; if you call the API directly, replicate it.
 
 ### HR-5 — Do not wrap external parallelism around `topic` / `arc`
@@ -100,7 +100,7 @@ when you call recall directly.
 ### HR-7 — Legacy bank `memory_full` has no tag policy
 
 If you query the v3 legacy bank with `tags=["kind:event", "schema:v2"]`
-you get zero results. For legacy banks, pass empty tags. memex's bank
+you get zero results. For legacy banks, pass empty tags. memexa's bank
 wrappers handle this; raw API callers must.
 
 ---
@@ -133,7 +133,7 @@ Run this **before any non-trivial task** the user asks:
 Step 1 — re-read the user's MEMORY.md / preferences
          (find any references that change the answer)
 
-Step 2 — check `memex pending`
+Step 2 — check `memexa pending`
          (catch any active commitment that overlaps the user's request)
 
 Step 3 — pick a subcommand from the decision table above
@@ -189,7 +189,7 @@ Full worked example: [5_phase_query.md](5_phase_query.md).
 When the user asks "is X *real* or just something I said once":
 
 ```bash
-memex cross-source "X" --days 90 --max-per-source 10
+memexa cross-source "X" --days 90 --max-per-source 10
 ```
 
 Returns a coverage matrix: how many cards mention X in each of 6
@@ -199,9 +199,9 @@ source` = weak, `== 0` = absent.
 ### 5.4 Person profile composition
 
 ```bash
-memex person "Y" --window-days 30        # directives + commitments
-memex arc "Y" --max-cards 60             # relationship arc
-memex quick "Y <recent-keyword>" --max-k 15  # last 7 days
+memexa person "Y" --window-days 30        # directives + commitments
+memexa arc "Y" --max-cards 60             # relationship arc
+memexa quick "Y <recent-keyword>" --max-k 15  # last 7 days
 ```
 
 These three together = a complete profile of one counterparty in
@@ -217,9 +217,9 @@ under 30 seconds.
 | 2 | `topic "我的待办"` returns one garbled card | HR-3 | Use `pending` |
 | 3 | Single recall doesn't answer "did X happen" | HR-2 | 5-phase |
 | 4 | 350 cards returned when you asked for wechat-only | HR-4 (tags OR) | Post-filter |
-| 5 | `topic` query times out at 60s | Default `MEMEX_HINDSIGHT_TIMEOUT=180` is enough; if still timing out, daemon is cold-starting BGE-M3 | Retry once after 30s |
+| 5 | `topic` query times out at 60s | Default `MEMEXA_HINDSIGHT_TIMEOUT=180` is enough; if still timing out, daemon is cold-starting BGE-M3 | Retry once after 30s |
 | 6 | UnicodeEncodeError on Windows | Terminal is GBK | Set `PYTHONIOENCODING=utf-8` |
-| 7 | Query returns 0 cards on a known topic | Wrong bank | Check `MEMEX_HINDSIGHT_BANK`; default is `memory_full_v5` |
+| 7 | Query returns 0 cards on a known topic | Wrong bank | Check `MEMEXA_HINDSIGHT_BANK`; default is `memory_full_v5` |
 | 8 | Calendar `pending` returns stale dates | Calendar reconciliation lag | `--refresh` flag or re-run cron |
 | 9 | `reflect` returns nonsense | Daemon-side LLM not configured | Use `summary` (client-side) instead |
 | 10 | `arc` returns 60 cards but missing yesterday | arc weights breadth not recency | Stack with `quick "<name> <month>"` |
@@ -234,15 +234,15 @@ are old failures wearing new disguise.
 
 ## 7. Out of scope
 
-memex won't:
+memexa won't:
 
 - **Generate text the user did not say** — `reflect` summarises existing
   cards; it does not fabricate. If the user asks "what would I say to X"
-  that's a roleplay request, not a memex query.
-- **Persist new facts the user just typed** — memex ingests from 6
-  source streams on a cron. There is no `memex remember "..."` write API.
+  that's a roleplay request, not a memexa query.
+- **Persist new facts the user just typed** — memexa ingests from 6
+  source streams on a cron. There is no `memexa remember "..."` write API.
   (v0.x may add one; not yet.)
-- **Order events the user never witnessed** — memex's data is the user's
+- **Order events the user never witnessed** — memexa's data is the user's
   exhaust. If the user wasn't in the room, there's no card.
 - **Answer about the future** — every card has a `when_start` in the
   past. "When is X happening" only works if a commitment-tagged card
@@ -258,7 +258,7 @@ limitation explicitly, do not fabricate.
 Save this in your agent's persistent prompt:
 
 ```
-memex query protocol — quick reference
+memexa query protocol — quick reference
 
 Person:           arc "X" + quick "X <month>"
 Project:          project "X" + timeline --start --end

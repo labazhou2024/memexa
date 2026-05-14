@@ -33,7 +33,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
 _DATA = Path(__file__).parent.parent / "data"
 _BASELINE_FILE = _DATA / "test_baseline_q1.json"
 
@@ -105,8 +105,8 @@ def _check_no_regressions() -> float:
 
 
 def _check_syntax_valid() -> float:
-    """Check all .py files in memex/core parse correctly."""
-    core_dir = _MEMEX_ROOT / "memex" / "core"
+    """Check all .py files in memexa/core parse correctly."""
+    core_dir = _MEMEXA_ROOT / "memexa" / "core"
     if not core_dir.exists():
         return 0.5
 
@@ -131,7 +131,7 @@ def _check_review_clean() -> float:
         # Get recently modified .py files (last 30 min)
         result = subprocess.run(
             ["git", "diff", "--name-only", "HEAD~1"],
-            capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+            capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
         )
         py_files = [f for f in result.stdout.strip().splitlines()
                     if f.endswith(".py") and not f.startswith("tests/")]
@@ -167,7 +167,7 @@ def _check_commit_made(result: Dict) -> float:
         try:
             git_result = subprocess.run(
                 ["git", "log", "--oneline", f"--since={since_seconds} seconds ago"],
-                capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+                capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
             )
             commits = [l for l in git_result.stdout.strip().splitlines() if l.strip()]
             if len(commits) > 0:
@@ -192,7 +192,7 @@ def _check_diff_reasonable(result: Dict) -> float:
     try:
         git_result = subprocess.run(
             ["git", "diff", "--stat", "HEAD~1"],
-            capture_output=True, text=True, cwd=str(_MEMEX_ROOT), timeout=10,
+            capture_output=True, text=True, cwd=str(_MEMEXA_ROOT), timeout=10,
         )
         stat_output = git_result.stdout.strip()
         match = re.search(r"(\d+)\s+files?\s+changed", stat_output)

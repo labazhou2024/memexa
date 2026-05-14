@@ -14,7 +14,7 @@ no dashboard, no monthly minimum — same shape as DeepSeek / OpenAI's
 chat completions API.
 
 ```bash
-curl https://api.memex.io/v1/extract \
+curl https://api.memexa.io/v1/extract \
   -H "Authorization: Bearer mk_xxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -65,19 +65,19 @@ If you want those, you have three paths:
 - Not sold or shared with third parties.
 - Not used in marketing or demos.
 - Caching: ≤ 30 day TTL, can be disabled per-request with
-  X-Memex-No-Retention: 1.
+  X-Memexa-No-Retention: 1.
 - DELETE /v1/data wipes everything tied to your key on demand.
 ```
 
-Full policy text will live at `https://memex.io/legal/data-policy`
+Full policy text will live at `https://memexa.io/legal/data-policy`
 when the endpoint deploys.
 
 ## How to be notified
 
 This API will be announced on:
 
-- [Memex GitHub Releases](https://github.com/labazhou2024/memex/releases)
-- [Memex Discussions](https://github.com/labazhou2024/memex/discussions)
+- [Memexa GitHub Releases](https://github.com/labazhou2024/memexa/releases)
+- [Memexa Discussions](https://github.com/labazhou2024/memexa/discussions)
 
 There is no email list and no marketing pipeline. The feature simply
 ships when it ships.

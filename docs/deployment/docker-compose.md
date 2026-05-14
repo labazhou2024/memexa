@@ -23,8 +23,8 @@ newgrp docker
 ## 2. Clone + install
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
@@ -36,11 +36,11 @@ pip install -e ".[dev]"
 cp .env.example .env
 $EDITOR .env
 
-mkdir -p ~/.memex
-cp config/aliases.example.yaml  ~/.memex/aliases.yaml
-cp config/identity.example.yaml ~/.memex/identity.yaml
-$EDITOR ~/.memex/aliases.yaml
-$EDITOR ~/.memex/identity.yaml
+mkdir -p ~/.memexa
+cp config/aliases.example.yaml  ~/.memexa/aliases.yaml
+cp config/identity.example.yaml ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/aliases.yaml
+$EDITOR ~/.memexa/identity.yaml
 ```
 
 ## 4. Bring everything up
@@ -54,12 +54,12 @@ This brings up:
 - `hindsight-api` on `:8888`
 - `postgres` (with pgvector extension) on `:5433`
 - `bge-m3-sidecar` on `:18082`
-- `memex-dashboard` on `:8765`
+- `memexa-dashboard` on `:8765`
 
 ## 5. Schedule the cron — systemd timer recipe
 
 ```ini
-# /etc/systemd/system/memex-cron.service
+# /etc/systemd/system/memexa-cron.service
 [Unit]
 Description=Memgraph 6-hour incremental cron
 After=network.target
@@ -67,13 +67,13 @@ After=network.target
 [Service]
 Type=oneshot
 User=%I
-WorkingDirectory=/home/%I/memex
-EnvironmentFile=/home/%I/memex/.env
-ExecStart=/home/%I/memex/.venv/bin/python -m src.cron.cron_orchestrator run-incremental --all
+WorkingDirectory=/home/%I/memexa
+EnvironmentFile=/home/%I/memexa/.env
+ExecStart=/home/%I/memexa/.venv/bin/python -m src.cron.cron_orchestrator run-incremental --all
 ```
 
 ```ini
-# /etc/systemd/system/memex-cron.timer
+# /etc/systemd/system/memexa-cron.timer
 [Unit]
 Description=Run Memgraph cron every 6 hours
 
@@ -88,8 +88,8 @@ WantedBy=timers.target
 Enable:
 
 ```bash
-sudo systemctl enable --now memex-cron@$USER.timer
-systemctl list-timers | grep memex
+sudo systemctl enable --now memexa-cron@$USER.timer
+systemctl list-timers | grep memexa
 ```
 
 ## 6. Audio pipeline note
@@ -100,7 +100,7 @@ Apple-Silicon-optimised builds. On Linux, swap in `openai-whisper` or
 
 ```bash
 pip install faster-whisper
-export MEMEX_ASR_BACKEND=faster-whisper
+export MEMEXA_ASR_BACKEND=faster-whisper
 ```
 
 The driver auto-detects via the environment variable.
@@ -108,8 +108,8 @@ The driver auto-detects via the environment variable.
 ## 7. Uninstall
 
 ```bash
-sudo systemctl disable --now memex-cron@$USER.timer
-sudo rm /etc/systemd/system/memex-cron.{service,timer}
+sudo systemctl disable --now memexa-cron@$USER.timer
+sudo rm /etc/systemd/system/memexa-cron.{service,timer}
 docker compose -f docker-compose.example.yml down -v
 ```
 

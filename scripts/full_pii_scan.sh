@@ -30,7 +30,7 @@ fi
 # Materialize a comments-stripped pattern file (grep -f treats lines
 # starting with '#' as literal patterns, which would match every code
 # comment in the tree).
-TMP_PAT="$(mktemp -t memex_pii.XXXXXX)"
+TMP_PAT="$(mktemp -t memexa_pii.XXXXXX)"
 trap 'rm -f "${TMP_PAT}"' EXIT
 grep -vE '^[[:space:]]*(#|$)' "${PATTERN_FILE}" > "${TMP_PAT}"
 

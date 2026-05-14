@@ -5,8 +5,8 @@ Security Scanner -- 代码级自动安全审计
 不是文档，是实际执行扫描并返回 exit code 的 Python 脚本。
 
 调用方式:
-  python memex/core/security_scanner.py [directory]
-  默认扫描 memex/
+  python memexa/core/security_scanner.py [directory]
+  默认扫描 memexa/
 
 集成方式:
   PreToolUse hook on Bash(git push*) -> 自动阻止包含安全问题的 push
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-_MEMEX = Path(__file__).parent.parent
+_MEMEXA = Path(__file__).parent.parent
 _WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 
 
@@ -46,7 +46,7 @@ _INLINE_ALLOW_RE = re.compile(
 )
 
 _ALLOWLIST_PATH = _WORKSPACE / ".claude" / "config" / ".scanner-allowlist.json"
-_ALLOWLIST_KEY_ENV = "MEMEX_ALLOWLIST_KEY"
+_ALLOWLIST_KEY_ENV = "MEMEXA_ALLOWLIST_KEY"
 
 
 def _is_inline_allowed(line: str, category: str) -> bool:
@@ -360,21 +360,21 @@ def scan_directory(directory: Path) -> List[dict]:
     return findings
 
 
-# TU-R9 (2026-04-23): expand default scope beyond memex/core/.
+# TU-R9 (2026-04-23): expand default scope beyond memexa/core/.
 # Reality check: _safe_fs.py HIGH sat 3 days undetected by daily push scan
-# because push hook hardcoded memex/core/ only. tests/ and scripts/ carry
+# because push hook hardcoded memexa/core/ only. tests/ and scripts/ carry
 # real attack surface (test fixtures that execute, CLI entry points).
-_DEFAULT_SCOPE_DIRS = ("memex/core", "memex/tests", "memex/scripts")
+_DEFAULT_SCOPE_DIRS = ("memexa/core", "memexa/tests", "memexa/scripts")
 
 
-def scan_default_scope(memex_root: Optional[Path] = None) -> List[dict]:
-    """Scan the default multi-dir scope. Env MEMEX_SCANNER_SCOPE can
+def scan_default_scope(memexa_root: Optional[Path] = None) -> List[dict]:
+    """Scan the default multi-dir scope. Env MEMEXA_SCANNER_SCOPE can
     override (comma-separated relative paths).
 
     Returns merged findings from all scoped dirs.
     """
-    root = memex_root or _MEMEX
-    scope_env = os.environ.get("MEMEX_SCANNER_SCOPE", "").strip()
+    root = memexa_root or _MEMEXA
+    scope_env = os.environ.get("MEMEXA_SCANNER_SCOPE", "").strip()
     if scope_env:
         dirs = [d.strip() for d in scope_env.split(",") if d.strip()]
     else:
@@ -548,7 +548,7 @@ def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "scan-allow":
         sys.exit(_cmd_scan_allow(sys.argv[2:]))
 
-    scan_dir = sys.argv[1] if len(sys.argv) > 1 else str(_MEMEX / "memex")
+    scan_dir = sys.argv[1] if len(sys.argv) > 1 else str(_MEMEXA / "memexa")
     directory = Path(scan_dir)
 
     if not directory.exists():

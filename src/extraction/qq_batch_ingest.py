@@ -13,7 +13,7 @@ Mirrors `wechat_batch_ingest.BatchIngestRunner`:
   - typed-graceful skip (never raises) — reasons enumerated in run() docstring
   - file-flag mutex with daemon coordination
   - daily cost cap shared with wechat / email (chat_daily_cost_tracker.json)
-  - MEMEX_ACTIVE_TASK_ID env pin discipline
+  - MEMEXA_ACTIVE_TASK_ID env pin discipline
 
 Backfill source_kind: napcat_http; extracted_by: backfill-qq.
 """
@@ -48,7 +48,7 @@ _BATCH_FLAG = _DATA / "qq_batch_active.flag"
 _REALTIME_FLAG = _DATA / "qq_realtime_mode.json"
 _OUTBOX_JSONL = _DATA / "win_keystone_outbox" / "backfill__qq.jsonl"
 
-_DEFAULT_NAPCAT_URL = os.environ.get("MEMEX_NAPCAT_URL", "http://127.0.0.1:5700")
+_DEFAULT_NAPCAT_URL = os.environ.get("MEMEXA_NAPCAT_URL", "http://127.0.0.1:5700")
 _DEFAULT_HTTP_TIMEOUT_SEC = 5.0
 _DEFAULT_MAX_MSGS = 200
 _DEFAULT_MAX_COST = 0.40
@@ -409,7 +409,7 @@ def main() -> int:
     p.add_argument("--max-cost", type=float, default=_DEFAULT_MAX_COST)
     args = p.parse_args()
 
-    if os.environ.get("MEMEX_SKIP_QQ_BATCH"):
+    if os.environ.get("MEMEXA_SKIP_QQ_BATCH"):
         print(json.dumps({"skipped": True, "reason": "env_skip"}))
         return 0
 

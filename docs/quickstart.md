@@ -18,8 +18,8 @@
 ## 1. Install
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python -m venv .venv
 . .venv/bin/activate     # PowerShell: .venv\Scripts\Activate.ps1
 pip install -e .[dev]
@@ -33,19 +33,19 @@ cp .env.example .env
 $EDITOR .env
 
 # user config (read by the Python code at runtime)
-mkdir -p ~/.memex
-cp config/aliases.example.yaml   ~/.memex/aliases.yaml
-cp config/identity.example.yaml  ~/.memex/identity.yaml
-$EDITOR ~/.memex/aliases.yaml
-$EDITOR ~/.memex/identity.yaml
+mkdir -p ~/.memexa
+cp config/aliases.example.yaml   ~/.memexa/aliases.yaml
+cp config/identity.example.yaml  ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/aliases.yaml
+$EDITOR ~/.memexa/identity.yaml
 ```
 
 The bare minimum to set:
 
-- `~/.memex/aliases.yaml` → list of strings the system should match
+- `~/.memexa/aliases.yaml` → list of strings the system should match
   to "you" (your name, nicknames, email prefixes, etc.).
-- `.env` → `MEMEX_REMOTE_LLM_BASE_URL`, `MEMEX_REMOTE_LLM_API_KEY`,
-  `MEMEX_REMOTE_LLM_GATE_MODEL`, `MEMEX_REMOTE_LLM_EXTRACT_MODEL`.
+- `.env` → `MEMEXA_REMOTE_LLM_BASE_URL`, `MEMEXA_REMOTE_LLM_API_KEY`,
+  `MEMEXA_REMOTE_LLM_GATE_MODEL`, `MEMEXA_REMOTE_LLM_EXTRACT_MODEL`.
 
 ## 3. Bring up the memory backend
 
@@ -67,7 +67,7 @@ python -m examples.demo_dataset.ingest --dry-run
 make demo-ingest
 
 # Confirm the install end-to-end
-memex doctor
+memexa doctor
 # → [ok] primary /healthz returned 200
 # → [ok] bank 'memory_full_v5' has N nodes
 # → [ok] LLM/gate ... responded 200
@@ -88,9 +88,9 @@ Detailed per-source onboarding:
 - **WeChat** — export with [`WeChatMsg`](https://github.com/LC044/WeChatMsg)
   or [`wechatDataBackup`](https://github.com/git-jiadong/wechatDataBackup);
   point `v5_wechat_batch_builder.py` at the JSON.
-- **QQ** — set `MEMEX_QQ_ID`; the builder reads
+- **QQ** — set `MEMEXA_QQ_ID`; the builder reads
   `~/Documents/Tencent Files/<qq-id>/nt_qq/nt_db/nt_msg.db` directly.
-- **Email** — IMAP credentials in `~/.memex/identity.yaml`.
+- **Email** — IMAP credentials in `~/.memexa/identity.yaml`.
 - **Browser** — point at your browser profile's `History` SQLite file.
 - **Claude Code** — point at `~/.claude/projects/`.
 - **Audio** — drop `.wav`/`.m4a` files into `data/audio/inbox/`; the
@@ -124,4 +124,4 @@ pipeline.
 - *PG marker drift* — see
   [lessons_learned/03_pg_aware_pending.md](lessons_learned/03_pg_aware_pending.md).
 
-Open an issue at `memex/issues/new` if none of the above fits.
+Open an issue at `memexa/issues/new` if none of the above fits.

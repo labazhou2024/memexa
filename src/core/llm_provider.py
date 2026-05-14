@@ -11,10 +11,10 @@ Usage:
 
 Provider selection order:
     1. `provider=` kwarg (explicit override)
-    2. env `MEMEX_LLM_PROVIDER` ∈ {claude, openai, glm}
+    2. env `MEMEXA_LLM_PROVIDER` ∈ {claude, openai, glm}
     3. default: "claude"
 
-Tier → model map (configured in memex/data/llm_provider_config.json):
+Tier → model map (configured in memexa/data/llm_provider_config.json):
     cheap_fast : haiku-like (fast, cheap)
     smart      : sonnet-like (balanced)
     premium    : opus-like (highest quality)
@@ -24,7 +24,7 @@ Returns the raw text response. Callers do their own JSON parsing.
 
 Switching procedure when Claude CLI down:
     1. Acquire API key for OpenAI or GLM (智谱清言)
-    2. setx MEMEX_LLM_PROVIDER openai  (Windows) OR export ... (POSIX)
+    2. setx MEMEXA_LLM_PROVIDER openai  (Windows) OR export ... (POSIX)
     3. setx OPENAI_API_KEY sk-...
     4. Restart Claude Code sessions
     5. All call_llm() automatically routes through new provider
@@ -130,10 +130,10 @@ class ClaudeCliBackend:
             idx = cmd.index("-p") + 1
             cmd = cmd[:idx] + ["--system-prompt", system] + cmd[idx:]
 
-        # Scrub CLAUDE_*/MEMEX_* env to avoid SessionStart hook hijack
+        # Scrub CLAUDE_*/MEMEXA_* env to avoid SessionStart hook hijack
         # (see feedback_claude_subprocess_env_scrub.md)
         clean_env = {k: v for k, v in os.environ.items()
-                     if not k.startswith("CLAUDE_") and not k.startswith("MEMEX_")}
+                     if not k.startswith("CLAUDE_") and not k.startswith("MEMEXA_")}
         clean_env["PATH"] = os.environ.get("PATH", "")
 
         try:
@@ -360,10 +360,10 @@ def _get_backend(provider: str) -> Backend:
 
 
 def resolve_provider(override: Optional[str] = None) -> str:
-    """Priority: explicit arg > MEMEX_LLM_PROVIDER env > config default > 'claude'."""
+    """Priority: explicit arg > MEMEXA_LLM_PROVIDER env > config default > 'claude'."""
     if override:
         return override
-    env = os.environ.get("MEMEX_LLM_PROVIDER", "").strip().lower()
+    env = os.environ.get("MEMEXA_LLM_PROVIDER", "").strip().lower()
     if env in {"claude", "openai", "glm", "deepseek"}:
         return env
     cfg = _load_config()

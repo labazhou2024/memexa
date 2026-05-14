@@ -55,7 +55,7 @@ _NON_NAME_CHARS = set(
     "「」"
 )
 
-_TRACE_LOG_PATH = os.environ.get("MEMEX_COREF_TRACE_LOG", "")
+_TRACE_LOG_PATH = os.environ.get("MEMEXA_COREF_TRACE_LOG", "")
 
 
 def _emit_trace(event: str, payload: dict) -> None:

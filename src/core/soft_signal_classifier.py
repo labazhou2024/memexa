@@ -8,7 +8,7 @@ Design (per verifier R2 + R5):
 - PII scrub: redact emails/API keys/long numeric sequences before send
 - Env whitelist: Popen env= only allows PATH/PYTHONPATH/ANTHROPIC_API_KEY
 - Budget cap: daily USD limit via file counter, failure-closed
-- ENV flag: MEMEX_L2_SOFT_SIGNAL=1 default on, =0 disables entire module
+- ENV flag: MEMEXA_L2_SOFT_SIGNAL=1 default on, =0 disables entire module
 - Timeout: 5s subprocess hard limit
 - Confidence threshold: >= 0.7 to accept result
 """
@@ -83,7 +83,7 @@ _BUDGET_FILE = _DATA_DIR / "haiku_budget_usage.json"
 # Conservative estimate per call: 500 in + 200 out ≈ $0.0004 + $0.0008 = $0.0012
 _EST_COST_PER_CALL_USD = 0.0012
 
-_DEFAULT_DAILY_CAP_USD = float(os.environ.get("MEMEX_HAIKU_DAILY_USD", "2.0"))
+_DEFAULT_DAILY_CAP_USD = float(os.environ.get("MEMEXA_HAIKU_DAILY_USD", "2.0"))
 
 
 @dataclass
@@ -97,7 +97,7 @@ class SoftSignalResult:
 
 def is_enabled() -> bool:
     """Check ENV flag. Default: on (per R5 user pre-approved)."""
-    return os.environ.get("MEMEX_L2_SOFT_SIGNAL", "1") == "1"
+    return os.environ.get("MEMEXA_L2_SOFT_SIGNAL", "1") == "1"
 
 
 def _has_soft_signal(text: str) -> bool:

@@ -43,13 +43,13 @@ def _resolve_query_log_path() -> Path:
     """Resolve the JSONL log path via the workspace path resolver.
 
     Order:
-      1. ``MEMEX_QUERY_LOG_PATH`` env var (advanced override)
+      1. ``MEMEXA_QUERY_LOG_PATH`` env var (advanced override)
       2. ``data_dir() / "memory_query_log.jsonl"`` (preferred — honors
-         ``MEMEX_WORKSPACE_ROOT`` and ``~/.memex/config.yaml``)
+         ``MEMEXA_WORKSPACE_ROOT`` and ``~/.memexa/config.yaml``)
       3. Fallback to the legacy in-tree path so existing dashboards keep
          working when ``_path_resolver`` import fails for any reason.
     """
-    raw = os.environ.get("MEMEX_QUERY_LOG_PATH", "").strip()
+    raw = os.environ.get("MEMEXA_QUERY_LOG_PATH", "").strip()
     if raw:
         return Path(raw).expanduser()
     try:
@@ -196,7 +196,7 @@ def attach_raw(cards: List[Dict[str, Any]], max_attach: int = 20) -> List[Dict[s
 # Defaults (P2.1 切换的产物)
 # ──────────────────────────────────────────────────────────────
 
-DEFAULT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+DEFAULT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 LEGACY_BANK = "memory_full"  # archived schema:v0/v1 (pre-2026-05-06)
 DEFAULT_SCHEMA_TAG = "schema:v2"
 DEFAULT_KIND_EVENT_TAG = "kind:event"
@@ -214,7 +214,7 @@ DEFAULT_SALIENCE_FLOOR = 0.0
 SESSION_LOAD_SALIENCE_FLOOR = 0.40
 
 # Trace
-_TRACE_LOG_PATH = os.environ.get("MEMEX_MEMORY_QUERY_TRACE", "")
+_TRACE_LOG_PATH = os.environ.get("MEMEXA_MEMORY_QUERY_TRACE", "")
 
 
 def _emit_trace(event: str, payload: Dict[str, Any]) -> None:
@@ -358,8 +358,8 @@ def _recall_raw(
     """Direct Hindsight recall call with primary→fallback HA route.
 
     Routing (CEO 2026-05-07 directive — Win read-replica HA):
-      1. Primary: MEMEX_HINDSIGHT_URL (default Mac Tailscale 127.0.0.1:8888)
-      2. Fallback: MEMEX_HINDSIGHT_FALLBACK_URL (Win local 127.0.0.1:8888 when set)
+      1. Primary: MEMEXA_HINDSIGHT_URL (default Mac Tailscale 127.0.0.1:8888)
+      2. Fallback: MEMEXA_HINDSIGHT_FALLBACK_URL (Win local 127.0.0.1:8888 when set)
       3. Both fail → empty result + warn
 
     Used by quick/reflect/timeline/person/project/pending internally.
@@ -384,16 +384,16 @@ def _recall_raw(
     if all_tags:
         body["tags"] = all_tags
 
-    primary_url = _os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-    fallback_url = _os.environ.get("MEMEX_HINDSIGHT_FALLBACK_URL", "")
+    primary_url = _os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+    fallback_url = _os.environ.get("MEMEXA_HINDSIGHT_FALLBACK_URL", "")
     # 2026-05-11: default 60s → 15s. Under calendar_daemon fan-out (22 calls)
     # a single 60s hang blocks the whole tick. With graceful-degraded
     # hindsight (TEI fast-fail patch) recall returns ≤8s on the reranker-down
     # path, so 15s leaves margin for legit slow queries on the topk paths.
     primary_timeout = timeout if timeout else float(
-        _os.environ.get("MEMEX_HINDSIGHT_PRIMARY_TIMEOUT", "15.0"))
+        _os.environ.get("MEMEXA_HINDSIGHT_PRIMARY_TIMEOUT", "15.0"))
     fallback_timeout = float(
-        _os.environ.get("MEMEX_HINDSIGHT_FALLBACK_TIMEOUT", "10.0"))
+        _os.environ.get("MEMEXA_HINDSIGHT_FALLBACK_TIMEOUT", "10.0"))
 
     routes = [("primary", primary_url, primary_timeout)]
     if fallback_url:
@@ -611,7 +611,7 @@ def timeline(
         if len(room) == 32 and all(c in "0123456789abcdef" for c in room):
             extra_tags.append(f"room:{room[:16]}")
         else:
-            from memex.memory_card import chat_room_hash
+            from memexa.memory_card import chat_room_hash
             extra_tags.append(f"room:{chat_room_hash(room)[:16]}")
 
     # 2026-05-12: fix 0-recall bug. Old impl sent single semantic query
@@ -1343,7 +1343,7 @@ def summary(
         client = _gc()
         # Use gatekeeper model (qwen3.6-chat, fast non-reasoner)
         import os as _os
-        chat_model = _os.environ.get("MEMEX_your-org_GATEKEEPER_MODEL", "qwen3.6-chat")
+        chat_model = _os.environ.get("MEMEXA_your-org_GATEKEEPER_MODEL", "qwen3.6-chat")
         resp = client.chat(model=chat_model, system=sys_prompt, user=user_q,
                             max_tokens=2048, temperature=0.3,
                             label=f"summary_{window_days}d")

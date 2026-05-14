@@ -12,7 +12,7 @@ Public API:
 Internal helpers:
   _load_hmac_key() -> bytes
   _locked_append_jsonl(path, entry) -> None
-  _data_dir() -> Path   (respects MEMEX_GATES_DATA_DIR env for tests)
+  _data_dir() -> Path   (respects MEMEXA_GATES_DATA_DIR env for tests)
 
 CLI:
   python -m src.core._gates_skip_budget {show-budget|status}
@@ -45,22 +45,22 @@ _LOCK_RETRY_SLEEP = 0.05  # seconds
 
 
 def _data_dir() -> Path:
-    """Return the data directory, respecting MEMEX_GATES_DATA_DIR env override.
+    """Return the data directory, respecting MEMEXA_GATES_DATA_DIR env override.
 
     The env override is validated against an allowlist of parent directories
     (workspace tree or system temp) per HARD RULE feedback_env_override_parent_allowlist.md
     and feedback_priority_inverted_fallback_2x2_matrix.md (exists/missing) x (set/empty).
     """
-    override = os.environ.get("MEMEX_GATES_DATA_DIR")
+    override = os.environ.get("MEMEXA_GATES_DATA_DIR")
     if override:
         try:
             import tempfile as _tf
             candidate = Path(override).resolve()
             tempdir = Path(_tf.gettempdir()).resolve()
-            # Walk up from this file: core -> memex -> memex -> workspace
+            # Walk up from this file: core -> memexa -> memexa -> workspace
             workspace = Path(__file__).parent.parent.parent.parent.resolve()
-            memex_root = workspace / "memex"
-            allowed_parents = (workspace, tempdir, memex_root)
+            memexa_root = workspace / "memexa"
+            allowed_parents = (workspace, tempdir, memexa_root)
             is_safe = any(
                 str(candidate).startswith(str(p) + os.sep) or str(candidate) == str(p)
                 for p in allowed_parents
@@ -69,13 +69,13 @@ def _data_dir() -> Path:
                 return candidate
             else:
                 _LOG.warning(
-                    "_gates_skip_budget: MEMEX_GATES_DATA_DIR %r outside allowlist; using default",
+                    "_gates_skip_budget: MEMEXA_GATES_DATA_DIR %r outside allowlist; using default",
                     override,
                 )
         except (OSError, ValueError) as exc:
-            _LOG.warning("_gates_skip_budget: bad MEMEX_GATES_DATA_DIR (%s); using default", exc)
+            _LOG.warning("_gates_skip_budget: bad MEMEXA_GATES_DATA_DIR (%s); using default", exc)
 
-    # Default: memex/memex/data/
+    # Default: memexa/memexa/data/
     try:
         from src.core._paths import DATA_DIR
         return DATA_DIR
@@ -338,7 +338,7 @@ def _append_pending_approval(
         "summary": (
             f"{count} gate skips recorded in the last {window_days} days, "
             f"exceeding the {threshold}-skip threshold. "
-            f"Review skip reasons in memex/memex/data/_gates_skip_budget.jsonl."
+            f"Review skip reasons in memexa/memexa/data/_gates_skip_budget.jsonl."
         ),
     }
 

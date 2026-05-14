@@ -3,8 +3,8 @@
 V1 BLOCKER-V1 fix: in-scope canonical lookup order; not deferred to U4.
 Lookup order:
   1. <workspace>/.claude/harness/tasks/<task_id>/plan_v<latest>.md  (autopilot canonical)
-  2. memex/memex/data/plans/<task_id>/plan_v<latest>.md           (legacy programmatic)
-  3. memex/.claude/plans/<task_id>.md                              (architect plan)
+  2. memexa/memexa/data/plans/<task_id>/plan_v<latest>.md           (legacy programmatic)
+  3. memexa/.claude/plans/<task_id>.md                              (architect plan)
 
 Returns Path to highest-version plan_v<N>.md found.
 Raises FileNotFoundError if no plan in any location.
@@ -19,12 +19,12 @@ _VERSION_RE = re.compile(r"plan_v(\d+)\.md$")
 
 
 def _workspace_root() -> Path:
-    """Resolve workspace root (parent of memex/)."""
+    """Resolve workspace root (parent of memexa/)."""
     return Path(__file__).resolve().parent.parent.parent.parent
 
 
 def _jarvis_root() -> Path:
-    """Resolve memex package root."""
+    """Resolve memexa package root."""
     return Path(__file__).resolve().parent.parent.parent
 
 
@@ -44,16 +44,16 @@ def list_plan_versions(task_id: str) -> List[Path]:
     """Return all plan_v<N>.md files (any location), sorted by version desc."""
     out: List[Path] = []
     workspace = _workspace_root()
-    memex = _jarvis_root()
+    memexa = _jarvis_root()
     candidates = [
         workspace / ".claude" / "harness" / "tasks" / task_id,
-        memex / "memex" / "data" / "plans" / task_id,
+        memexa / "memexa" / "data" / "plans" / task_id,
     ]
     for d in candidates:
         if d.is_dir():
             out.extend(sorted(d.glob("plan_v*.md")))
     # Architect plan dir uses single .md per task_id (no version suffix)
-    arch = memex / ".claude" / "plans" / f"{task_id}.md"
+    arch = memexa / ".claude" / "plans" / f"{task_id}.md"
     if arch.exists():
         out.append(arch)
     # Sort by version desc
@@ -66,12 +66,12 @@ def list_plan_versions(task_id: str) -> List[Path]:
 def resolve_plan_path(task_id: str) -> Path:
     """Locate latest plan_v<N>.md for task_id.
 
-    Priority order: workspace task_dir > memex/memex/data > memex/.claude/plans
+    Priority order: workspace task_dir > memexa/memexa/data > memexa/.claude/plans
 
     Raises FileNotFoundError if no plan found.
     """
     workspace = _workspace_root()
-    memex = _jarvis_root()
+    memexa = _jarvis_root()
 
     # 1. workspace task_dir (autopilot canonical)
     ws_dir = workspace / ".claude" / "harness" / "tasks" / task_id
@@ -80,15 +80,15 @@ def resolve_plan_path(task_id: str) -> Path:
         if latest:
             return latest
 
-    # 2. memex/memex/data/plans/<task_id>/
-    jd_dir = memex / "memex" / "data" / "plans" / task_id
+    # 2. memexa/memexa/data/plans/<task_id>/
+    jd_dir = memexa / "memexa" / "data" / "plans" / task_id
     if jd_dir.is_dir():
         latest = _highest_version(list(jd_dir.glob("plan_v*.md")))
         if latest:
             return latest
 
-    # 3. memex/.claude/plans/<task_id>.md (architect single-file)
-    arch = memex / ".claude" / "plans" / f"{task_id}.md"
+    # 3. memexa/.claude/plans/<task_id>.md (architect single-file)
+    arch = memexa / ".claude" / "plans" / f"{task_id}.md"
     if arch.exists():
         return arch
 

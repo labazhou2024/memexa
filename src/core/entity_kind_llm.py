@@ -16,10 +16,10 @@ Does NOT replace entity_kind.classify_entity; serves as OPTIONAL fallback
 invoked by:
   - scripts/reclassify_other_via_llm.py (batch re-classify existing DB)
   - write_fact path WHEN heuristic returns 'other' AND env
-    MEMEX_ENTITY_KIND_LLM_INLINE=1 (off by default — cost control).
+    MEMEXA_ENTITY_KIND_LLM_INLINE=1 (off by default — cost control).
 
 Cost safety:
-  - Caller-side cap via MEMEX_LLM_CLASSIFY_MAX_CALLS env (default 300)
+  - Caller-side cap via MEMEXA_LLM_CLASSIFY_MAX_CALLS env (default 300)
   - trace_emit each invocation → observable
   - No budget reserve integration yet (follow-up if Inline mode ships)
 """
@@ -52,7 +52,7 @@ Input is a single entity: `canon` (the canonical string) + optional `raw_forms` 
 
 Output a single JSON object with ONE key `kind`, whose value is one of:
   person      — human actor: names, roles (CEO, advisor, mentor, reviewer, etc.)
-  project     — named software/research initiative (memex, eNe, PRL, <topic-3>, etc.)
+  project     — named software/research initiative (memexa, eNe, PRL, <topic-3>, etc.)
   concept     — abstract idea / method / theory / feedback / workflow step
   constraint  — rule / policy / HARD RULE / limit / forbidden / permission
   tool        — software library / CLI / API / module name / file-level code unit
@@ -155,9 +155,9 @@ def classify_entity_via_llm(
     Never raises. Emits trace events for observability.
 
     Env:
-      MEMEX_ENTITY_KIND_LLM_DISABLE=1 → return 'other' without calling LLM
+      MEMEXA_ENTITY_KIND_LLM_DISABLE=1 → return 'other' without calling LLM
     """
-    if os.environ.get("MEMEX_ENTITY_KIND_LLM_DISABLE") == "1":
+    if os.environ.get("MEMEXA_ENTITY_KIND_LLM_DISABLE") == "1":
         return "other"
     if not canon:
         return "other"
@@ -168,7 +168,7 @@ def classify_entity_via_llm(
                 {"canon_head": canon[:40], "bytes": len(prompt)})
 
     # Route through unified llm_provider (2026-04-22 Track C migration)
-    # Respects MEMEX_LLM_PROVIDER env for claude/openai/glm swap
+    # Respects MEMEXA_LLM_PROVIDER env for claude/openai/glm swap
     try:
         from src.core.llm_provider import call_llm, LLMError, ProviderUnavailable
     except Exception as e:

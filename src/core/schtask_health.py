@@ -1,6 +1,6 @@
 """schtask health monitor — daily digest + SessionStart cheatsheet.
 
-Polls all `memex\\...` schtasks via `schtasks /Query /XML`, tracks LastResult,
+Polls all `memexa\\...` schtasks via `schtasks /Query /XML`, tracks LastResult,
 emits cheatsheet for SessionStart hook injection.
 
 Output:
@@ -27,7 +27,7 @@ _DATA = _REPO / "data"
 _STATE = _DATA / "schtask_health.json"
 _HISTORY = _DATA / "schtask_health_history.jsonl"
 
-# Known memex schtasks. Map TaskName -> {expected_max_age_min, criticality}
+# Known memexa schtasks. Map TaskName -> {expected_max_age_min, criticality}
 _KNOWN = {
     "GraphMaintenance6h":    {"max_age_min": 380, "critical": True},   # 6h+1h grace
     "BackfillPipeline":      {"max_age_min": 1500, "critical": False}, # daily 03:00 + grace
@@ -42,9 +42,9 @@ _KNOWN = {
 
 
 def _parse_query_xml() -> list[dict]:
-    """Query all schtasks via CSV, filter \\memex\\* in-process.
+    """Query all schtasks via CSV, filter \\memexa\\* in-process.
 
-    `schtasks /Query /TN "\\memex\\"` fails with "system cannot find file";
+    `schtasks /Query /TN "\\memexa\\"` fails with "system cannot find file";
     safer to fetch all + Python-filter.
     """
     cmd = ["cmd", "/c", "schtasks /Query /FO CSV /V"]
@@ -74,10 +74,10 @@ def _parse_query_xml() -> list[dict]:
         if len(row) < 7:
             continue
         name = (row[1] or "").strip().strip('"')
-        if not name.startswith("\\memex\\"):
+        if not name.startswith("\\memexa\\"):
             continue
         out.append({
-            "task_name": name.replace("\\memex\\", ""),
+            "task_name": name.replace("\\memexa\\", ""),
             "next_run": (row[2] or "").strip(),
             "status": (row[3] or "").strip(),
             "last_run_time": (row[5] or "").strip(),

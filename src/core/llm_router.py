@@ -1,5 +1,5 @@
 """
-LLM Router -- Claude CLI backend for memex (v6.0).
+LLM Router -- Claude CLI backend for memexa (v6.0).
 
 Replaces Kimi/Moonshot API with `claude -p` subprocess calls.
 Claude Max subscription = unlimited usage, zero API cost.

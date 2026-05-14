@@ -5,8 +5,8 @@ scattered across calendar_daemon / entity_kind / canonicalizer.
 
 Configuration source order:
 
-1. ``MEMEX_ALIASES_FILE`` environment variable pointing to a YAML file.
-2. ``~/.memex/aliases.yaml``.
+1. ``MEMEXA_ALIASES_FILE`` environment variable pointing to a YAML file.
+2. ``~/.memexa/aliases.yaml``.
 3. Built-in safe defaults (English ``self / me / myself`` only, no real names).
 """
 from __future__ import annotations
@@ -18,8 +18,8 @@ from pathlib import Path
 from typing import List, Optional
 
 
-ENV_VAR = "MEMEX_ALIASES_FILE"
-DEFAULT_CONFIG = ".memex/aliases.yaml"
+ENV_VAR = "MEMEXA_ALIASES_FILE"
+DEFAULT_CONFIG = ".memexa/aliases.yaml"
 
 
 @dataclass(frozen=True)

@@ -6,13 +6,13 @@
 
 ## v0.1.x — get the demo to ingest end-to-end on a clean box
 
-- [x] CLI dispatcher (`memex init / version / config / doctor / query`)
+- [x] CLI dispatcher (`memexa init / version / config / doctor / query`)
 - [x] PII scrubbing pre-commit hook
 - [x] Demo dataset (6 sources, public-domain)
 - [x] Direct psycopg2 PG access (no ssh shell-out by default)
 - [x] Hindsight failover URL with automatic retry
 - [x] 14 query subcommands documented
-- [x] `memex doctor` round-trips LLM provider
+- [x] `memexa doctor` round-trips LLM provider
 - [x] PII residual scanner with self-referential SKIP-list
 - [ ] Fresh-clone smoke test passes on Win + macOS + Linux in CI
 
@@ -22,14 +22,14 @@ The core query system gives you the raw signals. v0.2 stitches them into
 documents you can copy-paste or print. Each template = one subcommand + a
 Markdown/LaTeX layout + a couple of `memory_query` calls under the hood.
 
-- [ ] `memex lab-report <实验名>` — pre-class report (LaTeX → PDF, with
+- [ ] `memexa lab-report <实验名>` — pre-class report (LaTeX → PDF, with
       WebSearch fallback for official handouts)
-- [ ] `memex weekly-report` — git log + session-end narrative + project
+- [ ] `memexa weekly-report` — git log + session-end narrative + project
       cross-source summary → one-page Markdown
-- [ ] `memex action-card <ddl>` — outing checklist + Q&A cheatsheet
-- [ ] `memex brief <person>` — pre-meeting brief (baseline / last-meet /
+- [ ] `memexa action-card <ddl>` — outing checklist + Q&A cheatsheet
+- [ ] `memexa brief <person>` — pre-meeting brief (baseline / last-meet /
       open threads / landmines), built on `arc` + `quick` queries
-- [ ] `memex dashboard` — deadline panel, 4-column triage of `pending`
+- [ ] `memexa dashboard` — deadline panel, 4-column triage of `pending`
 
 ## v0.2 — QQ db-only adapter migration (highest user-impact backlog)
 
@@ -37,7 +37,7 @@ Markdown/LaTeX layout + a couple of `memory_query` calls under the hood.
 - [ ] Migrate `jarvis/qq_reader.py` (clipboard fallback) similarly
 - [ ] Wire both into `backfill_v5_qq_driver.py` so `--mode dump` and `--mode clipboard` work out of the box
 - [ ] Add a smoke test against a synthetic SQLCipher fixture (no real QQ required)
-- [ ] Drop the OSS-side NapCat / OneBot adapter from the tree (currently kept behind `MEMEX_QQ_NAPCAT_FORCE=1`)
+- [ ] Drop the OSS-side NapCat / OneBot adapter from the tree (currently kept behind `MEMEXA_QQ_NAPCAT_FORCE=1`)
 
 ## v0.2 — Linux first-class (parallel track)
 
@@ -64,7 +64,7 @@ Markdown/LaTeX layout + a couple of `memory_query` calls under the hood.
 - [ ] Prometheus `/metrics` endpoint on the dashboard server
 - [ ] Per-driver SLO dashboards
 - [ ] Automated nightly recall regression suite
-- [ ] Right-to-be-forgotten CLI (`memex forget <canonical-id>`)
+- [ ] Right-to-be-forgotten CLI (`memexa forget <canonical-id>`)
 
 ## v1.0 — stable schema commitment
 

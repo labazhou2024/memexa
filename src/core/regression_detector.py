@@ -116,7 +116,7 @@ def detect_performance_regression(
 # Dimension 3: API Contract Tracking
 # ---------------------------------------------------------------------------
 
-def extract_public_api(project_root: Path, package: str = "memex") -> Dict[str, Any]:
+def extract_public_api(project_root: Path, package: str = "memexa") -> Dict[str, Any]:
     """Extract all public function/method signatures from .py files.
 
     Traverses project_root/<package>/**/*.py, parses with ast, and collects:
@@ -419,7 +419,7 @@ def _try_mypy(project_root: Path, timeout: int) -> Optional[Dict[str, Any]]:
     """Attempt to run mypy. Returns result dict or None if unavailable."""
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "mypy", "memex/", "--ignore-missing-imports", "--no-error-summary"],
+            [sys.executable, "-m", "mypy", "memexa/", "--ignore-missing-imports", "--no-error-summary"],
             capture_output=True,
             text=True,
             cwd=str(project_root),

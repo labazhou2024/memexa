@@ -47,8 +47,8 @@ def _graph_stats() -> tuple[int, int, int]:
         #   total_documents → episodes, total_links → facts (proxy), total_nodes → entities
         # This preserves the (episodes, facts, entities) tuple contract.
         import httpx, os
-        base = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-        bank = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+        base = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+        bank = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
         r = httpx.get(f"{base}/v1/default/banks/{bank}/stats", timeout=5.0)
         d = r.json()
         return (

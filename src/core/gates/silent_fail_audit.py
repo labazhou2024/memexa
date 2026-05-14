@@ -28,9 +28,9 @@ from typing import List, Optional, Tuple
 
 _GATES_DIR = Path(__file__).resolve().parent
 _WORKSPACE = _GATES_DIR.parent.parent.parent.parent
-_MEMEX_ROOT = _WORKSPACE / "memex"
+_MEMEXA_ROOT = _WORKSPACE / "memexa"
 _ALLOWLIST_PATH = _WORKSPACE / ".claude" / "harness" / "silent_fail_allowlist.json"
-_ALLOWLIST_KEY_ENV = "MEMEX_SILENT_FAIL_HMAC_KEY"
+_ALLOWLIST_KEY_ENV = "MEMEXA_SILENT_FAIL_HMAC_KEY"
 
 # Trace-emit markers that count as "not silent" — if any of these
 # strings appears in the 5 lines before an except: pass block, the
@@ -113,7 +113,7 @@ def _find_silent_blocks_in_file(file_path: Path) -> List[Violation]:
             block_text += "\n" + lines[except_lineno]  # the `pass` line
 
         violations.append(Violation(
-            path=str(file_path.relative_to(_MEMEX_ROOT)) if str(file_path).startswith(str(_MEMEX_ROOT)) else str(file_path),
+            path=str(file_path.relative_to(_MEMEXA_ROOT)) if str(file_path).startswith(str(_MEMEXA_ROOT)) else str(file_path),
             lineno=except_lineno,
             block_sha256=_sha256_of_block(block_text),
             reason="except Exception: pass without preceding trace_emit",
@@ -177,7 +177,7 @@ def _staged_py_files() -> List[Path]:
         r = subprocess.run(
             ["git", "diff", "--cached", "--diff-filter=d", "--name-only"],
             capture_output=True, text=True,
-            cwd=str(_MEMEX_ROOT), timeout=10, shell=False,
+            cwd=str(_MEMEXA_ROOT), timeout=10, shell=False,
         )
     except Exception:
         return []
@@ -186,7 +186,7 @@ def _staged_py_files() -> List[Path]:
         name = name.strip()
         if not name.endswith(".py"):
             continue
-        p = _MEMEX_ROOT / name
+        p = _MEMEXA_ROOT / name
         if p.is_file():
             files.append(p)
     return files

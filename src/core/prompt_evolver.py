@@ -124,10 +124,10 @@ def _is_safe_agent_name(name: str) -> bool:
 
 
 # Whitelist: only evolve high-frequency agents where sample count is sufficient
-# and write-back risk is manageable. CEO can extend via env MEMEX_EVOLVE_AGENTS.
+# and write-back risk is manageable. CEO can extend via env MEMEXA_EVOLVE_AGENTS.
 def _load_eligible_agents() -> set:
     raw = _os.environ.get(
-        "MEMEX_EVOLVE_AGENTS",
+        "MEMEXA_EVOLVE_AGENTS",
         "code-reviewer,fix-agent,sonnet-executor",
     )
     out = set()
@@ -139,14 +139,14 @@ def _load_eligible_agents() -> set:
             out.add(entry)
         else:
             logger.warning(
-                "MEMEX_EVOLVE_AGENTS: dropping unsafe entry %r", raw_entry[:40]
+                "MEMEXA_EVOLVE_AGENTS: dropping unsafe entry %r", raw_entry[:40]
             )
     return out
 
 
 # [LOG-R1-015 2026-04-20] _ELIGIBLE_AGENTS computed at import time is visible
 # via `from prompt_evolver import _ELIGIBLE_AGENTS` for backwards compatibility
-# AND for direct monkeypatch in tests. But it only reflects the MEMEX_EVOLVE_AGENTS
+# AND for direct monkeypatch in tests. But it only reflects the MEMEXA_EVOLVE_AGENTS
 # value at import time. For callers that can tolerate a function call, use
 # _get_eligible_agents() which re-reads env each call (with a 30s TTL cache to
 # protect hot paths).
@@ -163,7 +163,7 @@ def _get_eligible_agents() -> set:
     """Dynamic accessor for the eligible-agents whitelist.
 
     Returns a *copy* of the current eligible-agents set. Honors later changes
-    to the MEMEX_EVOLVE_AGENTS env var without requiring a process restart.
+    to the MEMEXA_EVOLVE_AGENTS env var without requiring a process restart.
 
     Cache: 30s TTL on the parsed value, so 1k+ calls per minute from the
     hot path don't repeatedly parse the env string. TTL reset on every hit
@@ -231,7 +231,7 @@ def _save_disabled(disabled: set) -> None:
 def is_agent_eligible(agent_name: str) -> bool:
     """[L6] True if agent is in whitelist AND not auto-disabled.
 
-    [LOG-R1-015 2026-04-20] Use _get_eligible_agents() to pick up MEMEX_EVOLVE_AGENTS
+    [LOG-R1-015 2026-04-20] Use _get_eligible_agents() to pick up MEMEXA_EVOLVE_AGENTS
     env changes after import. 30s TTL cache keeps the hot path cheap.
     """
     if agent_name not in _get_eligible_agents():
@@ -374,12 +374,12 @@ class PromptEvolver:
         # [Gap 2d + LOG-M1 Round2 2026-04-19] Verdict-grade gate.
         # MUST be checked BEFORE any LLM round-trip (gradient / apply / test).
         # <30 samples has stddev too large to detect 2% improvement above noise.
-        _skip_sample_gate = _os.environ.get("MEMEX_SKIP_SAMPLE_GATE", "0") == "1"
+        _skip_sample_gate = _os.environ.get("MEMEXA_SKIP_SAMPLE_GATE", "0") == "1"
         _samples_ok = len(outcomes) >= MIN_SAMPLES_FOR_VERDICT
         if not _samples_ok and not _skip_sample_gate:
             logger.info(
                 "Verdict-grade gate: %s has %d samples < MIN_SAMPLES_FOR_VERDICT=%d; "
-                "skipping deploy decision (set MEMEX_SKIP_SAMPLE_GATE=1 to override)",
+                "skipping deploy decision (set MEMEXA_SKIP_SAMPLE_GATE=1 to override)",
                 agent_name, len(outcomes), MIN_SAMPLES_FOR_VERDICT,
             )
             # [LOG-H5 Round2] Mark as "blocked" so deployment_rate / score
@@ -849,8 +849,8 @@ def _cli_main():
         return 0
     ev = get_prompt_evolver()
     out = {
-        "autorun_enabled": _os.environ.get("MEMEX_L6_AUTORUN", "0") == "1",
-        "evolution_enabled": _os.environ.get("MEMEX_L6_EVOLUTION", "0") == "1",
+        "autorun_enabled": _os.environ.get("MEMEXA_L6_AUTORUN", "0") == "1",
+        "evolution_enabled": _os.environ.get("MEMEXA_L6_EVOLUTION", "0") == "1",
         "eligible_agents": sorted(list(_ELIGIBLE_AGENTS)),
         "stats": ev.stats,
     }

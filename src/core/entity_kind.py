@@ -42,7 +42,7 @@ _LOCATION_TOKENS = {
 }
 
 _PROJECT_TOKENS = {
-    "memex", "autopilot", "polymarket", "kairos",
+    "memexa", "autopilot", "polymarket", "kairos",
     "wigner", "ene", "prl", "prb", "qccd", "paper",
     # 2026-04-22 Phase β expansion
     "manuscript", "submission", "bibliography", "revision",

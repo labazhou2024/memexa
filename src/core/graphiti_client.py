@@ -1,14 +1,14 @@
 """
-Graphiti Client — memex integration with Graphiti+Neo4j Desktop.
+Graphiti Client — memexa integration with Graphiti+Neo4j Desktop.
 
 TU2 from 2026-04-19_graphiti_foundation.md. HIGHEST-risk module.
 
 Responsibilities:
 - Singleton client with lifecycle + health check
-- Feature flag MEMEX_GRAPHITI_ENABLED ∈ {"0", "shadow", "1"}
+- Feature flag MEMEXA_GRAPHITI_ENABLED ∈ {"0", "shadow", "1"}
 - Shared bge-small-zh embedder via semantic_kb._get_model() (no 2x RAM)
 - 500ms connect timeout + graceful degrade when Neo4j unavailable
-- Offline MOCK mode for tests (MEMEX_GRAPHITI_MOCK=1)
+- Offline MOCK mode for tests (MEMEXA_GRAPHITI_MOCK=1)
 
 Contract:
 - get_client() returns None if disabled or Neo4j down (callers must handle)
@@ -46,7 +46,7 @@ _LOCK = threading.Lock()
 
 
 def _flag() -> str:
-    v = os.environ.get("MEMEX_GRAPHITI_ENABLED", _FLAG_DISABLED)
+    v = os.environ.get("MEMEXA_GRAPHITI_ENABLED", _FLAG_DISABLED)
     return v if v in (_FLAG_DISABLED, _FLAG_SHADOW, _FLAG_ACTIVE) else _FLAG_DISABLED
 
 
@@ -57,7 +57,7 @@ def is_enabled() -> bool:  return not is_disabled()  # shadow OR active
 
 
 def _is_mock() -> bool:
-    return os.environ.get("MEMEX_GRAPHITI_MOCK", "0") == "1"
+    return os.environ.get("MEMEXA_GRAPHITI_MOCK", "0") == "1"
 
 
 # ---------- Mock backend (for tests/offline) ----------

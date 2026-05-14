@@ -2,20 +2,20 @@
 
 [English](email.md) · **中文**
 
-`memex` 通过 IMAP 读邮件。不假设特定 provider; 任何
+`memexa` 通过 IMAP 读邮件。不假设特定 provider; 任何
 `imap.example.com:993` 都行 (Gmail, Outlook, 腾讯企业邮, Fastmail,
 ProtonMail Bridge, 自建 Dovecot)。
 
 ## 接入
 
 ```bash
-# 1. 把 IMAP 配置加到 ~/.memex/identity.yaml
-$EDITOR ~/.memex/identity.yaml
+# 1. 把 IMAP 配置加到 ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/identity.yaml
 # imap:
 #   host: imap.example.com
 #   port: 993
 #   user: alice@example.com
-#   password_env: MEMEX_IMAP_PASSWORD    # env var 名字, 不是字面密码
+#   password_env: MEMEXA_IMAP_PASSWORD    # env var 名字, 不是字面密码
 #   folders:
 #     - INBOX
 #     - "Sent"
@@ -23,7 +23,7 @@ $EDITOR ~/.memex/identity.yaml
 #   since_days: 90                       # 只拉这么新的消息
 
 # 2. 设密码 env var
-export MEMEX_IMAP_PASSWORD='<你的-imap-应用专用密码>'
+export MEMEXA_IMAP_PASSWORD='<你的-imap-应用专用密码>'
 
 # 3. Smoke 测连接
 python -m src.ingestion.v5_email_batch_builder --probe

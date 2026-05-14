@@ -60,7 +60,7 @@ def _find_workspace() -> Path:
 
 
 _WORKSPACE = _find_workspace()
-_MEMEX = _WORKSPACE / "memex"
+_MEMEXA = _WORKSPACE / "memexa"
 _HARNESS = _WORKSPACE / ".claude" / "config" / "harness_state.json"
 # _PIPELINE removed in v6.0 (CC-Native: pipeline_state.py deleted)
 _MEMORY_DIR = memory_dir()
@@ -88,7 +88,7 @@ def check_auto_triggers() -> str:
     """Run auto_trigger.check_triggers(), execute or queue actionable items, format results."""
     try:
         # Import directly to avoid subprocess overhead
-        sys.path.insert(0, str(_MEMEX))
+        sys.path.insert(0, str(_MEMEXA))
         from src.core.auto_trigger import check_triggers, format_briefing
         actions = check_triggers()
         if not actions:
@@ -260,7 +260,7 @@ def check_pending_approvals() -> str:
 
     P3 (2026-04-23) fix: use approval_queue.get_queue_path() as single
     source-of-truth. Previously this function derived its own path from
-    `_MEMEX`, diverging from approval_queue's `_QUEUE_FILE` (logic B5
+    `_MEMEXA`, diverging from approval_queue's `_QUEUE_FILE` (logic B5
     finding: hook runner cwd reset → _find_workspace() → os.getcwd()
     fallback → wrong file).
     """
@@ -269,7 +269,7 @@ def check_pending_approvals() -> str:
         approval_file = get_queue_path()
     except Exception:
         # Fallback: keep old behavior during bootstrap errors
-        approval_file = _MEMEX / "memex" / "data" / "pending_approvals.json"
+        approval_file = _MEMEXA / "memexa" / "data" / "pending_approvals.json"
     if not approval_file.exists():
         return "No pending approvals."
 
@@ -304,7 +304,7 @@ def check_phase0_files() -> str:
     """Verify Phase 0 required files exist."""
     required = [
         (".claude/config/harness_state.json", "Core state"),
-        ("memex/WORKFLOW.md", "Workflow protocol"),
+        ("memexa/WORKFLOW.md", "Workflow protocol"),
         ("CLAUDE.md", "Behavior spec"),
         (".claude/config/settings.json", "Hooks config"),
     ]
@@ -402,7 +402,7 @@ def _write_phase0_marker():
 def _generate_ceo_briefing() -> str:
     """生成中文自然语言 CEO 汇报。"""
     try:
-        sys.path.insert(0, str(_MEMEX))
+        sys.path.insert(0, str(_MEMEXA))
         from src.core.cto_briefing import generate_briefing
         return generate_briefing()
     except Exception as e:
@@ -424,7 +424,7 @@ def check_resumable_task() -> str:
       - all units done/pending (nothing to resume)
     """
     try:
-        sys.path.insert(0, str(_MEMEX))
+        sys.path.insert(0, str(_MEMEXA))
         from src.core.task_dir_layout import current_task_id, load_state
     except Exception:
         return ""
@@ -663,7 +663,7 @@ def _replay_last_commit_gates(threshold: int = 4) -> tuple:
     # Step 5: resolve complexity from task_spec.json
     complexity = "unknown"
     try:
-        task_spec_path = _MEMEX / "memex" / "data" / "task_spec.json"
+        task_spec_path = _MEMEXA / "memexa" / "data" / "task_spec.json"
         if task_spec_path.exists():
             spec_data = json.loads(task_spec_path.read_text(encoding="utf-8"))
             complexity = spec_data.get("complexity", "unknown")
@@ -702,10 +702,10 @@ def main():
         pass  # non-blocking
 
     # TU-3 (2026-04-23 cold-start trim): default output is compact.
-    # Set MEMEX_SESSION_START_VERBOSE=1 to restore full KAIROS narrative +
+    # Set MEMEXA_SESSION_START_VERBOSE=1 to restore full KAIROS narrative +
     # self-evolution dashboard. Compact mode keeps the critical signals
     # (action items, approvals, git drift, auto-triggers) as ≤1-line each.
-    verbose = os.environ.get("MEMEX_SESSION_START_VERBOSE", "0") == "1"
+    verbose = os.environ.get("MEMEXA_SESSION_START_VERBOSE", "0") == "1"
 
     # 0. Crash recovery check (silent if last shutdown was clean)
     recovery = check_crash_recovery()
@@ -754,7 +754,7 @@ def main():
     # Header (compact: single-line date; verbose: full morning briefing)
     today = datetime.now().strftime("%Y-%m-%d %A")
     if verbose:
-        print(_section("memex Morning Briefing"))
+        print(_section("memexa Morning Briefing"))
         print(f"Date: {today}")
         print(_generate_ceo_briefing())
         print(_section("System Checks"))
@@ -817,7 +817,7 @@ def main():
             red = triggers.count("🔴")
             orange = triggers.count("🟠")
             if red or orange:
-                print(f"[auto_triggers] 🔴={red} 🟠={orange} (verbose: MEMEX_SESSION_START_VERBOSE=1)")
+                print(f"[auto_triggers] 🔴={red} 🟠={orange} (verbose: MEMEXA_SESSION_START_VERBOSE=1)")
 
     # L7 Self-evolution dashboard — only in verbose
     if verbose:

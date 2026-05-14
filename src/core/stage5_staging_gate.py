@@ -110,8 +110,8 @@ def _normalize(p: str) -> str:
 
 
 def _check_override_env() -> Tuple[bool, str]:
-    """Inspect MEMEX_STAGE5_WHITELIST_BYPASS_REASON. Returns (allowed, reason_stripped)."""
-    raw = os.environ.get("MEMEX_STAGE5_WHITELIST_BYPASS_REASON", "")
+    """Inspect MEMEXA_STAGE5_WHITELIST_BYPASS_REASON. Returns (allowed, reason_stripped)."""
+    raw = os.environ.get("MEMEXA_STAGE5_WHITELIST_BYPASS_REASON", "")
     stripped = raw.strip()
     if stripped and len(stripped) >= 80:
         return True, stripped
@@ -139,7 +139,7 @@ def check_index_against_whitelist(
     `source` is one of: "state.json", "plan_fallback", "override".
     """
     if repo_dir is None:
-        repo_dir = _workspace_root() / "memex"
+        repo_dir = _workspace_root() / "memexa"
 
     # Override path
     auth, _reason = _check_override_env()
@@ -189,7 +189,7 @@ def check_index_against_whitelist(
     norm_white = {_normalize(p) for p in whitelist}
     violations: List[str] = []
     for f in staged:
-        if _normalize(f) not in norm_white and _normalize("memex/" + f) not in norm_white:
+        if _normalize(f) not in norm_white and _normalize("memexa/" + f) not in norm_white:
             violations.append(f"out-of-whitelist: {f}")
     if violations:
         _emit_trace(task_id, "stage5_whitelist_violation", {

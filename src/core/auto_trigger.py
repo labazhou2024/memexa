@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 _WORKSPACE = Path(__file__).parent.parent.parent.parent  # claude workspace/
 _HARNESS = _WORKSPACE / ".claude" / "config" / "harness_state.json"
-_MEMEX = _WORKSPACE / "memex"
+_MEMEXA = _WORKSPACE / "memexa"
 
 
 def _load_harness() -> Dict:
@@ -37,7 +37,7 @@ def _load_harness() -> Dict:
 
 
 def _load_config() -> Dict:
-    cfg_path = _MEMEX / "config.yaml"
+    cfg_path = _MEMEXA / "config.yaml"
     if cfg_path.exists():
         import yaml
         return yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
@@ -54,7 +54,7 @@ def _count_commits_since(ref: str) -> int:
     try:
         result = subprocess.run(
             ["git", "rev-list", "--count", f"{ref}..HEAD"],
-            capture_output=True, text=True, cwd=str(_MEMEX), timeout=10
+            capture_output=True, text=True, cwd=str(_MEMEXA), timeout=10
         )
         if result.returncode == 0:
             return int(result.stdout.strip())
@@ -146,7 +146,7 @@ def check_triggers() -> List[Dict[str, Any]]:
     last_loop_commit = mini_loop_state.get("last_mini_loop_commit", "")
     if not last_loop_commit:
         # Fallback: use last_commit from git_repos
-        last_loop_commit = harness.get("git_repos", {}).get("memex", {}).get("last_commit", "")
+        last_loop_commit = harness.get("git_repos", {}).get("memexa", {}).get("last_commit", "")
     if last_loop_commit:
         commits_since = _count_commits_since(last_loop_commit)
         commit_threshold = triggers.get("mini_loop_commit_threshold", 10)
@@ -227,7 +227,7 @@ def check_triggers() -> List[Dict[str, Any]]:
         pass
 
     # 7. Pending agent specs from big_loop (CTO should invoke these)
-    specs_file = _MEMEX / "memex" / "data" / "pending_agent_specs.json"
+    specs_file = _MEMEXA / "memexa" / "data" / "pending_agent_specs.json"
     if specs_file.exists():
         try:
             specs = json.loads(specs_file.read_text(encoding="utf-8"))
@@ -314,7 +314,7 @@ def reset_mini_loop_counter():
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, cwd=str(_MEMEX), timeout=5,
+            capture_output=True, text=True, cwd=str(_MEMEXA), timeout=5,
         )
         current_head = result.stdout.strip() if result.returncode == 0 else ""
     except Exception:
@@ -354,10 +354,10 @@ def record_autopilot_completion(task_type: str, summary: str, tests_passed: int 
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, cwd=str(_MEMEX), timeout=5,
+            capture_output=True, text=True, cwd=str(_MEMEXA), timeout=5,
         )
         if result.returncode == 0:
-            harness.setdefault("git_repos", {}).setdefault("memex", {})["last_commit"] = result.stdout.strip()
+            harness.setdefault("git_repos", {}).setdefault("memexa", {})["last_commit"] = result.stdout.strip()
     except Exception:
         pass
 

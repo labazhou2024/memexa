@@ -399,7 +399,7 @@ WORKFLOWS: Dict[TaskType, Workflow] = {
             WorkflowStep("review_coverage", "覆盖审查: 测试覆盖/边缘用例/Mock卫生", agent="coverage-reviewer"),
             WorkflowStep("fix_loop", "修复审查 findings (retry_tracker 3 次限制)", agent="fix-agent"),
             WorkflowStep("security", "安全扫描", agent=None,
-                         verify="python memex/core/security_scanner.py memex/core/"),
+                         verify="python memexa/core/security_scanner.py memexa/core/"),
             WorkflowStep("regression", "回归测试 (对比 Q1 基线)", agent=None,
                          verify="python -m pytest tests/ -q --tb=short"),
             WorkflowStep("extract_patterns", "提取本次开发的 pattern", agent=None,
@@ -422,7 +422,7 @@ WORKFLOWS: Dict[TaskType, Workflow] = {
                          verify="python -m pytest tests/ -q --tb=short"),
             WorkflowStep("review", "独立审查修复: 是否引入新问题?", agent="code-reviewer"),
             WorkflowStep("security", "安全扫描: 修复是否引入新漏洞", agent=None,
-                         verify="python memex/core/security_scanner.py memex/core/"),
+                         verify="python memexa/core/security_scanner.py memexa/core/"),
             WorkflowStep("regression", "回归测试: 确认无副作用", agent=None,
                          verify="python -m pytest tests/ -q --tb=short"),
             WorkflowStep("extract_patterns", "提取根因和修复经验到知识库", agent=None,
@@ -441,7 +441,7 @@ WORKFLOWS: Dict[TaskType, Workflow] = {
             WorkflowStep("review_plan", "制定审查计划: 重点区域, 检查清单, 严重度标准", agent=None),
             WorkflowStep("review", "全量代码审查", agent="qa-director"),
             WorkflowStep("security", "安全扫描", agent=None,
-                         verify="python memex/core/security_scanner.py memex/core/"),
+                         verify="python memexa/core/security_scanner.py memexa/core/"),
             WorkflowStep("cross_review", "第二视角挑战: 审查审查者的发现, 是否有遗漏或误报", agent="code-reviewer"),
             WorkflowStep("report", "输出 Bug JSON 清单 (合并两轮审查)", agent=None),
             WorkflowStep("fix_loop", "修复发现的问题", agent="fix-agent"),
@@ -777,8 +777,8 @@ print(f"PYTEST: {r.stdout.strip().split(chr(10))[-1]}")
 
 # V2: security scan
 from src.core.security_scanner import scan_directory, format_report
-findings = scan_directory(Path('memex/core'))
-print(format_report(findings, 'memex/core/'))
+findings = scan_directory(Path('memexa/core'))
+print(format_report(findings, 'memexa/core/'))
 
 # V3: knowledge base prime
 from src.core.pattern_extractor import prime, format_prime_output
@@ -833,7 +833,7 @@ def generate_plan_prompt(task_type: TaskType, user_prompt: str) -> str:
         from src.core.improvement_pattern_injector import (
             load_patterns, filter_by_task_type, format_inherited_lessons_section,
         )
-        current_tid = _os.environ.get("MEMEX_ACTIVE_TASK_ID", "")
+        current_tid = _os.environ.get("MEMEXA_ACTIVE_TASK_ID", "")
         all_patterns = load_patterns()
         # Filter by task_type + exclude current task_id (anti-loop)
         filtered = filter_by_task_type(

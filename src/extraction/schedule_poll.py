@@ -1,11 +1,11 @@
 """schedule_poll: academic_hub adapter (mac_win_integration U6 v2; replaces v1 own DDL regex).
 
-Thin adapter over `memex.academic_hub.scan_schedule_ddls()`. Uses proper
+Thin adapter over `memexa.academic_hub.scan_schedule_ddls()`. Uses proper
 `todo['text']` extraction (NOT v1's str(dict) which catches dict field name
 'ddl' as false-positive 204 times).
 
 Smoke:
-    python -m memex.src.extraction.schedule_poll --smoke
+    python -m memexa.src.extraction.schedule_poll --smoke
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def extract_ddls() -> list[dict]:
     (per coverage-iter1-2: ScheduleDataMissing now has live raise site).
     """
     from pathlib import Path
-    from memex.academic_hub import scan_schedule_ddls
+    from memexa.academic_hub import scan_schedule_ddls
     tasks = scan_schedule_ddls()
     if not tasks:
         ws_root = Path(__file__).resolve().parents[3]

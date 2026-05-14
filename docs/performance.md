@@ -49,7 +49,7 @@ fan-out already saturates the daemon's BGE worker pool.
 
 ### LLM concurrency
 
-`MEMEX_EXTRACT_CONCURRENT` controls how many extraction requests a single
+`MEMEXA_EXTRACT_CONCURRENT` controls how many extraction requests a single
 driver fires in parallel. Sweet spot for most providers is 5:
 
 | Setting | Batches / min (extractor) | Notes                              |
@@ -108,11 +108,11 @@ hit one — patches very welcome.
 ## Profiling
 
 ```bash
-MEMEX_HINDSIGHT_TRACE_LOG=/tmp/memex_trace.jsonl \
+MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
   python -m src.core.memory_query topic "<query>" --max-cards 100
 
 jq '. | select(.event=="recall_request") | {ts, duration_ms, query, n_results}' \
-  /tmp/memex_trace.jsonl
+  /tmp/memexa_trace.jsonl
 ```
 
 Per-stage breakdowns live in

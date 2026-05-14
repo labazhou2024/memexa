@@ -13,7 +13,7 @@ Usage:
     if results["success"]:
         print(f"{results['passed']} tests passed")
 
-Cache location: memex/data/pytest_cache.json
+Cache location: memexa/data/pytest_cache.json
 Cache TTL: 30 minutes (configurable)
 """
 
@@ -30,7 +30,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
 _DATA = Path(__file__).parent.parent / "data"
 _CACHE_FILE = _DATA / "pytest_cache.json"
 
@@ -141,22 +141,22 @@ def _run_pytest() -> Dict[str, Any]:
 
     logger.info("Running pytest (this may take 30-60s)...")
     # AC-H1 (TU-A 2026-04-25): isolation env to break test->prod flag pollution chain.
-    # MEMEX_AUTOPILOT_FLAG_PATH redirects flag writes to per-run tmpdir;
-    # MEMEX_ACTIVE_TASK_ID="" defends against parent-shell env leak (B3 in v0 audit).
+    # MEMEXA_AUTOPILOT_FLAG_PATH redirects flag writes to per-run tmpdir;
+    # MEMEXA_ACTIVE_TASK_ID="" defends against parent-shell env leak (B3 in v0 audit).
     tmp_path = Path(tempfile.mkdtemp(prefix="pytest_cache_iso_"))
     try:
         try:
             iso_env = {
                 **os.environ,
-                "MEMEX_AUTOPILOT_FLAG_PATH": str(tmp_path / "autopilot_active.json"),
-                "MEMEX_ACTIVE_TASK_ID": "",
-                "MEMEX_POLLUTION_LOG_PATH": str(tmp_path / "pollution.jsonl"),
+                "MEMEXA_AUTOPILOT_FLAG_PATH": str(tmp_path / "autopilot_active.json"),
+                "MEMEXA_ACTIVE_TASK_ID": "",
+                "MEMEXA_POLLUTION_LOG_PATH": str(tmp_path / "pollution.jsonl"),
             }
             result = subprocess.run(
                 [sys.executable, "-m", "pytest", "tests/", "-q",
                  "--tb=no", "--no-header"],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=PYTEST_TIMEOUT, cwd=str(_MEMEX_ROOT), env=iso_env,
+                timeout=PYTEST_TIMEOUT, cwd=str(_MEMEXA_ROOT), env=iso_env,
             )
             output = result.stdout.strip()
 

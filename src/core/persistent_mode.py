@@ -10,8 +10,8 @@ Persistent Mode -- oh-my-claudecode Ralph 模式的 Python 实现
 4. 如果任务未完成，输出继续指令到 stdout (Claude Code 读取)
 5. 断路器: 最多拦截 max_reinforcements 次，超过后强制允许退出
 
-状态文件: memex/data/persistent_mode_state.json
-Hook 集成: Stop hook 调用 python memex/memex/core/persistent_mode.py check
+状态文件: memexa/data/persistent_mode_state.json
+Hook 集成: Stop hook 调用 python memexa/memexa/core/persistent_mode.py check
 
 安全机制 (借鉴 oh-my-claudecode):
 - 状态过期: > 2 小时自动失效
@@ -28,8 +28,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-# Script-mode safety: when invoked as `python memex/core/persistent_mode.py ...`
-# (not `python -m src.core.persistent_mode`), the `memex` package is not on
+# Script-mode safety: when invoked as `python memexa/core/persistent_mode.py ...`
+# (not `python -m src.core.persistent_mode`), the `memexa` package is not on
 # sys.path. Internal imports below (and via call into other modules) need it.
 # Library imports (`from src.core import persistent_mode`) make this a harmless
 # no-op duplicate. NOT cargo-cult: this file is dual-invocation by design
@@ -38,8 +38,8 @@ _pkg_root = Path(__file__).resolve().parents[2]
 if str(_pkg_root) not in sys.path:
     sys.path.insert(0, str(_pkg_root))
 
-# [Env var override for test isolation] Respect MEMEX_DATA_DIR
-_env_data = os.environ.get("MEMEX_DATA_DIR")
+# [Env var override for test isolation] Respect MEMEXA_DATA_DIR
+_env_data = os.environ.get("MEMEXA_DATA_DIR")
 if _env_data and Path(_env_data).is_dir():
     _DATA_DIR = Path(_env_data)
 else:
@@ -67,11 +67,11 @@ def _clamp_int(raw: str, default: int, lo: int, hi: int) -> int:
 
 
 MAX_REINFORCEMENTS = _clamp_int(
-    os.environ.get("MEMEX_MAX_REINFORCEMENTS", "12"),
+    os.environ.get("MEMEXA_MAX_REINFORCEMENTS", "12"),
     default=12, lo=_MAX_REINFORCE_LO, hi=_MAX_REINFORCE_HI,
 )
 STALE_THRESHOLD_SEC = _clamp_int(
-    os.environ.get("MEMEX_PERSISTENT_MAX_H", str(_DEFAULT_MAX_HOURS)),
+    os.environ.get("MEMEXA_PERSISTENT_MAX_H", str(_DEFAULT_MAX_HOURS)),
     default=_DEFAULT_MAX_HOURS, lo=_MAX_HOURS_LO, hi=_MAX_HOURS_HI,
 ) * 3600
 
@@ -92,8 +92,8 @@ def _save_state(state: dict) -> None:
 
     Cluster 4 migration (2026-04-20 autopilot): previous direct write_text
     left a window where a crash mid-write produced truncated JSON that
-    blocked next session start. Inline tmp+replace (no memex package
-    imports so CLI entry `python memex/core/persistent_mode.py` works).
+    blocked next session start. Inline tmp+replace (no memexa package
+    imports so CLI entry `python memexa/core/persistent_mode.py` works).
     """
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
     tmp = _STATE_FILE.with_suffix(_STATE_FILE.suffix + ".tmp")
@@ -266,7 +266,7 @@ def deactivate(reason: str = "manual") -> None:
     autopilot mode. Only "expired" and "circuit_breaker" bypass criteria.
 
     "cancel" is treated as non-emergency when called programmatically.
-    Only the CLI entry point (main()) sets the MEMEX_HOOK_CALLER env var
+    Only the CLI entry point (main()) sets the MEMEXA_HOOK_CALLER env var
     to mark user-initiated cancels. The LLM cannot forge environment
     variables of the running hook process.
 
@@ -284,7 +284,7 @@ def deactivate(reason: str = "manual") -> None:
 
     # "cancel" is emergency ONLY when called from hook CLI process
     # (env var set by main() -- LLM cannot forge env of a running process)
-    if reason == "cancel" and os.environ.get("MEMEX_HOOK_CALLER") == "cli":
+    if reason == "cancel" and os.environ.get("MEMEXA_HOOK_CALLER") == "cli":
         emergency_reasons.add("cancel")
     elif reason == "cancel":
         # Programmatic cancel -> treat as manual (requires criteria check)
@@ -361,15 +361,15 @@ def mark_completed(force: bool = False) -> bool:
                 )
                 return False
         except ImportError as ie:
-            # Only fail-open if the entire memex package is missing (infra issue).
+            # Only fail-open if the entire memexa package is missing (infra issue).
             # A specific module missing (e.g., task_router deleted) should fail-closed.
-            if "memex" in str(ie) and "task_router" in str(ie):
+            if "memexa" in str(ie) and "task_router" in str(ie):
                 print(
                     f"[persistent-mode] BLOCKED: task_router module missing ({ie})",
                     file=sys.stderr,
                 )
                 return False
-            pass  # memex package itself not installed -- fail-open
+            pass  # memexa package itself not installed -- fail-open
         except Exception as e:
             # Fail-CLOSED on data errors (corrupt task_spec etc.)
             print(
@@ -599,7 +599,7 @@ def refresh_stage(stage_name: str) -> Optional[dict]:
                     )
                     if _prg_skip():
                         state["plan_retro_block_reason"] = (
-                            "SKIPPED: MEMEX_SKIP_PLAN_RETRO=1 override"
+                            "SKIPPED: MEMEXA_SKIP_PLAN_RETRO=1 override"
                         )
                         print(
                             "[persistent-mode] plan_retro_gate: "
@@ -713,7 +713,7 @@ def check_should_block_stop() -> tuple:
                 f"fail-closed. Resetting completed flag."
             )
 
-    # 过期检查 (default 12h, env MEMEX_PERSISTENT_MAX_H 可覆盖)
+    # 过期检查 (default 12h, env MEMEXA_PERSISTENT_MAX_H 可覆盖)
     elapsed = time.time() - state.get("activated_at", 0)
     if elapsed > STALE_THRESHOLD_SEC:
         deactivate("expired")
@@ -856,10 +856,10 @@ def main():
     elif cmd == "deactivate":
         reason = sys.argv[2] if len(sys.argv) > 2 else "manual"
         try:
-            os.environ["MEMEX_HOOK_CALLER"] = "cli"
+            os.environ["MEMEXA_HOOK_CALLER"] = "cli"
             deactivate(reason)
         finally:
-            os.environ.pop("MEMEX_HOOK_CALLER", None)
+            os.environ.pop("MEMEXA_HOOK_CALLER", None)
         print(f"[persistent-mode] Deactivated: {reason}")
         sys.exit(0)
 

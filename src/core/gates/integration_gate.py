@@ -37,7 +37,7 @@ from src.core.gates._probe_schema import (
 
 # Workspace-root resolution for subprocess cwd
 _GATES_DIR = Path(__file__).resolve().parent
-_WORKSPACE = _GATES_DIR.parent.parent.parent.parent  # memex/core/gates -> workspace
+_WORKSPACE = _GATES_DIR.parent.parent.parent.parent  # memexa/core/gates -> workspace
 
 
 @dataclass
@@ -71,7 +71,7 @@ def _resolve_plan_path(task_id: str) -> Optional[Path]:
 
 def _task_complexity(task_id: str) -> str:
     """Read complexity from data/task_spec.json; default 'simple' if unknown."""
-    spec = _WORKSPACE / "memex" / "memex" / "data" / "task_spec.json"
+    spec = _WORKSPACE / "memexa" / "memexa" / "data" / "task_spec.json"
     if not spec.exists():
         return "simple"
     try:

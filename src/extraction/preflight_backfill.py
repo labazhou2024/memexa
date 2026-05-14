@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Tuple
 _REPO = Path(__file__).resolve().parents[2]
 _DATA = _REPO / "data"
 _OUTBOX = _DATA / "win_keystone_outbox"
-_SSH_HOST = os.environ.get("MEMEX_MAC_SSH_HOST", "primary-host")
+_SSH_HOST = os.environ.get("MEMEXA_MAC_SSH_HOST", "primary-host")
 
 
 def _emit(event: str, payload: dict) -> None:

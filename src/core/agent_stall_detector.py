@@ -43,8 +43,8 @@ STALL_FLAG_TTL_SEC = 300.0  # 5 min (W1-5 2026-05-04: was 1800/30min — over-bl
 
 def _flags_dir() -> Path:
     """Return .claude/harness/flags/, creating if missing."""
-    # agent_stall_detector.py sits at memex/memex/core/
-    # .claude sits at workspace root = parent of memex
+    # agent_stall_detector.py sits at memexa/memexa/core/
+    # .claude sits at workspace root = parent of memexa
     d = (
         Path(__file__).resolve().parent.parent.parent.parent
         / ".claude" / "harness" / "flags"
@@ -57,7 +57,7 @@ def _trace_path() -> Path:
     """Return the agent_stall_trace.jsonl path.
 
     Test-isolation override (2026-04-24 F1 fix): honor env var
-    ``MEMEX_AGENT_STALL_TRACE_PATH`` when set AND its parent dir exists
+    ``MEMEXA_AGENT_STALL_TRACE_PATH`` when set AND its parent dir exists
     AND it's in an allowed location. Without this gate, the pollution
     test in tests/test_plan_feedback_loop.py (which raises OSError from
     _flags_dir) triggered _emit_trace to write into the production trace
@@ -68,7 +68,7 @@ def _trace_path() -> Path:
     workspace root. Rejects arbitrary system paths like C:/Windows/Temp
     to prevent env-var-based path traversal writes.
     """
-    override = os.environ.get("MEMEX_AGENT_STALL_TRACE_PATH", "").strip()
+    override = os.environ.get("MEMEXA_AGENT_STALL_TRACE_PATH", "").strip()
     if override:
         p = Path(override)
         if p.parent.exists() and _is_allowed_trace_path(p):

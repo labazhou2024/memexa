@@ -34,7 +34,7 @@ from pathlib import Path
 from src.core._path_resolver import workspace_root
 
 # workspace_root() returns Path(~/.claude/projects/<workspace-id>) by
-# default; users can override via MEMEX_WORKSPACE_ROOT.
+# default; users can override via MEMEXA_WORKSPACE_ROOT.
 MEMORY_DIR = workspace_root() / "memory"
 ```
 
@@ -53,7 +53,7 @@ MEMORY_DIR = workspace_root() / "memory"
      printed to the user.
 4. Remove the `TODO(memgraph-oss)` marker.
 5. Add a unit test under `tests/unit/test_<modname>.py` that imports
-   the module with `MEMEX_WORKSPACE_ROOT` set to a temp dir and
+   the module with `MEMEXA_WORKSPACE_ROOT` set to a temp dir and
    asserts the resolved path makes sense.
 
 ## Pattern A — path construction

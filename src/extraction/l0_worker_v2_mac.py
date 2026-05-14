@@ -54,7 +54,7 @@ except ImportError:
     print("FATAL: httpx not installed. pip install httpx", file=sys.stderr)
     sys.exit(2)
 
-# 2026-05-10: ensure workspace root is on sys.path so `memex.dispatch.*`
+# 2026-05-10: ensure workspace root is on sys.path so `memexa.dispatch.*`
 # imports resolve when invoked as a script from cron driver subprocess.
 _WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
 if str(_WORKSPACE_ROOT) not in sys.path:

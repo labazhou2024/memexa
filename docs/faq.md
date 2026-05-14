@@ -17,7 +17,7 @@ but extracts ~30 % fewer cards per batch.
 
 ### Q: Can I use OpenAI / Claude / Gemini as the extractor?
 
-Yes. Set `MEMEX_REMOTE_LLM_BASE_URL` to any OpenAI-compatible endpoint.
+Yes. Set `MEMEXA_REMOTE_LLM_BASE_URL` to any OpenAI-compatible endpoint.
 Confirmed working: vLLM, Ollama, LiteLLM proxy, DeepSeek API, OpenRouter,
 OneAPI. The extractor prompt is in
 [`src/extraction/pass2_prompt.py`](../src/extraction/pass2_prompt.py)
@@ -100,7 +100,7 @@ python -m src.core.memory_query quick "X" --salience 0.0 --max-k 50
 # 2. try the topic fan-out
 python -m src.core.memory_query topic "X" --salience 0.0 --max-cards 100
 # 3. check backend health
-memex doctor
+memexa doctor
 # 4. check the bank has cards
 curl -s http://127.0.0.1:8888/v1/default/banks/memory_full_v5/stats | jq .
 ```
@@ -114,7 +114,7 @@ clean baseline works.
 `reflect` needs a daemon-side LLM provider configured. If yours is
 unconfigured (the env var is empty), `reflect` falls back to a stub and
 returns garbage. Configure the daemon LLM or switch to `summary` (which
-runs the synthesis client-side using `MEMEX_REMOTE_LLM_BASE_URL`).
+runs the synthesis client-side using `MEMEXA_REMOTE_LLM_BASE_URL`).
 
 ### Q: How do I phrase a state question ("did I drop class Y")?
 
@@ -131,7 +131,7 @@ Postgres are local. The dashboard server is local. The cron orchestrator
 shells out to local Python only.
 
 The LLM provider sees one batch at a time. If you set
-`MEMEX_REMOTE_LLM_BASE_URL=http://127.0.0.1:8000` and run vLLM / Ollama
+`MEMEXA_REMOTE_LLM_BASE_URL=http://127.0.0.1:8000` and run vLLM / Ollama
 locally, no data leaves your machine.
 
 ### Q: How do I delete a specific person from the graph?

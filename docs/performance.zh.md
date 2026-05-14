@@ -45,7 +45,7 @@ Studio + 远程 GPU box 做抽取), 同硬件可复现。
 
 ### LLM 并发
 
-`MEMEX_EXTRACT_CONCURRENT` 控制单个 driver 并发发多少抽取请求。大多数
+`MEMEXA_EXTRACT_CONCURRENT` 控制单个 driver 并发发多少抽取请求。大多数
 provider 甜点是 5:
 
 | 设置 | 每分钟 batch (extractor) | 备注                                 |
@@ -97,11 +97,11 @@ REINDEX INDEX CONCURRENTLY memory_units_embedding_idx;
 ## Profiling
 
 ```bash
-MEMEX_HINDSIGHT_TRACE_LOG=/tmp/memex_trace.jsonl \
+MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
   python -m src.core.memory_query topic "<query>" --max-cards 100
 
 jq '. | select(.event=="recall_request") | {ts, duration_ms, query, n_results}' \
-  /tmp/memex_trace.jsonl
+  /tmp/memexa_trace.jsonl
 ```
 
 各 stage 拆解在 [`docs/lessons_learned/`](lessons_learned/) — 加新性能

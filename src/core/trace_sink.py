@@ -50,7 +50,7 @@ from typing import Any, Dict, Iterable, Optional
 
 logger = logging.getLogger(__name__)
 
-# Workspace-rooted path. memex/memex/core/trace_sink.py -> workspace
+# Workspace-rooted path. memexa/memexa/core/trace_sink.py -> workspace
 _WORKSPACE = Path(__file__).parent.parent.parent.parent
 _TRACE_DIR = _WORKSPACE / ".claude" / "data"
 _TRACE_FILE = _TRACE_DIR / "traces.jsonl"
@@ -220,7 +220,7 @@ _ALLOWED_EVENTS = {
     "pretool_hook_invoked",   # hook fired and is running probes synchronously
     "pretool_hook_blocked",   # hook denied the commit due to probe failure
     # 2026-04-25 plan_v1 (heartbeat audit) TU-D AC-H5: phase3 kill-switch
-    "heartbeat_phase3_disabled",  # MEMEX_HEARTBEAT_PHASE3_DISABLED=1 short-circuit
+    "heartbeat_phase3_disabled",  # MEMEXA_HEARTBEAT_PHASE3_DISABLED=1 short-circuit
     # 2026-04-25 plan_v1 (heartbeat audit) TU-A AC-H1: pytest_cache tmpdir lifecycle
     "pytest_cache_tmpdir_leak",
     "pytest_cache_tmpdir_cleanup_error",
@@ -396,7 +396,7 @@ _ALLOWED_EVENTS = {
     "graph_maint_step_failed",
     "schtasks_rewired_to_consolidator",
     # Closure A plan_v4 schema-contract sweep (test_trace_sink_allowlist):
-    # backfill pre-existing emitters in memex/ that were never registered.
+    # backfill pre-existing emitters in memexa/ that were never registered.
     # Sourced from _collect_emitted_events() audit 2026-05-01.
     "wechat_realtime_message",
     "wechat_realtime_event",
@@ -497,13 +497,13 @@ _ALLOWED_EVENTS = {
 
 
 def _trace_file() -> Path:
-    """Trace path, respects MEMEX_TRACE_FILE env override (for tests).
+    """Trace path, respects MEMEXA_TRACE_FILE env override (for tests).
 
     [SEC-HIGH R2 2026-04-19] Path-traversal defense: override must
     resolve to either the workspace tree or the system temp dir.
     Invalid overrides silently fall back to the default _TRACE_FILE.
     """
-    override = os.environ.get("MEMEX_TRACE_FILE")
+    override = os.environ.get("MEMEXA_TRACE_FILE")
     if not override:
         return _TRACE_FILE
     try:
@@ -519,13 +519,13 @@ def _trace_file() -> Path:
         )
         if not is_safe:
             logger.warning(
-                "trace_sink: rejecting MEMEX_TRACE_FILE outside workspace/temp: %s",
+                "trace_sink: rejecting MEMEXA_TRACE_FILE outside workspace/temp: %s",
                 candidate,
             )
             return _TRACE_FILE
         return candidate
     except Exception as e:
-        logger.warning("trace_sink: bad MEMEX_TRACE_FILE (%s), using default", e)
+        logger.warning("trace_sink: bad MEMEXA_TRACE_FILE (%s), using default", e)
         return _TRACE_FILE
 
 
@@ -573,7 +573,7 @@ def _record_pending_review(event: str, payload: Optional[Dict[str, Any]]) -> Non
     Best-effort: never raises.
     """
     try:
-        pending_path = _WORKSPACE / "memex" / "data" / "trace_event_pending_review.jsonl"
+        pending_path = _WORKSPACE / "memexa" / "data" / "trace_event_pending_review.jsonl"
         pending_path.parent.mkdir(parents=True, exist_ok=True)
         # Read existing to avoid duplicates per event
         seen_events: set = set()
@@ -805,7 +805,7 @@ def _cli():
         return 0
     if cmd == "review-pending":
         # Phase B TU-B5: surface auto-allowed unknown events for codification
-        pending_path = _WORKSPACE / "memex" / "data" / "trace_event_pending_review.jsonl"
+        pending_path = _WORKSPACE / "memexa" / "data" / "trace_event_pending_review.jsonl"
         if not pending_path.exists():
             print("(no pending review entries)")
             return 0
@@ -822,7 +822,7 @@ def _cli():
             ts = e.get("first_seen_ts", "?")
             sample = e.get("sample_payload", "")[:80]
             print(f"  [{ts[:19]}] {ev}\n    sample: {sample}")
-        print(f"\nTo codify: edit memex/core/trace_sink.py _ALLOWED_EVENTS set "
+        print(f"\nTo codify: edit memexa/core/trace_sink.py _ALLOWED_EVENTS set "
               f"and add the event names above. Then delete data/trace_event_pending_review.jsonl.")
         return 0
     if cmd == "write":

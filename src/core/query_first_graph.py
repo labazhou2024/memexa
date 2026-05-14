@@ -25,7 +25,7 @@ logger = logging.getLogger("query_first_graph")
 # entities/persons/projects. Bypass = HARD RULE violation logged to events.jsonl.
 
 _GRAPH_FIRST_BYPASS_LOG = os.environ.get(
-    "MEMEX_GRAPH_FIRST_BYPASS_LOG",
+    "MEMEXA_GRAPH_FIRST_BYPASS_LOG",
     "data/events_graph_first_bypass.jsonl",
 )
 

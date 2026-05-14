@@ -15,15 +15,15 @@ repository-topics:
   - report-generation
 -->
 
-# Memex · 镜我
+# Memexa · 镜我
 
 **English** · [中文](README.zh.md)
 
 > **Your personal Pensieve.**
 > Take the data scattered across your six silos, reorganize it around the task you have right now, and walk away with a usable document.
 
-[![CI](https://github.com/labazhou2024/memex/actions/workflows/ci.yml/badge.svg)](https://github.com/labazhou2024/memex/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/labazhou2024/memex/actions/workflows/codeql.yml/badge.svg)](https://github.com/labazhou2024/memex/actions/workflows/codeql.yml)
+[![CI](https://github.com/labazhou2024/memexa/actions/workflows/ci.yml/badge.svg)](https://github.com/labazhou2024/memexa/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/labazhou2024/memexa/actions/workflows/codeql.yml/badge.svg)](https://github.com/labazhou2024/memexa/actions/workflows/codeql.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -31,7 +31,7 @@ repository-topics:
 
 ## What is this
 
-`memex` ingests six categories of everyday Chinese-language data (WeChat, QQ,
+`memexa` ingests six categories of everyday Chinese-language data (WeChat, QQ,
 email, browser history, AI conversations, voice memos), extracts entities /
 relationships / temporal evidence with a two-LLM pipeline, stores them in a
 PostgreSQL + pgvector memory graph, and then uses **14 query subcommands** to
@@ -64,7 +64,7 @@ for the moment.
 > 🚀 **First time here?** Jump to [Example walkthroughs ↓](#-example-walkthroughs--5-reproducible-scenarios)
 > to see 5 real scenarios end-to-end.
 
-> 🤖 **AI-agent compatible by design.** Most real users invoke memex
+> 🤖 **AI-agent compatible by design.** Most real users invoke memexa
 > through an AI agent — Claude Code, Cursor, Cline, or one they wrote
 > themselves — rather than typing subcommands by hand. The 14 query
 > subcommands are a small protocol; the protocol document for agents is
@@ -76,8 +76,8 @@ for the moment.
 
 | Audience | Trigger | Available now (v0.1) | Roadmap (v0.2+) |
 |---|---|---|---|
-| **Researchers / students** | Experiment done → write report; meet advisor → prep | 14 queries by hand + LaTeX template | `memex lab-report X` / `memex brief <person>` |
-| **Knowledge workers / ops folks** | Missed a deadline → recover; heading out → don't forget | `memex pending` + `memex quick` | `memex action-card X` / `memex dashboard` |
+| **Researchers / students** | Experiment done → write report; meet advisor → prep | 14 queries by hand + LaTeX template | `memexa lab-report X` / `memexa brief <person>` |
+| **Knowledge workers / ops folks** | Missed a deadline → recover; heading out → don't forget | `memexa pending` + `memexa quick` | `memexa action-card X` / `memexa dashboard` |
 
 Both share the same backbone (ingestion + two-LLM extract + graph + query);
 the deliverable templates on top differ.
@@ -99,8 +99,8 @@ the deliverable templates on top differ.
 # 1. Install
 pip install -e .
 
-# 2. Initialize config (creates ~/.memex/ with 3 example files)
-memex init                          # → ~/.memex/{aliases,identity}.yaml + .env
+# 2. Initialize config (creates ~/.memexa/ with 3 example files)
+memexa init                          # → ~/.memexa/{aliases,identity}.yaml + .env
 
 # 3. Start the backend
 docker compose -f docker-compose.example.yml up -d
@@ -109,8 +109,8 @@ docker compose -f docker-compose.example.yml up -d
 python -m examples.demo_dataset.ingest --dry-run
 
 # 5. Self-check + first query
-memex doctor                        # verify backend + LLM provider
-memex quick "<your keyword>"
+memexa doctor                        # verify backend + LLM provider
+memexa quick "<your keyword>"
 ```
 
 Full walkthrough: [docs/quickstart.md](docs/quickstart.md)
@@ -148,7 +148,7 @@ Full architecture: [docs/architecture.md](docs/architecture.md)
 ## Query CLI
 
 ```bash
-memex <subcmd> "<query>" [options]
+memexa <subcmd> "<query>" [options]
 ```
 
 14 subcommands in three tiers (basic / advanced / composite). The 8 most common:
@@ -168,7 +168,7 @@ Full usage: [docs/usage_guide.md](docs/usage_guide.md)
 
 ## 📖 Example walkthroughs — 5 reproducible scenarios
 
-> Install → `make demo-ingest` → follow a walkthrough → see memex in action.
+> Install → `make demo-ingest` → follow a walkthrough → see memexa in action.
 > Everything runs on a synthetic dataset (Alice / Bob / Carol /
 > advisor@example.com). Anyone can reproduce 1:1, **no real personal data**.
 
@@ -209,17 +209,17 @@ Full usage: [docs/usage_guide.md](docs/usage_guide.md)
 
 ## Two ways to run the LLM
 
-memex's core is a two-LLM extract pipeline. The OSS ships everything you need
+memexa's core is a two-LLM extract pipeline. The OSS ships everything you need
 to run it locally.
 
 ```bash
 # Default: OSS bundled prompt + your own LLM provider
 #   Set OpenAI / DeepSeek / local vLLM base_url + key in .env
-export MEMEX_EXTRACTOR_TIER=bundled
+export MEMEXA_EXTRACTOR_TIER=bundled
 
 # BYO: bring your own prompt (for advanced users with existing prompt tuning)
-export MEMEX_EXTRACTOR_TIER=byo
-export MEMEX_PROMPT_PATH=/path/to/your_prompts.py
+export MEMEXA_EXTRACTOR_TIER=byo
+export MEMEXA_PROMPT_PATH=/path/to/your_prompts.py
 ```
 
 **Roadmap**: v0.5 will add an optional paid API endpoint, billed per token

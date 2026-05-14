@@ -1,6 +1,6 @@
 # Project governance
 
-`memex` follows a Benevolent Dictator For Life (BDFL) model. The
+`memexa` follows a Benevolent Dictator For Life (BDFL) model. The
 project lead has final say on:
 
 - Scope (what the project does and does not do).

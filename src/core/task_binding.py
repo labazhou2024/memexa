@@ -1,7 +1,7 @@
 """
 task_binding.py — Active task_id resolution + propagation (2026-04-21).
 
-Closes v1-B1 blocker: `MEMEX_ACTIVE_TASK_ID` env var + fallback to
+Closes v1-B1 blocker: `MEMEXA_ACTIVE_TASK_ID` env var + fallback to
 `task_dir_layout.current_task_id()`. Provides subprocess env injection
 for subagent spawns (R-11 mitigation).
 
@@ -9,7 +9,7 @@ Contract:
   - get_active_task_id() resolves env → _latest pointer → None
   - bind_task(task_id) sets env + task_dir_layout._latest
   - unbind_task() clears env (preserves _latest for audit)
-  - propagate_to_subprocess(env) adds MEMEX_ACTIVE_TASK_ID to env dict
+  - propagate_to_subprocess(env) adds MEMEXA_ACTIVE_TASK_ID to env dict
   - All functions FAIL-OPEN on task_dir_layout failures (OneDrive lock etc)
 
 Callers: session_gate rule-7/8, task_complete_gate, ac_verifier,
@@ -24,7 +24,7 @@ from typing import Dict, Optional
 logger = logging.getLogger(__name__)
 
 
-_ENV_VAR = "MEMEX_ACTIVE_TASK_ID"
+_ENV_VAR = "MEMEXA_ACTIVE_TASK_ID"
 
 
 def get_active_task_id() -> Optional[str]:
@@ -85,7 +85,7 @@ def propagate_to_subprocess(env: Optional[Dict[str, str]] = None,
     """Build env dict for subprocess.Popen.
 
     Starts from `env` (or os.environ if None), ensures
-    MEMEX_ACTIVE_TASK_ID is set to either `task_id` (explicit arg) or
+    MEMEXA_ACTIVE_TASK_ID is set to either `task_id` (explicit arg) or
     `get_active_task_id()` (resolution chain). If neither produces a
     task_id, the env var is removed from the output — do not pass an
     empty string through.

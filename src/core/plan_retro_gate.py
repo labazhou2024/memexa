@@ -336,7 +336,7 @@ def check_gate(task_id: str) -> Tuple[bool, str]:
         f"in {plan_path.name}. Annotate the plan with one-line fixes per "
         f"gap before Stage 5 commit. Each annotation becomes a KB "
         f"pattern for future tasks of the same type. Skip with "
-        f"MEMEX_SKIP_PLAN_RETRO=1 (operator-only, emits warning)."
+        f"MEMEXA_SKIP_PLAN_RETRO=1 (operator-only, emits warning)."
     )
 
 
@@ -514,7 +514,7 @@ def _read_task_type_from_spec(task_id: Optional[str] = None) -> str:
     """Resolve task_type with 3-tier fallback. Returns lowercase.
 
     Tier 1: task_dir/<task_id>/plan_v<latest>.md frontmatter `task_type:` field.
-    Tier 2: memex/memex/data/task_spec.json `task_type` field.
+    Tier 2: memexa/memexa/data/task_spec.json `task_type` field.
     Tier 3: 'unknown'.
 
     Strips parenthetical (e.g. 'FIX (CEO complex)' -> 'fix').
@@ -596,10 +596,10 @@ def _main_record_from_plan(task_id: str) -> int:
 
 
 def env_skip_flag() -> bool:
-    """Return True iff operator set MEMEX_SKIP_PLAN_RETRO=1. This is an
+    """Return True iff operator set MEMEXA_SKIP_PLAN_RETRO=1. This is an
     escape hatch for legitimate edge cases (e.g. plan file corrupted);
     the skip is logged so audits can review."""
-    return os.environ.get("MEMEX_SKIP_PLAN_RETRO") == "1"
+    return os.environ.get("MEMEXA_SKIP_PLAN_RETRO") == "1"
 
 
 def _cli():
@@ -619,7 +619,7 @@ def _cli():
         if env_skip_flag():
             print(json.dumps({
                 "allow": True,
-                "reason": "MEMEX_SKIP_PLAN_RETRO=1 override (logged)",
+                "reason": "MEMEXA_SKIP_PLAN_RETRO=1 override (logged)",
                 "override": True,
             }, ensure_ascii=False))
             return 0

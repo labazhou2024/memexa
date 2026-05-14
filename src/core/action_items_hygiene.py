@@ -5,7 +5,7 @@ and contradictory entries across sessions:
 
   - ``[ReplanStale:task_stale]`` / ``[ReplanStale:legacy_task]`` — phantom
     task_ids (no real task dir under ``.claude/harness/tasks/``), likely
-    from test fixtures that set ``MEMEX_TASK_DIR`` to a tmp location but
+    from test fixtures that set ``MEMEXA_TASK_DIR`` to a tmp location but
     wrote through to the real harness_state.
   - ``[URGENT] Tests failing: 0 failed.`` — self-contradictory output of
     a 0-case branch that wasn't guarded.
@@ -91,7 +91,7 @@ def validate_real_task_id(tid: str, tasks_root: Path | None = None) -> bool:
     # Priority (2026-04-24 reviewer F2-2 fix; round-2 LOG-F2-2 tighten):
     #   1. explicit `tasks_root` param (highest — used by tests)
     #   2. canonical __file__-derived path (production default)
-    #   3. MEMEX_TASK_DIR env var override (CI / operator escape hatch,
+    #   3. MEMEXA_TASK_DIR env var override (CI / operator escape hatch,
     #      only when canonical path is not on this host)
     #
     # LOG-F2-2 fix: when canonical is missing AND env empty, raise
@@ -111,7 +111,7 @@ def validate_real_task_id(tid: str, tasks_root: Path | None = None) -> bool:
         if canonical.is_dir():
             tasks_root = canonical
         else:
-            env_root = os.environ.get("MEMEX_TASK_DIR", "").strip()
+            env_root = os.environ.get("MEMEXA_TASK_DIR", "").strip()
             if env_root and Path(env_root).is_dir():
                 tasks_root = Path(env_root)
             else:
@@ -119,7 +119,7 @@ def validate_real_task_id(tid: str, tasks_root: Path | None = None) -> bool:
                 # Caller is responsible for deciding fail-open / closed.
                 raise LookupError(
                     "validate_real_task_id: no tasks_root available "
-                    "(canonical missing and MEMEX_TASK_DIR unset/invalid)"
+                    "(canonical missing and MEMEXA_TASK_DIR unset/invalid)"
                 )
     # SEC-2 fix (2026-04-24 security-reviewer): reject if the tid
     # resolves through a symlink/junction that escapes tasks_root.

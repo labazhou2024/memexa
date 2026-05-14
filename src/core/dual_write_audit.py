@@ -102,13 +102,13 @@ def _count_neo4j_facts_24h(mode: str = "live") -> Optional[int]:
     """Return Neo4j Fact count in last 24h, or None on Neo4j down.
 
     mode='mock' returns a fixed mock value (10 by default; override via
-    MEMEX_AUDIT_MOCK_NEO4J_COUNT env).
+    MEMEXA_AUDIT_MOCK_NEO4J_COUNT env).
     mode='down' simulates Neo4j unreachable (returns None).
     mode='live' attempts real Cypher.
     """
     if mode == "mock":
         try:
-            return int(os.environ.get("MEMEX_AUDIT_MOCK_NEO4J_COUNT", "10"))
+            return int(os.environ.get("MEMEXA_AUDIT_MOCK_NEO4J_COUNT", "10"))
         except ValueError:
             return 10
     if mode == "down":
@@ -177,7 +177,7 @@ def run_audit(neo4j_mode: str = "live",
     """
     if threshold is None:
         try:
-            threshold = int(os.environ.get("MEMEX_AUDIT_THRESHOLD",
+            threshold = int(os.environ.get("MEMEXA_AUDIT_THRESHOLD",
                                             str(_DEFAULT_THRESHOLD)))
         except ValueError:
             threshold = _DEFAULT_THRESHOLD

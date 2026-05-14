@@ -23,7 +23,7 @@ Two commands, 3 minutes.
 
 ```
    ┌──────────────────────────┐
-   │  memex pending           │   ← reads calendar_index.json directly
+   │  memexa pending           │   ← reads calendar_index.json directly
    │  → ordered list of 4-8   │   NO semantic recall (not contaminated
    │    structured rows       │   by junk cards)
    └────────────┬─────────────┘
@@ -31,7 +31,7 @@ Two commands, 3 minutes.
                 │ for each row that needs context:
                 ▼
    ┌──────────────────────────┐
-   │  memex quick "<topic>"    │   ← pull 3-5 recent cards
+   │  memexa quick "<topic>"    │   ← pull 3-5 recent cards
    │  --max-k 8                │     to recall the original ask
    └────────────┬─────────────┘
                 │
@@ -44,7 +44,7 @@ Two commands, 3 minutes.
 ## Step 1 — the plate
 
 ```bash
-memex pending
+memexa pending
 ```
 
 This reads `calendar_index.json` directly (it's the **only** subcommand that
@@ -85,7 +85,7 @@ The format is intentionally **dense + scannable**. Triage in 30 seconds.
 ## Step 2 — context for the messy one
 
 ```bash
-memex quick "midterm experimental data" --max-k 8
+memexa quick "midterm experimental data" --max-k 8
 ```
 
 You spotted that the top row ("must include experimental data") is
@@ -122,7 +122,7 @@ Today's first move:
 Tried in early development:
 
 ```bash
-memex topic "我的待办" / "pending commitments" / "things to do"
+memexa topic "我的待办" / "pending commitments" / "things to do"
 ```
 
 Returns one garbled card containing the literal string "MEMORYCARD_V2_HEADER_BEGIN".
@@ -142,10 +142,10 @@ This is why `pending` is its own subcommand and not a `topic` variant.
 
 ```bash
 # weekly Monday-morning ritual
-memex pending
+memexa pending
 
 # for each row that's not self-evident:
-memex quick "<keyword>" --max-k 8
+memexa quick "<keyword>" --max-k 8
 ```
 
 Many users set this as a startup hook (LaunchAgent / Scheduled Task) that

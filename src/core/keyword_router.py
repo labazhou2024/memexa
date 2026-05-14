@@ -8,7 +8,7 @@ Keyword Router -- oh-my-claudecode Magic Keyword 模式的 Python 实现
 - 支持任务规模过滤 (防止简单任务触发重型模式)
 
 作为 UserPromptSubmit hook 调用:
-  python memex/memex/core/keyword_router.py
+  python memexa/memexa/core/keyword_router.py
 
 从 stdin 读取 JSON:
   {"prompt": "用户输入文本", "session_id": "..."}
@@ -295,7 +295,7 @@ def _has_specificity(text: str) -> bool:
         r"```",                        # 代码块
         r"#\d+",                       # Issue 引用
         r"force:",                     # 强制跳过检查
-        r"(?i)memex|memex",          # 项目名
+        r"(?i)memexa|memexa",          # 项目名
         r"(?:测试|安全|审查|修复|质量|重构)",  # 具体行为动词
         r"(?:所有|全部|完整|整个)",      # 全量操作指示
     ]
@@ -555,7 +555,7 @@ def _auto_extract_correction(prompt: str, correction_type: str) -> None:
     try:
         import sys as _sys
         from pathlib import Path as _Path
-        # 确保 memex 包在 sys.path 中 (subprocess 调用时可能不在)
+        # 确保 memexa 包在 sys.path 中 (subprocess 调用时可能不在)
         _jarvis_root = str(_Path(__file__).parent.parent.parent)
         if _jarvis_root not in _sys.path:
             _sys.path.insert(0, _jarvis_root)
@@ -666,11 +666,11 @@ def main():
                         _sys.path.insert(0, _jr)
                     from src.core.persistent_mode import deactivate
                     import os as _os2
-                    _os2.environ["MEMEX_HOOK_CALLER"] = "cli"
+                    _os2.environ["MEMEXA_HOOK_CALLER"] = "cli"
                     try:
                         deactivate("cancel")
                     finally:
-                        _os2.environ.pop("MEMEX_HOOK_CALLER", None)
+                        _os2.environ.pop("MEMEXA_HOOK_CALLER", None)
                 except Exception:
                     pass
             output = format_output(matches, prompt)
@@ -680,8 +680,8 @@ def main():
         # Fire-and-forget: ceo_feedback.hook_user_prompt_submit NEVER raises.
         # Only records strong signals (confidence >= 0.4), so empty prompts
         # and neutral text are silently skipped.
-        # Env kill-switch MEMEX_CEO_FEEDBACK_HOOK=0 disables without code change.
-        if os.environ.get("MEMEX_CEO_FEEDBACK_HOOK", "1") == "1":
+        # Env kill-switch MEMEXA_CEO_FEEDBACK_HOOK=0 disables without code change.
+        if os.environ.get("MEMEXA_CEO_FEEDBACK_HOOK", "1") == "1":
             try:
                 from src.core.ceo_feedback import hook_user_prompt_submit
                 hook_user_prompt_submit(prompt)
@@ -689,10 +689,10 @@ def main():
                 pass  # non-blocking by contract
 
         # 功能 1c: U2 query-type log instrumentation (chat-graph plan v3 P0).
-        # Non-blocking; env kill-switch MEMEX_QUERY_TYPE_LOG=0 disables.
+        # Non-blocking; env kill-switch MEMEXA_QUERY_TYPE_LOG=0 disables.
         # Log feeds CEO visibility (no plan gating). Privacy: only sha256
         # of prompt + sha256 of session_id are persisted, never raw text.
-        if os.environ.get("MEMEX_QUERY_TYPE_LOG", "1") == "1":
+        if os.environ.get("MEMEXA_QUERY_TYPE_LOG", "1") == "1":
             try:
                 # sys.path defense: subprocess context (no PYTHONPATH set)
                 # would silently drop the import; mirrors lines 648-650 pattern.
@@ -729,13 +729,13 @@ def main():
         # 2026-04-30 daemon repair: smart_prime → semantic_kb → graph_memory_v2
         # → Hindsight recall (60s on Win CPU). Wrap in daemon-thread budget
         # so UserPromptSubmit returns ≤10s even when daemon busy.
-        # MEMEX_HOOK_PRIME_BUDGET_S env override; 0 disables priming.
+        # MEMEXA_HOOK_PRIME_BUDGET_S env override; 0 disables priming.
         # 2026-05-08 (CEO): bench measured query_entity cold-start 33-48s
         # for entities that hit both v5 + legacy union path; 25s timed out
         # half the time. Bumped to 50s. Daemon thread keeps hook non-blocking
         # even if exceeded — slow path falls back to PRIME SLOW notice.
         _PRIME_BUDGET_S = float(
-            os.environ.get("MEMEX_HOOK_PRIME_BUDGET_S", "50.0"))
+            os.environ.get("MEMEXA_HOOK_PRIME_BUDGET_S", "50.0"))
         if _PRIME_BUDGET_S <= 0:
             return  # priming disabled by env
         try:
@@ -784,8 +784,8 @@ def main():
         # patterns) and from semantic_search_boosted (which boosts
         # patterns by graph signal). This is the user-visible [GRAPH]
         # context surface — top facts by confidence, capped to 5.
-        # Kill-switch: MEMEX_GRAPH_RETRIEVE=0 disables.
-        if os.environ.get("MEMEX_GRAPH_RETRIEVE", "1") != "0":
+        # Kill-switch: MEMEXA_GRAPH_RETRIEVE=0 disables.
+        if os.environ.get("MEMEXA_GRAPH_RETRIEVE", "1") != "0":
             try:
                 from src.core.canonicalizer import (
                     canonicalize_entity, _build_entity_map, _normalize,
@@ -824,7 +824,7 @@ def main():
                 # + cross-bank UNION). 25s 仍丢一半. Bumped 50s. Pre-warm at
                 # SessionStart should bring 2nd+ query down to 10-20s anyway.
                 _GRAPH_HOOK_BUDGET_S = float(
-                    os.environ.get("MEMEX_GRAPH_HOOK_BUDGET_S", "50.0"))
+                    os.environ.get("MEMEXA_GRAPH_HOOK_BUDGET_S", "50.0"))
                 if q_canon:
                     facts: list = []
                     _t_budget_start = __import__("time").monotonic()

@@ -5,7 +5,7 @@ try/except so 1 failure doesn't kill the others. Each adapter writes its own
 envelope; this module orchestrates + emits aggregate trace.
 
 Smoke:
-    python -m memex.src.extraction.keystone_pull --smoke
+    python -m memexa.src.extraction.keystone_pull --smoke
 """
 from __future__ import annotations
 

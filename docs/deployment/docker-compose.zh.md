@@ -22,8 +22,8 @@ newgrp docker
 ## 2. Clone + 安装
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"
@@ -35,11 +35,11 @@ pip install -e ".[dev]"
 cp .env.example .env
 $EDITOR .env
 
-mkdir -p ~/.memex
-cp config/aliases.example.yaml  ~/.memex/aliases.yaml
-cp config/identity.example.yaml ~/.memex/identity.yaml
-$EDITOR ~/.memex/aliases.yaml
-$EDITOR ~/.memex/identity.yaml
+mkdir -p ~/.memexa
+cp config/aliases.example.yaml  ~/.memexa/aliases.yaml
+cp config/identity.example.yaml ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/aliases.yaml
+$EDITOR ~/.memexa/identity.yaml
 ```
 
 ## 4. 全套起起来
@@ -53,12 +53,12 @@ docker compose -f docker-compose.example.yml up -d
 - `hindsight-api` 在 `:8888`
 - `postgres` (含 pgvector extension) 在 `:5433`
 - `bge-m3-sidecar` 在 `:18082`
-- `memex-dashboard` 在 `:8765`
+- `memexa-dashboard` 在 `:8765`
 
 ## 5. 排 cron — systemd timer 配方
 
 ```ini
-# /etc/systemd/system/memex-cron.service
+# /etc/systemd/system/memexa-cron.service
 [Unit]
 Description=Memgraph 6-hour incremental cron
 After=network.target
@@ -66,13 +66,13 @@ After=network.target
 [Service]
 Type=oneshot
 User=%I
-WorkingDirectory=/home/%I/memex
-EnvironmentFile=/home/%I/memex/.env
-ExecStart=/home/%I/memex/.venv/bin/python -m src.cron.cron_orchestrator run-incremental --all
+WorkingDirectory=/home/%I/memexa
+EnvironmentFile=/home/%I/memexa/.env
+ExecStart=/home/%I/memexa/.venv/bin/python -m src.cron.cron_orchestrator run-incremental --all
 ```
 
 ```ini
-# /etc/systemd/system/memex-cron.timer
+# /etc/systemd/system/memexa-cron.timer
 [Unit]
 Description=Run Memgraph cron every 6 hours
 
@@ -87,8 +87,8 @@ WantedBy=timers.target
 启用:
 
 ```bash
-sudo systemctl enable --now memex-cron@$USER.timer
-systemctl list-timers | grep memex
+sudo systemctl enable --now memexa-cron@$USER.timer
+systemctl list-timers | grep memexa
 ```
 
 ## 6. Audio pipeline 备注
@@ -98,7 +98,7 @@ Audio driver 依赖 `mlx-whisper`, 只有 Apple Silicon 优化构建。Linux 上
 
 ```bash
 pip install faster-whisper
-export MEMEX_ASR_BACKEND=faster-whisper
+export MEMEXA_ASR_BACKEND=faster-whisper
 ```
 
 Driver 通过环境变量自动检测。
@@ -106,8 +106,8 @@ Driver 通过环境变量自动检测。
 ## 7. 卸载
 
 ```bash
-sudo systemctl disable --now memex-cron@$USER.timer
-sudo rm /etc/systemd/system/memex-cron.{service,timer}
+sudo systemctl disable --now memexa-cron@$USER.timer
+sudo rm /etc/systemd/system/memexa-cron.{service,timer}
 docker compose -f docker-compose.example.yml down -v
 ```
 

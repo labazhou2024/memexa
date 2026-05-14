@@ -1,8 +1,11 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]
+  # release.types=[published] removed 2026-05-14 — PyPI Trusted Publisher
+  # not yet configured on the PyPI side; auto-triggering on every release
+  # was causing red CI runs. Re-enable once `pip install memexa` is wired
+  # via PyPI trusted publishing (see ROADMAP v0.1.0 stable / v0.2 PyPI
+  # release). Until then, publish manually via workflow_dispatch.
   workflow_dispatch:
     inputs:
       target:
@@ -47,7 +50,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi' }}
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/memex
+      url: https://test.pypi.org/p/memexa
     permissions:
       id-token: write   # trusted publishing
     steps:
@@ -67,7 +70,7 @@ jobs:
     if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi') }}
     environment:
       name: pypi
-      url: https://pypi.org/p/memex
+      url: https://pypi.org/p/memexa
     permissions:
       id-token: write   # trusted publishing
     steps:

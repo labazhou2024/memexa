@@ -34,17 +34,17 @@ from src.core._path_resolver import workspace_root
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-_MEMEX_ROOT = Path(__file__).resolve().parents[2]
-if str(_MEMEX_ROOT) not in sys.path:
-    sys.path.insert(0, str(_MEMEX_ROOT))
+_MEMEXA_ROOT = Path(__file__).resolve().parents[2]
+if str(_MEMEXA_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MEMEXA_ROOT))
 
 WORKSPACE = workspace_root()
-EVENTS_PATH = WORKSPACE / "memex" / "memex" / "data" / "events.jsonl"
+EVENTS_PATH = WORKSPACE / "memexa" / "memexa" / "data" / "events.jsonl"
 # Claude Code stores per-project transcripts in ``~/.claude/projects/<slug>``
-# where slug = "<workspace-path-with-slashes-replaced>-memex". We derive the
+# where slug = "<workspace-path-with-slashes-replaced>-memexa". We derive the
 # slug from the workspace path so it adapts per machine.
 _WORKSPACE_SLUG = str(WORKSPACE).replace(":", "").replace("\\", "-").replace("/", "-")
-TRANSCRIPT_DIR = Path.home() / ".claude" / "projects" / f"{_WORKSPACE_SLUG}-memex"
+TRANSCRIPT_DIR = Path.home() / ".claude" / "projects" / f"{_WORKSPACE_SLUG}-memexa"
 
 _TARGET_BANK = "memory_full_v5"
 
@@ -87,7 +87,7 @@ def _git_recent_commits(since_ts: float) -> List[Dict]:
     try:
         since_dt = dt.datetime.fromtimestamp(since_ts)
         out = subprocess.run(
-            ["git", "-C", str(WORKSPACE / "memex"), "log",
+            ["git", "-C", str(WORKSPACE / "memexa"), "log",
              "--pretty=format:%H|%aI|%s", "--since", since_dt.isoformat()],
             capture_output=True, text=True, timeout=30, encoding="utf-8")
         commits = []
@@ -259,7 +259,7 @@ def _build_session_summary_card(
         narrative=narrative[:1200],
         evidence_quotes=eq[:5],
         when_start=when_start_iso, when_end=when_end_iso,
-        where_chat_room="claude-code:memex",
+        where_chat_room="claude-code:memexa",
         speaker_role="self",
         enforcement_tier="general",
         lesson_subtype="session_summary",  # ← not "lesson"
@@ -335,7 +335,7 @@ def _build_user_lesson_cards(
             narrative=narrative[:1200],
             evidence_quotes=[content[:200]],  # CEO's verbatim words
             when_start=when_start, when_end=when_end,
-            where_chat_room="claude-code:memex",
+            where_chat_room="claude-code:memexa",
             speaker_role="self",  # CEO speaking
             enforcement_tier=tier,
             lesson_subtype=subtype,
@@ -406,7 +406,7 @@ def main() -> int:
     # POST to v5
     try:
         import httpx
-        base_url = os.environ.get("MEMEX_HINDSIGHT_URL",
+        base_url = os.environ.get("MEMEXA_HINDSIGHT_URL",
                                     "http://127.0.0.1:8888")
         with httpx.Client(base_url=base_url, timeout=60.0) as client:
             r = client.post(

@@ -20,8 +20,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_DEFAULT_HISTORY = _MEMEX_ROOT / "data" / "benchmark_results_history.jsonl"
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_DEFAULT_HISTORY = _MEMEXA_ROOT / "data" / "benchmark_results_history.jsonl"
 
 
 def _load_rows(history_path: Path, last_days: int) -> list[dict]:
@@ -161,7 +161,7 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument(
         "--history", default=None,
-        help="Path to benchmark_results_history.jsonl (default: memex/data/)",
+        help="Path to benchmark_results_history.jsonl (default: memexa/data/)",
     )
     args = parser.parse_args(argv)
 

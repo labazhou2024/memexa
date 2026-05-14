@@ -8,7 +8,7 @@ Failure contract:
 - Empty chat for date → return [] (legitimate)
 
 Smoke:
-    python -m memex.src.extraction.wechat_read --smoke --date 2026-04-30 --chat Alice
+    python -m memexa.src.extraction.wechat_read --smoke --date 2026-04-30 --chat Alice
 """
 from __future__ import annotations
 
@@ -157,7 +157,7 @@ def watch_realtime(
     # AliasAmbiguous (multiple matches) is surfaced; other errors fall back
     # gracefully to original chat_name (covers mocked contacts in tests).
     try:
-        from memex.wechat_aliases import resolve_chat as _resolve_chat, AliasAmbiguous
+        from memexa.wechat_aliases import resolve_chat as _resolve_chat, AliasAmbiguous
         contacts = None
         try:
             contacts = reader._load_contacts()

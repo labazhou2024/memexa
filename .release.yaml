@@ -2,9 +2,9 @@
 # Each field corresponds to one stage of the oss-release skill.
 
 owner: labazhou2024
-repo: memex
+repo: memexa
 description: "Self-hosted Chinese personal memory graph. Six sources, two LLMs, one graph."
-homepage: "https://github.com/labazhou2024/memex"
+homepage: "https://github.com/labazhou2024/memexa"
 
 # Stage 2: profile README (optional; omit to skip)
 profile_readme:

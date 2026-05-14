@@ -5,7 +5,7 @@ chain verification. Ships a bundled default probe
 `memory_write_hook_fires` that:
 
   1. Writes a CJK-containing temp `.md` under real memory dir.
-  2. Invokes `python memex/memex/core/memory_write_hook.py` directly
+  2. Invokes `python memexa/memexa/core/memory_write_hook.py` directly
      with stdin mimicking a PostToolUse tool_use JSON payload
      (so we can test it OUTSIDE a real Claude Code session).
   3. Asserts a `memory_write_hook_*` or `memory_ingest_start` trace
@@ -101,7 +101,7 @@ def run_memory_write_hook_probe(timeout_s: float = 15.0) -> Tuple[str, str]:
         try:
             proc = subprocess.run(
                 [sys.executable,
-                 str(_WORKSPACE / "memex" / "memex" / "core" / "memory_write_hook.py")],
+                 str(_WORKSPACE / "memexa" / "memexa" / "core" / "memory_write_hook.py")],
                 input=payload, capture_output=True, text=True,
                 encoding="utf-8", errors="replace",
                 timeout=timeout_s, cwd=str(_WORKSPACE),

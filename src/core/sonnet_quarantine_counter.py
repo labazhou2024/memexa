@@ -5,7 +5,7 @@ primary local extractors (Mac Qwen3-MLX + DeepSeek) both fail or schema-fail
 on narrative content. To prevent runaway cost / abuse, this counter:
 
   - Atomically increments a per-day count under HMAC-SHA256 (key from
-    memex/config.yaml secret-key, falls back to env MEMEX_HMAC_KEY for tests)
+    memexa/config.yaml secret-key, falls back to env MEMEXA_HMAC_KEY for tests)
   - Verifies HMAC on every read; tampered file → block (no fail-open)
   - Writes a flag file `data/sonnet_quarantine_blocked.flag` when count >= cap
     OR HMAC verify fails. Pretool_gate Rule 17 checks this flag.
@@ -67,7 +67,7 @@ def _load_secret_key() -> bytes:
     `secret_key: <value>` line. Production config.yaml is owner-readable
     only per project security posture.
     """
-    env_key = os.environ.get("MEMEX_HMAC_KEY")
+    env_key = os.environ.get("MEMEXA_HMAC_KEY")
     if env_key:
         return env_key.encode("utf-8")
     if _CONFIG_PATH.exists():

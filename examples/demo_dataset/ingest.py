@@ -10,7 +10,7 @@ content. This makes the smoke test runnable without any LLM endpoint,
 at the cost of card quality (no semantic compression, no entity
 resolution).
 
-Set ``MEMEX_REMOTE_LLM_BASE_URL`` and remove ``--no-llm`` to use a
+Set ``MEMEXA_REMOTE_LLM_BASE_URL`` and remove ``--no-llm`` to use a
 real OpenAI-compatible endpoint.
 """
 from __future__ import annotations
@@ -179,8 +179,8 @@ def main() -> int:
                     help="Use the stub extractor (default). Pass --use-llm to call a real LLM.")
     ap.add_argument("--use-llm", dest="no_llm", action="store_false",
                     help="Call a real OpenAI-compatible LLM endpoint (slower).")
-    ap.add_argument("--bank", default=os.environ.get("MEMEX_DEMO_BANK", "memory_full_v5_demo"))
-    ap.add_argument("--base-url", default=os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888"))
+    ap.add_argument("--bank", default=os.environ.get("MEMEXA_DEMO_BANK", "memory_full_v5_demo"))
+    ap.add_argument("--base-url", default=os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888"))
     ap.add_argument("--dry-run", action="store_true",
                     help="Build cards but do not POST to the daemon.")
     args = ap.parse_args()

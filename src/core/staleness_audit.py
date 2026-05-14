@@ -65,7 +65,7 @@ except Exception:  # pragma: no cover
 
 # H4 (2026-04-20): shared filelock around pending_approvals.json so that
 # concurrent promote()/audit_pending()/apply_bulk_ratings() do not lose
-# updates. See memex/core/_pending_io.py.
+# updates. See memexa/core/_pending_io.py.
 try:
     from src.core._pending_io import (
         pending_approvals_lock as _pending_lock,
@@ -82,7 +82,7 @@ except Exception:  # pragma: no cover
 
 def _resolve_data_dir() -> Path:
     default = Path(__file__).parent.parent / "data"
-    env_override = os.environ.get("MEMEX_DATA_DIR")
+    env_override = os.environ.get("MEMEXA_DATA_DIR")
     if env_override:
         try:
             p = Path(env_override).resolve()

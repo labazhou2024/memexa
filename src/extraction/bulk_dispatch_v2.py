@@ -17,7 +17,7 @@ Usage:
         --start-date 2026-01-01 --end-date 2026-05-06 \\
         --pass 2 \\
         --ustc-host remote-server \\
-        --ustc-base /tmp/memex_l0_ustc/data/l0_verify_2026_05_06_ustc \\
+        --ustc-base /tmp/memexa_l0_ustc/data/l0_verify_2026_05_06_ustc \\
         --shards "0,2" \\
         --chunk-size 50 \\
         --manifest-path data/identity_manifest.yaml
@@ -358,7 +358,7 @@ def main() -> None:
                     choices=[1, 2], help="LLM pass number (1=identity, 2=main cards)")
     ap.add_argument("--ustc-host", default="remote-server")
     ap.add_argument("--ustc-base",
-                    default="/tmp/memex_l0_ustc/data/l0_verify_2026_05_06_ustc")
+                    default="/tmp/memexa_l0_ustc/data/l0_verify_2026_05_06_ustc")
     ap.add_argument("--shards", default="0,2",
                     help="Comma-separated GPU shard IDs (e.g. '0,2')")
     ap.add_argument("--chunk-size", type=int, default=50,

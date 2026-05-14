@@ -432,10 +432,10 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
                     help="Poll interval in minutes (default: 30)")
     ap.add_argument("--max-rounds", type=int, default=None,
                     help="Stop after N rounds (default: infinite; use 1 for smoke test)")
-    ap.add_argument("--napcat-url", default=os.environ.get("MEMEX_NAPCAT_URL",
+    ap.add_argument("--napcat-url", default=os.environ.get("MEMEXA_NAPCAT_URL",
                                                             "http://127.0.0.1:3000"),
                     help="NapCat OneBot HTTP base URL (default: http://127.0.0.1:3000)")
-    ap.add_argument("--self-qq", type=int, default=None,  # MEMEX_QQ_ID env or identity.yaml
+    ap.add_argument("--self-qq", type=int, default=None,  # MEMEXA_QQ_ID env or identity.yaml
                     help="Self QQ number (used in batch sender_list is_self flag)")
     ap.add_argument("--chat-ids", default=str(_CHAT_IDS_PATH))
     ap.add_argument("--skiplist", default=str(_SKIPLIST_PATH))

@@ -7,9 +7,9 @@ without modification.
 
 Resolution order:
 
-1. ``MEMEX_WORKSPACE_ROOT`` environment variable -- absolute path,
+1. ``MEMEXA_WORKSPACE_ROOT`` environment variable -- absolute path,
    ``Path.is_dir()`` must be True.
-2. ``~/.memex/config.yaml`` -- key ``workspace_root``.
+2. ``~/.memexa/config.yaml`` -- key ``workspace_root``.
 3. Fallback: ``~/.claude/projects/`` -- the default Claude Code projects
    directory.
 
@@ -28,8 +28,8 @@ from pathlib import Path
 from typing import Optional
 
 
-ENV_VAR = "MEMEX_WORKSPACE_ROOT"
-CONFIG_REL = ".memex/config.yaml"
+ENV_VAR = "MEMEXA_WORKSPACE_ROOT"
+CONFIG_REL = ".memexa/config.yaml"
 DEFAULT_PROJECTS = ".claude/projects"
 
 
@@ -69,7 +69,7 @@ def workspace_root() -> Path:
     """Return the workspace root directory.
 
     Caches the answer so repeated calls are free.  Set
-    ``MEMEX_WORKSPACE_ROOT`` to override at runtime.
+    ``MEMEXA_WORKSPACE_ROOT`` to override at runtime.
     """
     for resolver in (_from_env, _from_config):
         candidate = resolver()

@@ -2,7 +2,7 @@
 
 Orchestrates the full v5 ingestion pipeline for audio recordings:
   Step 0: Detect new recordings on /Volumes/L23/RECORD (mac side)
-          + ~/Downloads (manual drops) and rsync to ~/MEMEX_audio/raw/
+          + ~/Downloads (manual drops) and rsync to ~/MEMEXA_audio/raw/
   Step 1: For each not-yet-processed raw audio, run audio_pipeline.py
           (Silero VAD + mlx-whisper + ECAPA + clustering) → transcript.jsonl
   Step 2: Build v5 prompt.json batches via v5_audio_batch_builder.py
@@ -39,7 +39,7 @@ from typing import Any, Iterable
 
 _REPO = Path(__file__).resolve().parents[1]
 # OSS: writable data lives in the user's workspace, resolved via env
-# (MEMEX_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
+# (MEMEXA_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
 from src.core._path_resolver import data_dir as _resolve_data_dir
 _DATA = _resolve_data_dir()
 
@@ -54,15 +54,15 @@ _MAC_WORKER = _REPO / "extraction" / "l0_worker_serial.py"
 _STREAMING_POST = _REPO / "extraction" / "streaming_post_v5.py"
 _LOCAL_TRANSCRIPTS_MIRROR = _DATA / "audio" / "transcripts"  # rsync'd from Mac
 
-_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEX_V5_BATCH_LIMIT", "5"))
+_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEXA_V5_BATCH_LIMIT", "5"))
 _SOURCE = "audio"
 
-_HINDSIGHT_BASE_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-_HINDSIGHT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+_HINDSIGHT_BASE_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+_HINDSIGHT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 # SSH alias for Mac Studio (defined in ~/.ssh/config)
-_MAC_SSH = os.environ.get("MEMEX_MAC_SSH_ALIAS", "primary-host")
-_MAC_AUDIO_ROOT = "~/MEMEX_audio"
+_MAC_SSH = os.environ.get("MEMEXA_MAC_SSH_ALIAS", "primary-host")
+_MAC_AUDIO_ROOT = "~/MEMEXA_audio"
 _MAC_RECORDER_VOL = "/Volumes/L23/RECORD"
 _MAC_DOWNLOADS_GLOB = "~/Downloads/*.m4a ~/Downloads/*.mp3 ~/Downloads/*.wav"
 
@@ -176,19 +176,19 @@ def _ssh_mac_stdin(remote_cmd: str, stdin: str, timeout: int = 1800,
 
 
 # -----------------------------------------------------------------------------
-# Step 0 — Detect + ingest recorder files into ~/MEMEX_audio/raw
+# Step 0 — Detect + ingest recorder files into ~/MEMEXA_audio/raw
 # -----------------------------------------------------------------------------
 def _stage_ingest_recordings(verbose: bool) -> dict:
-    """Sync recorder + Downloads audio drops into ~/MEMEX_audio/raw/<YYYY-MM-DD>.
+    """Sync recorder + Downloads audio drops into ~/MEMEXA_audio/raw/<YYYY-MM-DD>.
 
     Idempotent — rsync skips files already there. Returns dict with
       n_synced, n_total_raw, etc.
     """
     # Ensure ingest stage script is on Mac (scp local copy if missing).
     local_script = _REPO / "scripts" / "mac_audio_ingest_stage.sh"
-    remote_script = "$HOME/MEMEX_audio/ingest_stage.sh"
+    remote_script = "$HOME/MEMEXA_audio/ingest_stage.sh"
     # scp idempotent — overwrites if local is newer in normal use
-    _run(["scp", str(local_script), f"{_MAC_SSH}:MEMEX_audio/ingest_stage.sh"],
+    _run(["scp", str(local_script), f"{_MAC_SSH}:MEMEXA_audio/ingest_stage.sh"],
          timeout=30, verbose=verbose)
     r = _ssh_mac(f"chmod +x {remote_script} && bash {remote_script}",
                  timeout=120, verbose=verbose)
@@ -211,7 +211,7 @@ def _stage_run_pipeline(cursor: dict, verbose: bool,
                         dry_run: bool = False) -> dict:
     """Per raw file not in cursor.processed_audio_sha, run audio_pipeline.py."""
     list_script = (
-        "find $HOME/MEMEX_audio/raw -type f "
+        "find $HOME/MEMEXA_audio/raw -type f "
         "\\( -name '*.WAV' -o -name '*.wav' -o -name '*.mp3' "
         "-o -name '*.MP3' -o -name '*.m4a' \\) "
         "-exec shasum -a 256 {} \\;"
@@ -241,9 +241,9 @@ def _stage_run_pipeline(cursor: dict, verbose: bool,
         if verbose:
             print(f"[step1] pipeline on {p} → session={session_id}")
         cmd = (
-            f"$HOME/MEMEX_audio/run_pipeline.sh "
+            f"$HOME/MEMEXA_audio/run_pipeline.sh "
             f"--input {shlex.quote(p)} "
-            f"--output-dir $HOME/MEMEX_audio/transcripts "
+            f"--output-dir $HOME/MEMEXA_audio/transcripts "
             f"--session-id {shlex.quote(session_id)}"
         )
         r2 = _ssh_mac(cmd, timeout=7200, verbose=verbose)
@@ -266,7 +266,7 @@ def _stage_run_pipeline(cursor: dict, verbose: bool,
 # Step 1.5 — rsync transcripts Mac → Win local mirror
 # -----------------------------------------------------------------------------
 def _stage_rsync_transcripts(verbose: bool) -> dict:
-    """Pull Mac ~/MEMEX_audio/transcripts/* → data/audio/transcripts/.
+    """Pull Mac ~/MEMEXA_audio/transcripts/* → data/audio/transcripts/.
 
     rsync via SSH; preserves timestamps; only copies new sessions.
 
@@ -278,13 +278,13 @@ def _stage_rsync_transcripts(verbose: bool) -> dict:
     # Pass dest as raw str (subprocess handles quoting on Win).
     dest = str(_LOCAL_TRANSCRIPTS_MIRROR).rstrip("\\/") + "/"
     cmd = ["rsync", "-az", "--no-perms", "--no-owner", "--no-group",
-           f"{_MAC_SSH}:MEMEX_audio/transcripts/", dest]
+           f"{_MAC_SSH}:MEMEXA_audio/transcripts/", dest]
     r = _run(cmd, timeout=600, verbose=verbose)
     if r["returncode"] != 0:
         # Fall back to scp -r (Win sometimes ships without rsync, or rsync
         # fails on the destination path encoding).
         cmd2 = ["scp", "-r",
-                f"{_MAC_SSH}:MEMEX_audio/transcripts/",
+                f"{_MAC_SSH}:MEMEXA_audio/transcripts/",
                 str(_LOCAL_TRANSCRIPTS_MIRROR.parent) + "/"]
         r2 = _run(cmd2, timeout=900, verbose=verbose)
         if r2["returncode"] != 0:
@@ -432,8 +432,8 @@ def _stage_post_cards(dry_run: bool, verbose: bool) -> dict:
     if verbose:
         print(f"[step5] streaming_post to {_HINDSIGHT_BASE_URL}/{_HINDSIGHT_BANK}")
     env = {**os.environ,
-           "MEMEX_HINDSIGHT_URL": _HINDSIGHT_BASE_URL,
-           "MEMEX_HINDSIGHT_BANK": _HINDSIGHT_BANK}
+           "MEMEXA_HINDSIGHT_URL": _HINDSIGHT_BASE_URL,
+           "MEMEXA_HINDSIGHT_BANK": _HINDSIGHT_BANK}
     r = _run(cmd, timeout=900, verbose=verbose)
     return {"returncode": r["returncode"], "duration_sec": r["duration_sec"]}
 
@@ -455,7 +455,7 @@ def main() -> int:
     p.add_argument("--skip-post", action="store_true")
     p.add_argument("--verbose", action="store_true")
     p.add_argument("--mode", choices=["local", "api"],
-                   default=os.environ.get("MEMEX_V5_WORKER_MODE", "api"))
+                   default=os.environ.get("MEMEXA_V5_WORKER_MODE", "api"))
     args = p.parse_args()
 
     t0 = time.time()

@@ -12,7 +12,7 @@ batch, 拿到 card。无订阅, 无 dashboard, 无月度最低 — 形式跟 Dee
 OpenAI chat completions API 一样。
 
 ```bash
-curl https://api.memex.io/v1/extract \
+curl https://api.memexa.io/v1/extract \
   -H "Authorization: Bearer mk_xxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -61,19 +61,19 @@ Bundled prompt 对自己的局限是诚实的。它**不**包括:
 - 请求 / 响应数据**不**用于训练模型
 - 不卖, 不分享给第三方
 - 不用于市场营销或 demo
-- 缓存: ≤ 30 天 TTL, 单请求可加 X-Memex-No-Retention: 1 禁用
+- 缓存: ≤ 30 天 TTL, 单请求可加 X-Memexa-No-Retention: 1 禁用
 - DELETE /v1/data 按需擦除所有跟你 key 关联的数据
 ```
 
 完整政策文本 endpoint 部署时会发布在
-`https://memex.io/legal/data-policy`。
+`https://memexa.io/legal/data-policy`。
 
 ## 怎么得到通知
 
 API 公布的地方:
 
-- [Memex GitHub Releases](https://github.com/labazhou2024/memex/releases)
-- [Memex Discussions](https://github.com/labazhou2024/memex/discussions)
+- [Memexa GitHub Releases](https://github.com/labazhou2024/memexa/releases)
+- [Memexa Discussions](https://github.com/labazhou2024/memexa/discussions)
 
 没有邮件列表, 没有营销 pipeline。它什么时候发就什么时候发。
 

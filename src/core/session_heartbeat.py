@@ -13,17 +13,17 @@ Design
 Priority order in classify(env):
   1. Agent env marker present  -> "agent"    (overrides everything)
   2. Cron env marker present   -> "cron"
-  3. MEMEX_CEO_SESSION == "1" -> "ceo"
+  3. MEMEXA_CEO_SESSION == "1" -> "ceo"
   4. Otherwise                 -> "unknown"  (NOT counted as CEO-active-day)
 
 Agent detection wins over CEO because agent subprocesses inherit parent
-env including MEMEX_CEO_SESSION. Without this precedence, every agent
+env including MEMEXA_CEO_SESSION. Without this precedence, every agent
 Claude Code subprocess would falsely tick the CEO-active-day counter.
 
 CEO onboarding
 --------------
 Set in shell rc or via setx (Windows):
-    setx MEMEX_CEO_SESSION 1
+    setx MEMEXA_CEO_SESSION 1
 Restart Claude Code to take effect.
 
 CLI
@@ -66,9 +66,9 @@ _AGENT_ENV_KEYS = (
 _CRON_ENV_KEYS = (
     "CRON_JOB",
     "SCHEDULED_TASK",
-    "MEMEX_CRON_SESSION",
+    "MEMEXA_CRON_SESSION",
 )
-_CEO_ENV_KEY = "MEMEX_CEO_SESSION"
+_CEO_ENV_KEY = "MEMEXA_CEO_SESSION"
 
 
 def classify(env: Optional[Mapping[str, str]] = None) -> Initiator:
@@ -162,7 +162,7 @@ def _record_last_session_epoch() -> bool:
 def _iter_session_start_events(trace_file: Optional[Path] = None) -> Iterable[dict]:
     """Yield session_start event payloads from trace_sink.
 
-    [SEC-R1-001 2026-04-20] MEMEX_TRACE_FILE env override is validated via
+    [SEC-R1-001 2026-04-20] MEMEXA_TRACE_FILE env override is validated via
     trace_sink._trace_file() which enforces workspace/tempdir whitelist.
     Direct Path(override) without validation was removed to prevent path traversal.
     """

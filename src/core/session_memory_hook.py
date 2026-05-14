@@ -12,7 +12,7 @@ Token budget: ~6k tokens total injected.
 
 Triggered by:
   .claude/config/settings.json hooks.SessionStart entry
-  command: python memex/memex/core/session_memory_hook.py
+  command: python memexa/memexa/core/session_memory_hook.py
 """
 from __future__ import annotations
 
@@ -26,10 +26,10 @@ from typing import Any, Dict, List
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-# Add memex root to sys.path so `import memex.*` works regardless of cwd
-_MEMEX_ROOT = Path(__file__).resolve().parents[2]
-if str(_MEMEX_ROOT) not in sys.path:
-    sys.path.insert(0, str(_MEMEX_ROOT))
+# Add memexa root to sys.path so `import memexa.*` works regardless of cwd
+_MEMEXA_ROOT = Path(__file__).resolve().parents[2]
+if str(_MEMEXA_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MEMEXA_ROOT))
 
 
 def _format_event_brief(it: Dict[str, Any]) -> str:

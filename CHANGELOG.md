@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reality — NapCat path deprecated and disabled by default, db-only and
   clipboard adapters LIVE in upstream JARVIS (`jarvis/qq_db.py`,
   `jarvis/qq_reader.py`) and scheduled for OSS migration in v0.2. Bilingual.
-- **docs(env)**: rename `MEMEX_USTC_CONCURRENT` → `MEMEX_EXTRACT_CONCURRENT`
+- **docs(env)**: rename `MEMEXA_USTC_CONCURRENT` → `MEMEXA_EXTRACT_CONCURRENT`
   in `configuration.md`, `performance.md`, `troubleshooting.md` (en + zh).
   No `src/` callsites — pure docs rename.
 - **roadmap**: add explicit v0.2 milestone for the QQ adapter migration
@@ -50,7 +50,7 @@ before cutting v0.1.0 stable.
 
 ### Known limitations (rc1)
 
-- `pip install memex` not yet available on PyPI; install from GitHub.
+- `pip install memexa` not yet available on PyPI; install from GitHub.
 - Mac/Linux fresh-clone smoke test not yet covered by CI on every push;
   scheduled for v0.1.0 stable.
 
@@ -64,6 +64,6 @@ Cut from a green rc after ≥ 1 week of feedback, when:
 - Test suite passes on Python 3.10 / 3.11 / 3.12.
 - Dashboard renders on a fresh install without manual intervention.
 
-[Unreleased]: https://github.com/labazhou2024/memex/compare/v0.1.0-rc1...HEAD
-[0.1.0-rc1]: https://github.com/labazhou2024/memex/releases/tag/v0.1.0-rc1
-[0.1.0]: https://github.com/labazhou2024/memex/releases/tag/v0.1.0
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0-rc1...HEAD
+[0.1.0-rc1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc1
+[0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0

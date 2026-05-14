@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 # Default same-sender merge gap (seconds). 30s aligns with IM typing-burst
 # heuristic (LangChain ConversationBuffer uses similar window).
-DEFAULT_GAP_SEC = int(os.environ.get("MEMEX_UTTERANCE_MERGE_GAP_SEC", "30"))
+DEFAULT_GAP_SEC = int(os.environ.get("MEMEXA_UTTERANCE_MERGE_GAP_SEC", "30"))
 
 # Hard upper bound — even if same sender, never merge across batch boundary
 # (must remain ≤ batch_chat_extract.BATCH_GAP_SEC = 1800).

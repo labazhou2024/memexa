@@ -10,7 +10,7 @@ no SLA. Issues will be triaged when the maintainer has time.
 - Question about *how to use* the tool → open a **Discussion** in the
   Q&A category. Search existing discussions first.
 - Suspected bug → open an **Issue** with the bug-report template.
-  Include `memex version`, OS, Python version, full traceback.
+  Include `memexa version`, OS, Python version, full traceback.
 - Feature request → open an **Issue** with the feature-request template.
   Explain *what* you need and *why* the existing CLI cannot do it.
 
@@ -36,5 +36,5 @@ no SLA. Issues will be triaged when the maintainer has time.
 1. [docs/troubleshooting.md](docs/troubleshooting.md) — six-layer
    diagnostic ladder.
 2. [docs/faq.md](docs/faq.md) — already-answered questions.
-3. `memex doctor` — automated self-diagnostic.
+3. `memexa doctor` — automated self-diagnostic.
 4. `docs/lessons_learned/` — common pipeline traps with fixes.

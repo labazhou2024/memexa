@@ -78,12 +78,12 @@ def calibrate(*args: Any, **kwargs: Any) -> Dict[str, Any]:
 def _get_validated_host() -> str:
     """Stub for legacy phase1_pipeline import (2026-05-08).
 
-    Returns env MEMEX_MAC_HOST if set, else 'localhost'. No actual validation
+    Returns env MEMEXA_MAC_HOST if set, else 'localhost'. No actual validation
     since Mac MLX path is archived; phase1_pipeline server backend uses your-org
     HTTP and never invokes this for real routing.
     """
     import os
-    return os.environ.get("MEMEX_MAC_HOST", "localhost")
+    return os.environ.get("MEMEXA_MAC_HOST", "localhost")
 
 
 def _validate_host(host: str) -> str:
@@ -124,7 +124,7 @@ def _http_call_sync(url: str, prompt: str, model: str,
     """
     import httpx as _httpx
     # Detect Gemma (Stage B extractor) vs Qwen3 (Stage A gate). vLLM
-    # served-names are "memex-extractor" (Gemma) and "memex-primary" (Qwen3),
+    # served-names are "memexa-extractor" (Gemma) and "memexa-primary" (Qwen3),
     # neither contains "gemma-4" — match on broader signals.
     m = (model or "").lower()
     is_gemma = ("gemma" in m) or ("extractor" in m)

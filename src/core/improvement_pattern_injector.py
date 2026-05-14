@@ -1,6 +1,6 @@
 """improvement_pattern_injector — inject Inherited Lessons §0.1 into plan_v0 (U19 G6).
 
-Reads memex/data/improvement_patterns.jsonl, filters by task_type, sorts by
+Reads memexa/data/improvement_patterns.jsonl, filters by task_type, sorts by
 helpful_count + recency, caps by UTF-8 byte size, formats as markdown table,
 and injects as `## §0.1 Inherited Lessons` section before first `## ` heading
 (respects YAML frontmatter).
@@ -25,12 +25,12 @@ __all__ = [
 ]
 
 # TU-3 (learning_pip 2026-04-30): path drift bug fix.
-# Previous: parents[2] resolved to `memex/` -> `memex/data/` (stale, 28 entries).
-# Fix: parents[1] = `memex/memex/` -> `memex/memex/data/` (live KB, 2k+ entries).
+# Previous: parents[2] resolved to `memexa/` -> `memexa/data/` (stale, 28 entries).
+# Fix: parents[1] = `memexa/memexa/` -> `memexa/memexa/data/` (live KB, 2k+ entries).
 # Aligns with plan_retro_gate._kb_path() and pattern_extractor._PATTERNS_FILE.
 # Per HARD RULE feedback_writer_reader_schema_contract.
-_MEMEX_ROOT = Path(__file__).resolve().parents[1]  # memex/memex/
-_DEFAULT_JSONL = _MEMEX_ROOT / "data" / "improvement_patterns.jsonl"
+_MEMEXA_ROOT = Path(__file__).resolve().parents[1]  # memexa/memexa/
+_DEFAULT_JSONL = _MEMEXA_ROOT / "data" / "improvement_patterns.jsonl"
 
 
 def load_patterns(jsonl_path: Optional[Path] = None) -> List[Dict[str, Any]]:

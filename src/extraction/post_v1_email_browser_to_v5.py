@@ -24,8 +24,8 @@ from typing import Any, Dict, List, Optional, Tuple
 HEADER_BEGIN = "【MEMORYCARD_V2_HEADER_BEGIN】"
 HEADER_END = "【MEMORYCARD_V2_HEADER_END】"
 
-DEFAULT_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-DEFAULT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+DEFAULT_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+DEFAULT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 # v1 type → V2 CANONICAL_TYPES + open_type_hint
 TYPE_MAP = {

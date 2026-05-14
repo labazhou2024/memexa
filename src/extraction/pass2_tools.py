@@ -31,8 +31,8 @@ from src.core.memory_card_v2 import MemoryCard
 logger = logging.getLogger("pass2_rag_tools")
 
 
-HINDSIGHT_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-BANK_ID = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+HINDSIGHT_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+BANK_ID = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 MAX_TOOL_CALLS_PER_BATCH = 3
 RECALL_LIMIT_DEFAULT = 5

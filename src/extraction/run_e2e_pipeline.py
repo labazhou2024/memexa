@@ -32,10 +32,10 @@ import sys
 import time
 from pathlib import Path
 
-# Ensure memex root on sys.path for src.core imports
-_MEMEX_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-if str(_MEMEX_ROOT) not in sys.path:
-    sys.path.insert(0, str(_MEMEX_ROOT))
+# Ensure memexa root on sys.path for src.core imports
+_MEMEXA_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+if str(_MEMEXA_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MEMEXA_ROOT))
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("e2e")
@@ -527,10 +527,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--work-dir", type=Path, default=Path("data/l0_v5/work"))
     parser.add_argument("--gatekeeper-url", type=str,
                         default="http://<remote-server-ip>:8001")
-    parser.add_argument("--gatekeeper-model", type=str, default="memex-gatekeeper")
+    parser.add_argument("--gatekeeper-model", type=str, default="memexa-gatekeeper")
     parser.add_argument("--extractor-url", type=str,
                         default="http://<remote-server-ip>:8011")
-    parser.add_argument("--extractor-model", type=str, default="memex-extractor")
+    parser.add_argument("--extractor-model", type=str, default="memexa-extractor")
     parser.add_argument("--hindsight-url", type=str,
                         default="http://127.0.0.1:8888")
     parser.add_argument("--bank-id", type=str, default="memory_full_v5")

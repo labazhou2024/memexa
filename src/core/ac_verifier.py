@@ -48,8 +48,8 @@ except Exception:  # pragma: no cover
 
 
 # U4 plan_v3 TU-4: --task-dir CLI override (SEC-1 hardened anchor)
-# _COMPILE_TIME_WORKSPACE is __file__-derived so MEMEX_TASK_DIR env cannot
-# shift the traversal anchor (per SEC-1 fix: memex/core/ac_verifier.py →
+# _COMPILE_TIME_WORKSPACE is __file__-derived so MEMEXA_TASK_DIR env cannot
+# shift the traversal anchor (per SEC-1 fix: memexa/core/ac_verifier.py →
 # parents[3] = workspace root).
 _COMPILE_TIME_WORKSPACE: Path = Path(__file__).resolve().parents[3]
 _TASK_DIR_OVERRIDE: Optional[Path] = None
@@ -60,7 +60,7 @@ def _resolve_task_dir(task_id: str) -> Path:
 
     When --task-dir CLI flag is set (writes _TASK_DIR_OVERRIDE module attr),
     returns the override; otherwise falls back to task_dir(task_id) which
-    honors MEMEX_TASK_DIR env / workspace default.
+    honors MEMEXA_TASK_DIR env / workspace default.
     """
     if _TASK_DIR_OVERRIDE is not None:
         return _TASK_DIR_OVERRIDE
@@ -74,13 +74,13 @@ _SUBPROCESS_ENV_ALLOWLIST = (
     "PATH", "PATHEXT", "PYTHONPATH", "PYTHONIOENCODING",
     "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE", "HOME",
     "NEO4J_URI", "NEO4J_USER", "NEO4J_PASSWORD",
-    "MEMEX_HOOK_FAST", "MEMEX_GRAPHITI_ENABLED",
-    "MEMEX_GRAPH_RETRIEVE", "MEMEX_DUAL_LLM_MOCK",
-    "MEMEX_ACTIVE_TASK_ID", "MEMEX_TASK_DIR",
+    "MEMEXA_HOOK_FAST", "MEMEXA_GRAPHITI_ENABLED",
+    "MEMEXA_GRAPH_RETRIEVE", "MEMEXA_DUAL_LLM_MOCK",
+    "MEMEXA_ACTIVE_TASK_ID", "MEMEXA_TASK_DIR",
     "ANTHROPIC_API_KEY",
     "DEEPSEEK_API_KEY",
-    "MEMEX_PAIRED_EVAL_MODEL",
-    "MEMEX_QWEN3_URL", "MEMEX_GEMMA_URL",
+    "MEMEXA_PAIRED_EVAL_MODEL",
+    "MEMEXA_QWEN3_URL", "MEMEXA_GEMMA_URL",
 )
 
 
@@ -89,7 +89,7 @@ def _filtered_env() -> Dict[str, str]:
 
 
 # I-3 (Phase 4, 2026-05-04): stripped-env helper for per-TU verify_cmd.
-# Excludes MEMEX_ACTIVE_TASK_ID so verify_cmd cannot rely on env channel —
+# Excludes MEMEXA_ACTIVE_TASK_ID so verify_cmd cannot rely on env channel —
 # forces Tier-2 (autopilot_active.json) fallback exercise. Subset matches
 # session_gate.py commit-gate stripped-env (per skill §6.3).
 _STRIPPED_ENV_ALLOWLIST = (
@@ -101,7 +101,7 @@ _STRIPPED_ENV_ALLOWLIST = (
 def _stripped_env() -> Dict[str, str]:
     """Return env dict matching session_gate.py commit-gate stripped subset.
 
-    MEMEX_ACTIVE_TASK_ID NOT included → forces Tier-2 fallback exercise.
+    MEMEXA_ACTIVE_TASK_ID NOT included → forces Tier-2 fallback exercise.
     Used by verify_ac when env_mode='stripped' for high-risk TUs.
     """
     return {k: os.environ[k] for k in _STRIPPED_ENV_ALLOWLIST if k in os.environ}
@@ -123,8 +123,8 @@ def verify_ac(task_id: str, ac_id: str, verify_cmd: str,
 
     Args:
         env_mode: "filtered" (default) — _filtered_env (allowlist incl
-                  MEMEX_ACTIVE_TASK_ID); "stripped" (I-3, 2026-05-04) —
-                  _stripped_env (no MEMEX_ACTIVE_TASK_ID, forces Tier-2
+                  MEMEXA_ACTIVE_TASK_ID); "stripped" (I-3, 2026-05-04) —
+                  _stripped_env (no MEMEXA_ACTIVE_TASK_ID, forces Tier-2
                   fallback exercise per skill §6.3, for high-risk TUs).
 
     SECURITY: verify_cmd is parsed via shlex.split + passed as list to
@@ -272,7 +272,7 @@ def assert_expected_trace(expected: List[str], since_ts: float,
 
 def _task_workdir(task_id: str) -> str:
     """Run verify_cmd from the workspace root by default (ACs reference
-    relative paths like 'memex/memex/core/...').
+    relative paths like 'memexa/memexa/core/...').
     """
     try:
         from src.core.task_dir_layout import _workspace_root
@@ -315,7 +315,7 @@ def _run_one_ac_worker(task_id: str, ac, timeout: int) -> Dict:
     {ok, failed, timed_out, lock_timeout}.
 
     Per security-iter2-3: re-resolve task_dir inside worker (NO module-level
-    mutation). _filtered_env() does not include MEMEX_TASK_DIR.
+    mutation). _filtered_env() does not include MEMEXA_TASK_DIR.
     """
     if not ac.verify_cmd:
         return {"ac_id": ac.id, "status": "skipped", "exit_code": -1,
@@ -323,8 +323,8 @@ def _run_one_ac_worker(task_id: str, ac, timeout: int) -> Dict:
     workdir = _task_workdir(task_id)
     cmd = ac.verify_cmd
     start = time.time()
-    # security-iter2-3: env construction excludes MEMEX_TASK_DIR per allowlist guard
-    env = {k: v for k, v in os.environ.items() if k != "MEMEX_TASK_DIR"}
+    # security-iter2-3: env construction excludes MEMEXA_TASK_DIR per allowlist guard
+    env = {k: v for k, v in os.environ.items() if k != "MEMEXA_TASK_DIR"}
     try:
         r = subprocess.run(
             cmd, shell=True, cwd=workdir,
@@ -691,7 +691,7 @@ def _cli(argv) -> int:
     if args.subcmd == "run":
         # AC-B4 harness-context guard: reject --cmd override when running
         # inside an active harness task to prevent reviewer forgery.
-        active_tid = os.environ.get("MEMEX_ACTIVE_TASK_ID")
+        active_tid = os.environ.get("MEMEXA_ACTIVE_TASK_ID")
         if args.inline_cmd is not None and active_tid:
             print(
                 f"Refusing arbitrary --cmd in harness context "

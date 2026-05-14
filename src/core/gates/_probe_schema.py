@@ -6,7 +6,7 @@ fenced block in plan_v*.md files. This module handles:
   - parsing (extract fenced YAML from markdown)
   - schema validation (required fields; correct types)
   - action field sandbox (B1 from plan_v3):
-      * allowlist prefix match (python -m pytest, python memex/scripts/,
+      * allowlist prefix match (python -m pytest, python memexa/scripts/,
         python -m src.core., python -c "<=200 chars>")
       * forbidden tokens (shell metacharacters, network tools, eval-ish)
       * ProbeSchemaError on any violation
@@ -26,7 +26,7 @@ class ProbeSchemaError(ValueError):
 # B1 sandbox — allowlist prefixes. Order-insensitive; any must match.
 _ACTION_ALLOWLIST_PREFIXES = (
     "python -m pytest ",
-    "python memex/scripts/",
+    "python memexa/scripts/",
     "python -m src.core.",
     "python -c \"",
 )
@@ -62,8 +62,8 @@ def _validate_action(action: str) -> None:
 
     Stage 4 SEC-1+SEC-2 hardening:
       - NFC normalize before token check (defeats homoglyph bypass)
-      - For `python memex/scripts/` prefix, assert the script path
-        resolves inside memex scripts dir (reject parent-dir escapes)
+      - For `python memexa/scripts/` prefix, assert the script path
+        resolves inside memexa scripts dir (reject parent-dir escapes)
     """
     if not isinstance(action, str) or not action.strip():
         raise ProbeSchemaError("action must be non-empty string")
@@ -78,10 +78,10 @@ def _validate_action(action: str) -> None:
             f"action must start with one of {_ACTION_ALLOWLIST_PREFIXES}; got: {s[:60]!r}"
         )
 
-    # SEC-1: for `python memex/scripts/`, assert no `../` traversal
-    if s.startswith("python memex/scripts/"):
+    # SEC-1: for `python memexa/scripts/`, assert no `../` traversal
+    if s.startswith("python memexa/scripts/"):
         # Extract the script path fragment (first token after prefix)
-        tail = s[len("python memex/scripts/"):]
+        tail = s[len("python memexa/scripts/"):]
         # Split on whitespace — first word is the script filename
         first_token = tail.split()[0] if tail.split() else ""
         # Traversal indicators

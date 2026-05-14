@@ -16,7 +16,7 @@ Cursor JSON schema (REUSED VERBATIM from wechat_batch_cursor.py schema_version=2
   }
 
 This module's ONLY differences from wechat_batch_cursor:
-  - Cursor file lives at memex/data/batch_chat_extract_cursor.json (separate from wechat realtime cursor)
+  - Cursor file lives at memexa/data/batch_chat_extract_cursor.json (separate from wechat realtime cursor)
   - Adds `should_skip_batch(chat_room_id_hash, batch_end_ts) -> bool` convenience predicate
   - Adds `advance_batch(chat_room_id_hash, batch_end_ts)` thin wrapper around CursorWriter.write_per_chat
 
@@ -50,7 +50,7 @@ from src.extraction.wechat_batch_cursor import (
 
 
 def cursor_path() -> Path:
-    """Resolve cursor file path. Always memex/data/batch_chat_extract_cursor.json."""
+    """Resolve cursor file path. Always memexa/data/batch_chat_extract_cursor.json."""
     here = Path(__file__).resolve()
     return here.parents[2] / "data" / "batch_chat_extract_cursor.json"
 

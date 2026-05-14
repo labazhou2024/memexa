@@ -1,6 +1,6 @@
 """email_read: QQEmail + your-orgEmail adapter (mac_win_integration U6 v2; replaces outlook_read).
 
-Thin adapter over `memex.qq_email.QQEmailClient` + `memex.ustc_email.RemoteEmailClient`.
+Thin adapter over `memexa.qq_email.QQEmailClient` + `memexa.ustc_email.RemoteEmailClient`.
 IMAP-based; reads user's actual email accounts (NOT Outlook).
 
 Failure contract:
@@ -9,7 +9,7 @@ Failure contract:
 - 1 client OK + 1 fail → return partial; emit per-source trace
 
 Smoke:
-    python -m memex.src.extraction.email_read --smoke -n 2
+    python -m memexa.src.extraction.email_read --smoke -n 2
 """
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def _safe_qq_client():
     to typed-wrap any config-load-time error.
     """
     try:
-        from memex.qq_email import QQEmailClient
+        from memexa.qq_email import QQEmailClient
         return QQEmailClient()
     except Exception as e:  # ValueError / KeyError / FileNotFoundError / OSError / yaml.YAMLError / ImportError
         raise EmailConfigMissing(f"qq_email config error ({type(e).__name__}): {e}") from e
@@ -53,7 +53,7 @@ def _safe_qq_client():
 def _safe_ustc_client():
     """Return RemoteEmailClient or raise EmailConfigMissing."""
     try:
-        from memex.ustc_email import RemoteEmailClient
+        from memexa.ustc_email import RemoteEmailClient
         return RemoteEmailClient()
     except Exception as e:
         raise EmailConfigMissing(f"ustc_email config error ({type(e).__name__}): {e}") from e

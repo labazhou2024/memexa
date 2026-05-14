@@ -1,7 +1,7 @@
-"""Integration tests for the ``memex`` top-level CLI dispatcher.
+"""Integration tests for the ``memexa`` top-level CLI dispatcher.
 
 Each test invokes :func:`src.cli.main.main` directly with controlled ``argv``;
-no subprocesses, no network. ``memex doctor`` and ``memex quick`` paths that
+no subprocesses, no network. ``memexa doctor`` and ``memexa quick`` paths that
 require a backend are exercised separately under ``tests/integration/test_query_with_mock_backend.py``.
 """
 from __future__ import annotations
@@ -18,24 +18,24 @@ pytestmark = pytest.mark.integration
 
 
 def test_version_flag_returns_zero(capsys):
-    """`memex --version` returns 0 and prints version + interpreter info."""
+    """`memexa --version` returns 0 and prints version + interpreter info."""
     rc = main(["--version"])
     captured = capsys.readouterr()
     assert rc == 0
-    assert "memex" in captured.out
+    assert "memexa" in captured.out
     assert "python" in captured.out
 
 
 def test_version_subcommand_matches_flag(capsys):
-    """`memex version` and `memex --version` produce equivalent output."""
+    """`memexa version` and `memexa --version` produce equivalent output."""
     rc = main(["version"])
     captured = capsys.readouterr()
     assert rc == 0
-    assert "memex" in captured.out
+    assert "memexa" in captured.out
 
 
 def test_no_args_prints_help_and_hint(capsys):
-    """`memex` with no args prints help + onboarding hint, returns 0."""
+    """`memexa` with no args prints help + onboarding hint, returns 0."""
     rc = main([])
     captured = capsys.readouterr()
     assert rc == 0
@@ -43,8 +43,8 @@ def test_no_args_prints_help_and_hint(capsys):
 
 
 def test_init_creates_config_files(tmp_path: Path, capsys):
-    """`memex init --target X` scaffolds aliases.yaml + identity.yaml + .env."""
-    target = tmp_path / ".memex"
+    """`memexa init --target X` scaffolds aliases.yaml + identity.yaml + .env."""
+    target = tmp_path / ".memexa"
     rc = main(["init", "--target", str(target)])
     captured = capsys.readouterr()
     assert rc == 0
@@ -56,8 +56,8 @@ def test_init_creates_config_files(tmp_path: Path, capsys):
 
 
 def test_init_idempotent_without_force(tmp_path: Path, capsys):
-    """Second `memex init` against the same dir reports `exists`, doesn't overwrite."""
-    target = tmp_path / ".memex"
+    """Second `memexa init` against the same dir reports `exists`, doesn't overwrite."""
+    target = tmp_path / ".memexa"
     main(["init", "--target", str(target)])
 
     # Modify aliases.yaml to detect overwrite
@@ -73,8 +73,8 @@ def test_init_idempotent_without_force(tmp_path: Path, capsys):
 
 
 def test_init_force_overwrites(tmp_path: Path):
-    """`memex init --force` overwrites existing config files."""
-    target = tmp_path / ".memex"
+    """`memexa init --force` overwrites existing config files."""
+    target = tmp_path / ".memexa"
     main(["init", "--target", str(target)])
     (target / "aliases.yaml").write_text("# stale", encoding="utf-8")
 
@@ -84,7 +84,7 @@ def test_init_force_overwrites(tmp_path: Path):
 
 
 def test_config_subcommand_runs(capsys):
-    """`memex config` exits 0 and prints sections (env vars, files, paths)."""
+    """`memexa config` exits 0 and prints sections (env vars, files, paths)."""
     rc = main(["config"])
     captured = capsys.readouterr()
     assert rc == 0
@@ -93,7 +93,7 @@ def test_config_subcommand_runs(capsys):
 
 
 def test_unknown_subcommand_returns_argparse_exit():
-    """`memex nonsense_subcmd` raises SystemExit(2) via argparse — expected."""
+    """`memexa nonsense_subcmd` raises SystemExit(2) via argparse — expected."""
     with pytest.raises(SystemExit) as excinfo:
         main(["nonsense_subcmd"])
     assert excinfo.value.code == 2

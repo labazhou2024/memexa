@@ -47,7 +47,7 @@ python -m examples.demo_dataset.ingest
    `data/demo/<source>/batches/` 下产 per-source batch
 3. 跑双 LLM 抽取 (gate + extract)。**默认用 stub LLM** 吐确定性合成 V2
    envelope, 所以 smoke test 不需要真 LLM endpoint。设
-   `MEMEX_REMOTE_LLM_BASE_URL` 用真模型
+   `MEMEXA_REMOTE_LLM_BASE_URL` 用真模型
 4. POST 结果卡到本地 Hindsight daemon `http://127.0.0.1:8888`
 
 摄入后 `memory_full_v5_demo` bank 应该有 ~80-120 张卡 (与你可能有的真

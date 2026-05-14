@@ -5,8 +5,8 @@ CEO directive 2026-05-06: after successful pull, delete ALL chat/card data
                           from your-org; PII audit failure = hard halt.
 
 Per shard:
-  1. scp pull /tmp/memex_l0_ustc/.../cards_v2/shard*  → Win data/l0_v5/cards_v2/shard*/
-  2. scp pull /tmp/memex_l0_ustc/.../pass1_out/shard*  → Win data/l0_v5/pass1/shard*/
+  1. scp pull /tmp/memexa_l0_ustc/.../cards_v2/shard*  → Win data/l0_v5/cards_v2/shard*/
+  2. scp pull /tmp/memexa_l0_ustc/.../pass1_out/shard*  → Win data/l0_v5/pass1/shard*/
   3. ssh delete your-org: cards_v2/, pass1_out/, batches/, done/, logs/<shard>.log
   4. PII audit: grep for any remaining prompt.json / *.done / chat-content files.
                Any found → AUDIT FAIL, hard halt.
@@ -16,7 +16,7 @@ Usage:
         --ustc-host remote-server \\
         --shard 0 \\
         --strict-clean \\
-        --ustc-base /tmp/memex_l0_ustc/data/l0_verify_2026_05_06_ustc
+        --ustc-base /tmp/memexa_l0_ustc/data/l0_verify_2026_05_06_ustc
 """
 import argparse
 import json
@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 
 DEFAULT_REMOTE_HOST = "remote-server"
-DEFAULT_REMOTE_BASE = "/tmp/memex_l0_ustc/data/l0_verify_2026_05_06_ustc"
+DEFAULT_REMOTE_BASE = "/tmp/memexa_l0_ustc/data/l0_verify_2026_05_06_ustc"
 
 # Local output directories relative to WORKSPACE
 LOCAL_CARDS_V2 = "data/l0_v5/cards_v2"

@@ -9,7 +9,7 @@ Mirrors `wechat_batch_ingest.BatchIngestRunner`:
   - typed-graceful skip (never raises) — auth/IMAP/network errors degrade soft
   - per-account cursor (qq + ustc) since last_uid
   - shared chat_daily_cost_tracker.json with wechat/qq
-  - MEMEX_ACTIVE_TASK_ID env pin discipline
+  - MEMEXA_ACTIVE_TASK_ID env pin discipline
 
 Backfill source_kind: imap; extracted_by: backfill-email.
 """
@@ -361,7 +361,7 @@ def main() -> int:
     p.add_argument("--since-days", type=int, default=_DEFAULT_SINCE_DAYS)
     args = p.parse_args()
 
-    if os.environ.get("MEMEX_SKIP_EMAIL_BATCH"):
+    if os.environ.get("MEMEXA_SKIP_EMAIL_BATCH"):
         print(json.dumps({"skipped": True, "reason": "env_skip"}))
         return 0
 

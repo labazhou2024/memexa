@@ -42,7 +42,7 @@ You will get an acknowledgement within 7 days. Disclosure timeline:
 Assets we protect:
 
 - The user's local memory graph (PostgreSQL contents).
-- The user's runtime credentials (`.env`, `~/.memex/*.yaml`).
+- The user's runtime credentials (`.env`, `~/.memexa/*.yaml`).
 - The user's LLM API keys, including any embedded in `.env`.
 
 Assumed environment:

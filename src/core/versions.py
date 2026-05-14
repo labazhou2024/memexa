@@ -53,13 +53,13 @@ def check() -> int:
                 "CLAUDE.md", m.group(1), VERSIONS["claude_md"],
             ))
     # WORKFLOW.md
-    wf = _WORKSPACE / "memex" / "WORKFLOW.md"
+    wf = _WORKSPACE / "memexa" / "WORKFLOW.md"
     if wf.exists():
         text = wf.read_text(encoding="utf-8")[:500]
         m = re.search(r"Workflow.*?v([\d.]+)", text)
         if m and m.group(1) != VERSIONS["workflow"]:
             drifts.append((
-                "memex/WORKFLOW.md", m.group(1), VERSIONS["workflow"],
+                "memexa/WORKFLOW.md", m.group(1), VERSIONS["workflow"],
             ))
     # harness_state.json
     hs = _WORKSPACE / ".claude" / "config" / "harness_state.json"
@@ -90,7 +90,7 @@ def check() -> int:
             pass
 
     if drifts:
-        print("VERSION DRIFT (authoritative in memex/core/versions.py):")
+        print("VERSION DRIFT (authoritative in memexa/core/versions.py):")
         for loc, actual, authoritative in drifts:
             print(f"  {loc}: doc has {actual!r}, authoritative is {authoritative!r}")
         return 1

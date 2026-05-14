@@ -16,8 +16,8 @@
 │  你晚上 11 点想起来:                                                 │
 │  "等下 — Alice 那边在忙啥来着? 我还欠她啥吗?"                       │
 │                                                                     │
-│                          memex arc "Alice" → 关系基线               │
-│                          memex quick "Alice 1月" → 最近一周         │
+│                          memexa arc "Alice" → 关系基线               │
+│                          memexa quick "Alice 1月" → 最近一周         │
 │                          → 5 分钟把心智模型重建出来                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -25,7 +25,7 @@
 ## Step 1 — 关系基线
 
 ```bash
-memex arc "Alice" --max-cards 60
+memexa arc "Alice" --max-cards 60
 ```
 
 `arc` 是关系视角的子命令。它扇出**8 个语义变体** (history / relationship /
@@ -64,7 +64,7 @@ interactions / arc / chronological / together / shared / first-met) 然后合并
 压住。用 `quick` 补:
 
 ```bash
-memex quick "Alice 1月" --max-k 20
+memexa quick "Alice 1月" --max-k 20
 ```
 
 ```
@@ -99,8 +99,8 @@ memex quick "Alice 1月" --max-k 20
 任何你经常聊的人:
 
 ```bash
-memex arc "<你朋友的名字>" --max-cards 60
-memex quick "<你朋友的名字> $(date +%Y)年$(date +%m)月" --max-k 20
+memexa arc "<你朋友的名字>" --max-cards 60
+memexa quick "<你朋友的名字> $(date +%Y)年$(date +%m)月" --max-k 20
 ```
 
 很多人会把这两行包成 shell 函数 `who`。

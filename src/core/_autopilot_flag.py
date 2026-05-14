@@ -18,7 +18,7 @@ TTL semantics:
   - mtime of file, compared against now - max_ttl_sec.
   - `refresh_stage()` and `record_autopilot_heartbeat()` touch the mtime
     → sliding window.
-  - Default TTL = env ``MEMEX_PERSISTENT_MAX_H`` * 3600 (default 12h).
+  - Default TTL = env ``MEMEXA_PERSISTENT_MAX_H`` * 3600 (default 12h).
 """
 from __future__ import annotations
 
@@ -35,11 +35,11 @@ _FLAG_NAME = "autopilot_active.json"
 def _flag_path() -> Path:
     """Compute `.claude/harness/autopilot_active.json` under workspace root.
 
-    Override via env ``MEMEX_AUTOPILOT_FLAG_PATH`` for test isolation —
+    Override via env ``MEMEXA_AUTOPILOT_FLAG_PATH`` for test isolation —
     must resolve under workspace root OR tempfile.gettempdir() (honors
     feedback_env_override_parent_allowlist.md HARD RULE).
     """
-    override = os.environ.get("MEMEX_AUTOPILOT_FLAG_PATH", "").strip()
+    override = os.environ.get("MEMEXA_AUTOPILOT_FLAG_PATH", "").strip()
     if override:
         p = Path(override)
         if _is_allowed_flag_path(p):
@@ -69,8 +69,8 @@ def _is_allowed_flag_path(p: Path) -> bool:
 
 
 def _max_ttl_sec() -> int:
-    """TTL = MEMEX_PERSISTENT_MAX_H * 3600. Default 12h = 43200s."""
-    raw = os.environ.get("MEMEX_PERSISTENT_MAX_H", "12").strip()
+    """TTL = MEMEXA_PERSISTENT_MAX_H * 3600. Default 12h = 43200s."""
+    raw = os.environ.get("MEMEXA_PERSISTENT_MAX_H", "12").strip()
     try:
         h = float(raw)
         if h <= 0:
@@ -115,7 +115,7 @@ def set_flag(task_id: str) -> bool:
     # Rule 15 (2026-04-27, 6th-incident promotion of HARD RULE
     # feedback_parallel_autopilot_staging_collision): refuse to overwrite an
     # active autopilot flag belonging to a different task_id when that flag
-    # is recent (< 30 min). Override via MEMEX_AUTOPILOT_FORCE_TAKEOVER=1.
+    # is recent (< 30 min). Override via MEMEXA_AUTOPILOT_FORCE_TAKEOVER=1.
     # Incidents this CEO: a971ed9↔081e3d0, 3938cbe, 953f453, 8972d12, U10+U11
     # mid-session, U12 mid-session — 6 total.
     if p.exists():
@@ -129,7 +129,7 @@ def set_flag(task_id: str) -> bool:
             )
             if (existing_tid and existing_tid != effective_tid
                     and 0 <= existing_age_sec < collision_window_sec):
-                if not os.environ.get("MEMEX_AUTOPILOT_FORCE_TAKEOVER", "").strip():
+                if not os.environ.get("MEMEXA_AUTOPILOT_FORCE_TAKEOVER", "").strip():
                     try:
                         from src.core.trace_sink import write_trace_event
                         write_trace_event("autopilot_flag_set", {
@@ -146,7 +146,7 @@ def set_flag(task_id: str) -> bool:
                         f"(age={int(existing_age_sec)}s < {collision_window_sec}s window). "
                         f"Refusing to overwrite with task_id={effective_tid!r}. "
                         f"Either: (a) wait for the other session to complete, OR "
-                        f"(b) set MEMEX_AUTOPILOT_FORCE_TAKEOVER=1 to force takeover "
+                        f"(b) set MEMEXA_AUTOPILOT_FORCE_TAKEOVER=1 to force takeover "
                         f"(documented incident #6 of HARD RULE "
                         f"feedback_parallel_autopilot_staging_collision)."
                     )

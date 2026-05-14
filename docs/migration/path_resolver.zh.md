@@ -32,7 +32,7 @@ from pathlib import Path
 from src.core._path_resolver import workspace_root
 
 # workspace_root() 默认返 Path(~/.claude/projects/<workspace-id>);
-# 用户可通过 MEMEX_WORKSPACE_ROOT 覆盖
+# 用户可通过 MEMEXA_WORKSPACE_ROOT 覆盖
 MEMORY_DIR = workspace_root() / "memory"
 ```
 
@@ -49,7 +49,7 @@ MEMORY_DIR = workspace_root() / "memory"
      `<your-workspace-root>` 占位
 4. 删掉 `TODO(memgraph-oss)` 标记
 5. 在 `tests/unit/test_<modname>.py` 加 unit test, import 该模块时
-   `MEMEX_WORKSPACE_ROOT` 设成临时目录, assert 解析路径合理
+   `MEMEXA_WORKSPACE_ROOT` 设成临时目录, assert 解析路径合理
 
 ## Pattern A — 路径构造
 

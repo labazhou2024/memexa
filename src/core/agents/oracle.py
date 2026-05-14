@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 _WORKSPACE_SCHEDULE = Path(__file__).parents[4] / "schedule_data.json"
-_MEMEX_SCHEDULE = Path(__file__).parents[3] / "schedule_data.json"
+_MEMEXA_SCHEDULE = Path(__file__).parents[3] / "schedule_data.json"
 
 
 @dataclass
@@ -51,7 +51,7 @@ class Oracle:
         if self._schedule_cache is not None and self._cache_time:
             if now - self._cache_time < self._cache_ttl:
                 return self._schedule_cache
-        for path in (_WORKSPACE_SCHEDULE, _MEMEX_SCHEDULE):
+        for path in (_WORKSPACE_SCHEDULE, _MEMEXA_SCHEDULE):
             if path.exists():
                 try:
                     self._schedule_cache = json.loads(path.read_text(encoding="utf-8"))

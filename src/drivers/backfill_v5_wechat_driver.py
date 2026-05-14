@@ -52,7 +52,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 _REPO = Path(__file__).resolve().parents[1]
 # OSS: writable data lives in the user's workspace, resolved via env
-# (MEMEX_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
+# (MEMEXA_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
 from src.core._path_resolver import data_dir as _resolve_data_dir
 _DATA = _resolve_data_dir()
 
@@ -77,10 +77,10 @@ _DEFAULT_LOOKBACK_DAYS = 7
 # 5,270 historical backlog in one shot, so cron only handles daily increment
 # (~5-50 new batches/cycle). 5 is enough for steady state; raise via env if
 # burst.
-_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEX_V5_BATCH_LIMIT", "5"))
+_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEXA_V5_BATCH_LIMIT", "5"))
 
-_HINDSIGHT_BASE_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-_HINDSIGHT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+_HINDSIGHT_BASE_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+_HINDSIGHT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 # 2026-05-11 v3 (Phase 2.1): driver source identifier for PG-aware pending check.
 # pg_bid_cache.query_pg_existing_bids(_SOURCE) returns set of batch_ids already
@@ -283,7 +283,7 @@ def _run_subprocess(
 def _emit_trace(event: str, payload: dict) -> None:
     """Emit a trace event via src.core.trace_sink if available; else stderr."""
     try:
-        # Ensure memex package importable
+        # Ensure memexa package importable
         if str(_REPO) not in sys.path:
             sys.path.insert(0, str(_REPO))
         from src.core.trace_sink import write_trace_event  # type: ignore
@@ -397,7 +397,7 @@ def _stage_run_worker(
         "--batches-dir", str(_INPUT_BATCHES_DIR),
         "--done-dir", str(done_dir),
         "--out-dir", str(_CARDS_DIR),
-        "--concurrent", str(int(os.environ.get("MEMEX_your-org_CONCURRENT", "5")) if mode == "api" else 1),
+        "--concurrent", str(int(os.environ.get("MEMEXA_your-org_CONCURRENT", "5")) if mode == "api" else 1),
         "--max-batches", str(max_batches),
     ]
 
@@ -437,7 +437,7 @@ def _stage_post_cards(dry_run: bool, verbose: bool) -> dict:
     n_posted_before = _count_marker_dir(_POSTED_DIR)
 
     # 2026-05-10 fix: streaming_post_v5 reads URL/bank from env vars
-    # (MEMEX_HINDSIGHT_URL / MEMEX_HINDSIGHT_BANK), no --base-url/--bank flags.
+    # (MEMEXA_HINDSIGHT_URL / MEMEXA_HINDSIGHT_BANK), no --base-url/--bank flags.
     cmd = [
         sys.executable,
         str(_STREAMING_POST),
@@ -495,7 +495,7 @@ def main() -> int:
         default=_DEFAULT_MAX_BATCHES,
         metavar="N",
         help=f"Cap batches processed per run (default {_DEFAULT_MAX_BATCHES}, "
-             "env MEMEX_V5_BATCH_LIMIT overrides default)",
+             "env MEMEXA_V5_BATCH_LIMIT overrides default)",
     )
     parser.add_argument(
         "--dry-run",
@@ -520,7 +520,7 @@ def main() -> int:
     parser.add_argument(
         "--mode",
         choices=["local", "api"],
-        default=os.environ.get("MEMEX_V5_WORKER_MODE", "local"),
+        default=os.environ.get("MEMEXA_V5_WORKER_MODE", "local"),
         help="Extractor mode: local=Mac dual-LLM (Gemma-31B+Qwen-14B), "
              "api=your-org LLM platform (deepseek-v4-flash-ascend + qwen3.6-chat)",
     )

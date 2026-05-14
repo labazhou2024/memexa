@@ -103,8 +103,8 @@ _cache = _SessionScopedCache()
 # ---------------------------------------------------------------------------
 
 def _emit_trace(event: str, payload: dict) -> None:
-    """Emit trace event to MEMEX_GMV2_STUB_TRACE_LOG (best-effort)."""
-    path = os.environ.get("MEMEX_GMV2_STUB_TRACE_LOG", "")
+    """Emit trace event to MEMEXA_GMV2_STUB_TRACE_LOG (best-effort)."""
+    path = os.environ.get("MEMEXA_GMV2_STUB_TRACE_LOG", "")
     if not path:
         return
     try:

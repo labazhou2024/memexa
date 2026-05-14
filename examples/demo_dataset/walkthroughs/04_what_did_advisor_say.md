@@ -32,10 +32,10 @@ deadline" variants are what you want.
 ## Step 1 — the `person` query
 
 ```bash
-memex person "advisor@example.com" --window-days 30
+memexa person "advisor@example.com" --window-days 30
 ```
 
-(You can also use a name: `memex person "Dr. Smith"` once your aliases.yaml
+(You can also use a name: `memexa person "Dr. Smith"` once your aliases.yaml
 is set up. The email form is unambiguous when you're not sure.)
 
 Expected output:
@@ -87,7 +87,7 @@ skim-read. `person` upweights it because:
 
 ## Why this beats searching your inbox
 
-| Searching inbox | `memex person` |
+| Searching inbox | `memexa person` |
 |---|---|
 | You see all 3 emails in full | You see 2 high-signal lines |
 | Easy to miss the "must include X" caveat | Caveat is ranked above the deadline itself |
@@ -98,16 +98,16 @@ skim-read. `person` upweights it because:
 
 ```bash
 # Pattern: any single counterparty
-memex person "<boss@company.com>"          --window-days 14
-memex person "<professor-name>"            --window-days 90
-memex person "<client-contact>"            --window-days 30
+memexa person "<boss@company.com>"          --window-days 14
+memexa person "<professor-name>"            --window-days 90
+memexa person "<client-contact>"            --window-days 30
 ```
 
 For *frequent* counterparties (manager, advisor) — pin a daily refresh:
 
 ```bash
 # in ~/.bashrc or .zshrc
-alias say-what='memex person "boss@company.com" --window-days 7'
+alias say-what='memexa person "boss@company.com" --window-days 7'
 ```
 
 ## When to NOT use `person`

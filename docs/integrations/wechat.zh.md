@@ -2,7 +2,7 @@
 
 [English](wechat.md) · **中文**
 
-`memex` 通过 per-batch JSON envelope 摄入微信聊天记录。它**不**导出数据
+`memexa` 通过 per-batch JSON envelope 摄入微信聊天记录。它**不**导出数据
 本身 — 你拿 export, builder 规范化, extractor 抽卡。
 
 ## 推荐 exporter
@@ -47,7 +47,7 @@ Builder 读这种目录树:
 
 ```bash
 # 1. 指向你的 export
-export MEMEX_WECHAT_EXPORT_DIR=/path/to/wechat/export
+export MEMEXA_WECHAT_EXPORT_DIR=/path/to/wechat/export
 
 # 2. 跑一次 builder (写 batch 文件到 data/l0_v5/input_batches/)
 python -m src.ingestion.v5_wechat_batch_builder
@@ -59,12 +59,12 @@ ls data/l0_v5/input_batches/$(date +%Y-%m-%d)/ | head
 python -m src.drivers.backfill_v5_wechat_driver --once --verbose
 
 # 5. 查询
-memex quick "<export 里某个实体名>"
+memexa quick "<export 里某个实体名>"
 ```
 
 ## 你需要填的 schema
 
-Builder 读 `~/.memex/aliases.yaml` 决定哪些 `wxid_hash` 是 "你"。确保你
+Builder 读 `~/.memexa/aliases.yaml` 决定哪些 `wxid_hash` 是 "你"。确保你
 自己的 hash 在 `self_aliases` 里, 否则每张卡都会标 speaker_role=`third_party`。
 
 工作中的 `aliases.yaml`:
@@ -83,7 +83,7 @@ timezone: "Asia/Shanghai"
 
 ### "Builder 找到 0 条消息"
 
-- 路径不匹配 — 确认 `ls $MEMEX_WECHAT_EXPORT_DIR` 列出聊天目录, 不是
+- 路径不匹配 — 确认 `ls $MEMEXA_WECHAT_EXPORT_DIR` 列出聊天目录, 不是
   原始 `.db` 文件
 - 工具用了 "HTML" 或 "CSV" 输出, 不是 "JSON"。用 JSON 重导
 - 工具产了 UTF-16 BOM。Builder 读 UTF-8; 用 `iconv -f UTF-16 -t UTF-8`

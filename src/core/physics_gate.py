@@ -215,7 +215,7 @@ def _workspace_root() -> Path:
     """Resolve workspace root.
 
     Per RP-LOGIC-ITER1-5 (logic-iter1-5 MED): use .resolve().parents[N] not
-    chained .parent. From memex/core/physics_gate.py → memex/.
+    chained .parent. From memexa/core/physics_gate.py → memexa/.
     """
     return Path(__file__).resolve().parents[2]
 

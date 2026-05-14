@@ -1,6 +1,6 @@
 """
 Claude-powered code review — uses Claude CLI (Max subscription).
-Called by code-reviewer agent and MCP memex_code_review tool.
+Called by code-reviewer agent and MCP memexa_code_review tool.
 
 Migration (2026-04-03): Replaced Kimi API with `claude -p` subprocess.
 

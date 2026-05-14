@@ -46,7 +46,7 @@ from typing import Any
 
 _REPO = Path(__file__).resolve().parents[1]
 # OSS: writable data lives in the user's workspace, resolved via env
-# (MEMEX_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
+# (MEMEXA_WORKSPACE_ROOT) or `~/.claude/projects/`. See docs/configuration.md.
 from src.core._path_resolver import data_dir as _resolve_data_dir
 _DATA = _resolve_data_dir()
 
@@ -74,14 +74,14 @@ _DEFAULT_LOOKBACK_DAYS = 4
 # real-reasoner sweep verified c=5 = 3.4 b/min (vs c=3 = 2.1; c=7 = 3.0 due to
 # server-side queue saturation). c=5 is the safe sweet spot — no 429, no error.
 # With c=5, cc backlog 2,212 pending → ~11h (vs prior estimate 18-20h at c=3).
-_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEX_V5_BATCH_LIMIT", "50"))
-_DEFAULT_CONCURRENT = int(os.environ.get("MEMEX_your-org_CONCURRENT", "5"))
+_DEFAULT_MAX_BATCHES = int(os.environ.get("MEMEXA_V5_BATCH_LIMIT", "50"))
+_DEFAULT_CONCURRENT = int(os.environ.get("MEMEXA_your-org_CONCURRENT", "5"))
 
 # 2026-05-11 v3 (Phase 2.1): driver source identifier for PG-aware pending check.
 _SOURCE = "cc"  # → pg metadata.source == "claude_code"
 
-_HINDSIGHT_BASE_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-_HINDSIGHT_BANK = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+_HINDSIGHT_BASE_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+_HINDSIGHT_BANK = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 
 # ── Helpers (mirrors backfill_v5_email_driver) ────────────────────────────
@@ -357,7 +357,7 @@ def main() -> int:
     p.add_argument("--skip-post", action="store_true")
     p.add_argument("--verbose", action="store_true")
     p.add_argument("--mode", choices=["local", "api"],
-                   default=os.environ.get("MEMEX_V5_WORKER_MODE", "local"),
+                   default=os.environ.get("MEMEXA_V5_WORKER_MODE", "local"),
                    help="Extractor mode: local=Mac dual-LLM, api=your-org API")
     args = p.parse_args()
 

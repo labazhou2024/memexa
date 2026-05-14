@@ -16,8 +16,8 @@
 ## 1. 安装
 
 ```bash
-git clone https://github.com/labazhou2024/memex.git memex
-cd memex
+git clone https://github.com/labazhou2024/memexa.git memexa
+cd memexa
 python -m venv .venv
 . .venv/bin/activate     # PowerShell: .venv\Scripts\Activate.ps1
 pip install -e .[dev]
@@ -31,19 +31,19 @@ cp .env.example .env
 $EDITOR .env
 
 # 用户配置 (Python 运行时读)
-mkdir -p ~/.memex
-cp config/aliases.example.yaml   ~/.memex/aliases.yaml
-cp config/identity.example.yaml  ~/.memex/identity.yaml
-$EDITOR ~/.memex/aliases.yaml
-$EDITOR ~/.memex/identity.yaml
+mkdir -p ~/.memexa
+cp config/aliases.example.yaml   ~/.memexa/aliases.yaml
+cp config/identity.example.yaml  ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/aliases.yaml
+$EDITOR ~/.memexa/identity.yaml
 ```
 
 最少要设的:
 
-- `~/.memex/aliases.yaml` → 系统应该匹配成 "你" 的字符串列表 (你的名字 /
+- `~/.memexa/aliases.yaml` → 系统应该匹配成 "你" 的字符串列表 (你的名字 /
   昵称 / 邮箱前缀 等)
-- `.env` → `MEMEX_REMOTE_LLM_BASE_URL`, `MEMEX_REMOTE_LLM_API_KEY`,
-  `MEMEX_REMOTE_LLM_GATE_MODEL`, `MEMEX_REMOTE_LLM_EXTRACT_MODEL`
+- `.env` → `MEMEXA_REMOTE_LLM_BASE_URL`, `MEMEXA_REMOTE_LLM_API_KEY`,
+  `MEMEXA_REMOTE_LLM_GATE_MODEL`, `MEMEXA_REMOTE_LLM_EXTRACT_MODEL`
 
 ## 3. 启动记忆后端
 
@@ -65,7 +65,7 @@ python -m examples.demo_dataset.ingest --dry-run
 make demo-ingest
 
 # 端到端确认装好了
-memex doctor
+memexa doctor
 # → [ok] primary /healthz returned 200
 # → [ok] bank 'memory_full_v5' has N nodes
 # → [ok] LLM/gate ... responded 200
@@ -86,9 +86,9 @@ driver 跑 6 小时一轮抽取 pipeline。
 - **微信** — 用 [`WeChatMsg`](https://github.com/LC044/WeChatMsg) 或
   [`wechatDataBackup`](https://github.com/git-jiadong/wechatDataBackup) 导出;
   把 `v5_wechat_batch_builder.py` 指向那份 JSON。
-- **QQ** — 设 `MEMEX_QQ_ID`; builder 直接读
+- **QQ** — 设 `MEMEXA_QQ_ID`; builder 直接读
   `~/Documents/Tencent Files/<qq-id>/nt_qq/nt_db/nt_msg.db`。
-- **邮件** — IMAP 凭据填到 `~/.memex/identity.yaml`。
+- **邮件** — IMAP 凭据填到 `~/.memexa/identity.yaml`。
 - **浏览器** — 指向浏览器 profile 里的 `History` SQLite。
 - **Claude Code** — 指向 `~/.claude/projects/`。
 - **语音** — 把 `.wav` / `.m4a` 文件丢到 `data/audio/inbox/`, audio driver
@@ -120,4 +120,4 @@ cron health, graph queries, six-source pending, audio pipeline。
 - *PG marker drift* — 见
   [lessons_learned/03_pg_aware_pending.md](lessons_learned/03_pg_aware_pending.md)。
 
-以上都不对的话, 去 `memex/issues/new` 提 issue。
+以上都不对的话, 去 `memexa/issues/new` 提 issue。

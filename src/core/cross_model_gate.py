@@ -8,7 +8,7 @@ Enforces:
 3. Tuple fallback: try first OPPOSITE candidate; on ProviderUnavailable, try
    second; if both fail, raise CrossModelSkipped + emit trace `cross_model_skipped`
    (RP-LOGIC-ITER1-3, logic-iter1-3 HIGH);
-4. Circuit-breaker state file at `memex/data/cross_model_breaker.json`
+4. Circuit-breaker state file at `memexa/data/cross_model_breaker.json`
    (RP-LOGIC-ITER1-5; HARD RULE feedback_state_file_dual_path_discovery.md).
 
 axis_anchor: [C:cli:cross_model_gate]
@@ -204,7 +204,7 @@ class CrossModelResult:
 def _workspace_root() -> Path:
     """Resolve workspace root via Path(__file__).resolve().parents[2] (RP-LOGIC-ITER1-5).
 
-    From memex/core/cross_model_gate.py → memex/.
+    From memexa/core/cross_model_gate.py → memexa/.
     """
     return Path(__file__).resolve().parents[2]
 
@@ -212,7 +212,7 @@ def _workspace_root() -> Path:
 def _breaker_path() -> Path:
     """Circuit-breaker state file path.
 
-    Pinned to memex/data/cross_model_breaker.json (NOT memex/memex/data/)
+    Pinned to memexa/data/cross_model_breaker.json (NOT memexa/memexa/data/)
     per HARD RULE feedback_state_file_dual_path_discovery.md.
     """
     return _workspace_root() / "data" / "cross_model_breaker.json"

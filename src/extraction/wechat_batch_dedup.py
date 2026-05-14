@@ -79,7 +79,7 @@ class DedupOracle:
         self._jsonl_hashes = _load_jsonl_hashes(self.jsonl_path)
         self.hindsight_url = (
             hindsight_url
-            or os.environ.get("MEMEX_HINDSIGHT_URL")
+            or os.environ.get("MEMEXA_HINDSIGHT_URL")
             or os.environ.get("HINDSIGHT_API_URL")
             or "http://127.0.0.1:8888"
         ).rstrip("/")

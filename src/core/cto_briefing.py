@@ -19,8 +19,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-_MEMEX_ROOT = Path(__file__).parent.parent.parent
-_WORKSPACE = _MEMEX_ROOT.parent
+_MEMEXA_ROOT = Path(__file__).parent.parent.parent
+_WORKSPACE = _MEMEXA_ROOT.parent
 _DATA = Path(__file__).parent.parent / "data"
 _HARNESS = _WORKSPACE / ".claude" / "config" / "harness_state.json"
 
@@ -94,7 +94,7 @@ def _collect_git_commits() -> List[str]:
         r = subprocess.run(
             ["git", "log", "--oneline", "--since=midnight", "--format=%s"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
-            cwd=str(_MEMEX_ROOT), timeout=5,
+            cwd=str(_MEMEXA_ROOT), timeout=5,
         )
         return [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
     except Exception:
@@ -460,7 +460,7 @@ def _fallback_actions_taken(task_id: str) -> List[str]:
         r = subprocess.run(
             ["git", "log", f"--grep={task_id}", "--oneline", "-n", "10"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
-            cwd=str(_MEMEX_ROOT), timeout=10,
+            cwd=str(_MEMEXA_ROOT), timeout=10,
         )
         out = (r.stdout or "").strip().splitlines()
         return out if out else ["[no actions captured; missing both last_briefing.json and matching git log]"]
@@ -510,7 +510,7 @@ def generate_briefing_v2(task_id: str, task_dir: Optional[Path] = None) -> Dict[
     }
     gates_status: Dict[str, Any] = {
         "gate_coverage": state.get("gate_coverage")
-        or harness.get("git_repos", {}).get("memex", {}).get("last_commit_summary", "")[-200:],
+        or harness.get("git_repos", {}).get("memexa", {}).get("last_commit_summary", "")[-200:],
         "last_commit_hash": state.get("commit_hash") or harness.get("last_commit_hash", ""),
     }
     out_of_scope: List[str] = []

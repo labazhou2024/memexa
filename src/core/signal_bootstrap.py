@@ -10,7 +10,7 @@ Design (AC-15c paired condition):
   Both must be met — count floor guards against a tiny-sample fraction fluke.
 
 Storage:
-  Ratings written to memex/memex/data/ratings.jsonl (JSONL per line):
+  Ratings written to memexa/memexa/data/ratings.jsonl (JSONL per line):
   {
     "ts":         ISO-8601 naive UTC,
     "pattern_id": str,
@@ -43,9 +43,9 @@ from typing import List, Literal, Optional
 # ---------------------------------------------------------------------------
 
 def _resolve_data_dir() -> Path:
-    """Resolve data dir. Respects MEMEX_DATA_DIR env var for test isolation."""
+    """Resolve data dir. Respects MEMEXA_DATA_DIR env var for test isolation."""
     default = Path(__file__).parent.parent / "data"
-    env_override = os.environ.get("MEMEX_DATA_DIR")
+    env_override = os.environ.get("MEMEXA_DATA_DIR")
     if env_override:
         try:
             p = Path(env_override).resolve()
@@ -235,7 +235,7 @@ def record_bootstrap_rating(
 
 def _get_ratings_file() -> Path:
     """Return ratings.jsonl path, respecting env override."""
-    env_override = os.environ.get("MEMEX_RATINGS_FILE")
+    env_override = os.environ.get("MEMEXA_RATINGS_FILE")
     if env_override:
         try:
             p = Path(env_override).resolve()

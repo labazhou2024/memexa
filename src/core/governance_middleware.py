@@ -17,7 +17,7 @@ Public entry points
         hitting disk.
 
     get_governance_depth() -> "shallow" | "deep"
-        Reads env MEMEX_GOVERNANCE_DEPTH (default "shallow"). "shallow"
+        Reads env MEMEXA_GOVERNANCE_DEPTH (default "shallow"). "shallow"
         uses a local regex consistency check; "deep" shells out to
         consistency-auditor via `claude -p` with hard-pinned endpoint
         + model_family (SEC-R1 S2/C10).
@@ -34,9 +34,9 @@ Rule ordering (short-circuit top to bottom)
 
 Env flags
 ---------
-    MEMEX_GOVERNANCE_ENABLED   "1" (default) | "0" (kill switch → allow-all)
-    MEMEX_GOVERNANCE_DEPTH     "shallow" (default) | "deep"
-    MEMEX_GOVERNANCE_FAIL_OPEN "0" (default) | "1" (cov: testing only)
+    MEMEXA_GOVERNANCE_ENABLED   "1" (default) | "0" (kill switch → allow-all)
+    MEMEXA_GOVERNANCE_DEPTH     "shallow" (default) | "deep"
+    MEMEXA_GOVERNANCE_FAIL_OPEN "0" (default) | "1" (cov: testing only)
 """
 from __future__ import annotations
 
@@ -175,11 +175,11 @@ def _flag_val(name: str, default: str) -> str:
 def get_governance_depth() -> Depth:
     """Return the currently-selected consistency depth.
 
-    Reads MEMEX_GOVERNANCE_DEPTH with "shallow" default. Unknown values
+    Reads MEMEXA_GOVERNANCE_DEPTH with "shallow" default. Unknown values
     fall back to "shallow" (fail-safe — never silently upgrade to deep
     since deep shells out and costs API calls).
     """
-    raw = _flag_val("MEMEX_GOVERNANCE_DEPTH", "shallow").strip().lower()
+    raw = _flag_val("MEMEXA_GOVERNANCE_DEPTH", "shallow").strip().lower()
     if raw == "deep":
         return "deep"
     return "shallow"
@@ -477,7 +477,7 @@ def pre_write_check(req: WriteRequest) -> GovernanceDecision:
     audit_id = f"gov_{uuid.uuid4().hex[:12]}"
 
     # Kill switch.
-    if not _flag_on("MEMEX_GOVERNANCE_ENABLED", "1"):
+    if not _flag_on("MEMEXA_GOVERNANCE_ENABLED", "1"):
         d = _decision(True, "governance_disabled", audit_id,
                       sanitized=req.get("content", ""))
         _audit(audit_id, d, rule_hit="kill_switch")
@@ -587,7 +587,7 @@ def pre_write_check(req: WriteRequest) -> GovernanceDecision:
                    extra={"budget_reason": budget_reason})
             return d
         # L3
-        if _flag_on("MEMEX_GOVERNANCE_FAIL_OPEN", "0"):
+        if _flag_on("MEMEXA_GOVERNANCE_FAIL_OPEN", "0"):
             d = _decision(True, "budget_exhausted_fail_open_testonly",
                           audit_id, sanitized=sanitized)
             _audit(audit_id, d, rule_hit="budget_fail_open_testonly",

@@ -1,6 +1,6 @@
 """Extraction-prompt router — two-mode dispatch (bundled / byo).
 
-Honors the ``MEMEX_EXTRACTOR_TIER`` env var:
+Honors the ``MEMEXA_EXTRACTOR_TIER`` env var:
 
 ============  ====================================================
 Mode value    Behavior
@@ -10,7 +10,7 @@ Mode value    Behavior
               worked few-shot examples. Sufficient for demo and
               normal use.
 ``byo``       Load the user's own prompt file from
-              ``MEMEX_PROMPT_PATH``. The module must expose
+              ``MEMEXA_PROMPT_PATH``. The module must expose
               ``PASS2_SYSTEM_PROMPT_BY_SOURCE`` and / or
               ``PASS1_SYSTEM_PROMPT``. Use this when you have
               your own prompt-tuning pipeline.
@@ -42,8 +42,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
-ENV_TIER = "MEMEX_EXTRACTOR_TIER"
-ENV_PROMPT_PATH = "MEMEX_PROMPT_PATH"
+ENV_TIER = "MEMEXA_EXTRACTOR_TIER"
+ENV_PROMPT_PATH = "MEMEXA_PROMPT_PATH"
 
 _DEFAULT_TIER = "bundled"
 # 'basic' kept as a back-compat alias for the old 0.1.0a tier name.
@@ -66,7 +66,7 @@ def _resolve_tier() -> str:
 
 @lru_cache(maxsize=1)
 def _load_byo_module():
-    """Import the user's BYO prompt module from MEMEX_PROMPT_PATH."""
+    """Import the user's BYO prompt module from MEMEXA_PROMPT_PATH."""
     raw = os.environ.get(ENV_PROMPT_PATH, "").strip()
     if not raw:
         raise RuntimeError(
@@ -75,7 +75,7 @@ def _load_byo_module():
     path = Path(raw).expanduser()
     if not path.is_file():
         raise RuntimeError(f"{ENV_PROMPT_PATH} file not found: {path}")
-    spec = importlib.util.spec_from_file_location("memex_byo_prompts", str(path))
+    spec = importlib.util.spec_from_file_location("memexa_byo_prompts", str(path))
     if spec is None or spec.loader is None:
         raise RuntimeError(f"failed to load BYO prompt module from {path}")
     mod = importlib.util.module_from_spec(spec)
@@ -121,7 +121,7 @@ def get_extraction_prompt(
 
 
 def active_tier() -> str:
-    """Public accessor for the current tier — used by `memex config`."""
+    """Public accessor for the current tier — used by `memexa config`."""
     return _resolve_tier()
 
 

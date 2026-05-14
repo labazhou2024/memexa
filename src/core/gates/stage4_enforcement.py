@@ -157,7 +157,7 @@ def check(task_id: str) -> Tuple[bool, str]:
     # allow-silent: fail-soft observability path
     try:
         # Read data/task_spec.json if present
-        spec = Path(__file__).resolve().parent.parent.parent.parent.parent / "memex" / "memex" / "data" / "task_spec.json"
+        spec = Path(__file__).resolve().parent.parent.parent.parent.parent / "memexa" / "memexa" / "data" / "task_spec.json"
         if spec.exists():
             d = json.loads(spec.read_text(encoding="utf-8"))
             complexity = str(d.get("complexity", "simple"))

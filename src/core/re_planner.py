@@ -54,7 +54,7 @@ ArchitectFn = Callable[[str], str]
 
 
 def _workspace_root() -> Path:
-    """Resolve workspace (parent of memex/). Robust to CWD + junctions.
+    """Resolve workspace (parent of memexa/). Robust to CWD + junctions.
 
     Verifier R2 MED-1: .resolve() is mandatory on Windows junction trees
     (OneDrive/桌面 is a localized junction on Chinese Win11).

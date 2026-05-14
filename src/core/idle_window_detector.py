@@ -3,7 +3,7 @@
 Used to gate the Mac 27B arbiter swap (only run during idle window).
 Archived together with the rest of the paired_eval stack.
 
-Archived source: archive/2026_05_07_paired_eval_archived/memex/core/idle_window_detector.py
+Archived source: archive/2026_05_07_paired_eval_archived/memexa/core/idle_window_detector.py
 """
 from __future__ import annotations
 

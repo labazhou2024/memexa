@@ -366,7 +366,7 @@ def save_dispatch_plan(plan: Dict[str, Any], data_dir: Optional[Path] = None) ->
     plan:
         Output of AgentDispatcher.generate_dispatch_plan().
     data_dir:
-        Override for the data directory. Defaults to memex/data/.
+        Override for the data directory. Defaults to memexa/data/.
 
     Returns
     -------

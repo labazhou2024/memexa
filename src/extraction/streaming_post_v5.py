@@ -35,8 +35,8 @@ from src.extraction.run_e2e_pipeline import _normalize_llm_card  # noqa
 logger = logging.getLogger("stream_post")
 
 
-HINDSIGHT_URL = os.environ.get("MEMEX_HINDSIGHT_URL", "http://127.0.0.1:8888")
-BANK_ID = os.environ.get("MEMEX_HINDSIGHT_BANK", "memory_full_v5")
+HINDSIGHT_URL = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+BANK_ID = os.environ.get("MEMEXA_HINDSIGHT_BANK", "memory_full_v5")
 
 
 def post_card(card_dict: Dict[str, Any], client: httpx.Client, verbose: bool = False) -> Dict[str, Any]:

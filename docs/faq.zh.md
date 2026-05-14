@@ -16,7 +16,7 @@ Discussions 再提 issue。
 
 ### Q: 能用 OpenAI / Claude / Gemini 做 extractor 吗?
 
-能。设 `MEMEX_REMOTE_LLM_BASE_URL` 到任何 OpenAI-compatible endpoint。
+能。设 `MEMEXA_REMOTE_LLM_BASE_URL` 到任何 OpenAI-compatible endpoint。
 确认能跑: vLLM, Ollama, LiteLLM proxy, DeepSeek API, OpenRouter, OneAPI。
 Extractor prompt 在
 [`src/extraction/pass2_prompt.py`](../src/extraction/pass2_prompt.py),
@@ -94,7 +94,7 @@ python -m src.core.memory_query quick "X" --salience 0.0 --max-k 50
 # 2. 试 topic 扇出
 python -m src.core.memory_query topic "X" --salience 0.0 --max-cards 100
 # 3. 检查 backend health
-memex doctor
+memexa doctor
 # 4. 检查 bank 有卡
 curl -s http://127.0.0.1:8888/v1/default/banks/memory_full_v5/stats | jq .
 ```
@@ -106,7 +106,7 @@ step 4 显示 `nodes: 0` 说明摄入路径坏了, 不是查询路径。看 cron
 
 `reflect` 需要 daemon 侧 LLM provider 配好。如果你没配 (env 是空),
 `reflect` 退化成 stub 返垃圾。配 daemon LLM 或换用 `summary` (它走
-`MEMEX_REMOTE_LLM_BASE_URL` 在 client 侧综合)。
+`MEMEXA_REMOTE_LLM_BASE_URL` 在 client 侧综合)。
 
 ### Q: 状态题 ("我退掉 Y 课程了吗") 怎么问?
 
@@ -121,7 +121,7 @@ step 4 显示 `nodes: 0` 说明摄入路径坏了, 不是查询路径。看 cron
 Dashboard server 本地。Cron orchestrator 只 shell out 到本地 Python。
 
 LLM provider 一次看一个 batch。如果你设
-`MEMEX_REMOTE_LLM_BASE_URL=http://127.0.0.1:8000` 并本地跑 vLLM / Ollama,
+`MEMEXA_REMOTE_LLM_BASE_URL=http://127.0.0.1:8000` 并本地跑 vLLM / Ollama,
 任何数据都不出机器。
 
 ### Q: 怎么从图里删某个特定人?

@@ -33,18 +33,18 @@ from typing import Any, Dict, List, Optional, Tuple
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-_MEMEX_ROOT = Path(__file__).resolve().parents[2]
-if str(_MEMEX_ROOT) not in sys.path:
-    sys.path.insert(0, str(_MEMEX_ROOT))
+_MEMEXA_ROOT = Path(__file__).resolve().parents[2]
+if str(_MEMEXA_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MEMEXA_ROOT))
 
 
 # ────────────────────────────────────────────────────────────────────────
 # Config
 # ────────────────────────────────────────────────────────────────────────
 
-_RECALL_TIMEOUT_S = float(os.environ.get("MEMEX_LESSON_RECALL_TIMEOUT_S", "25.0"))
-_MAX_INJECTED = int(os.environ.get("MEMEX_LESSON_RECALL_MAX", "3"))
-_MIN_PROMPT_LEN = int(os.environ.get("MEMEX_LESSON_RECALL_MIN_PROMPT", "10"))
+_RECALL_TIMEOUT_S = float(os.environ.get("MEMEXA_LESSON_RECALL_TIMEOUT_S", "25.0"))
+_MAX_INJECTED = int(os.environ.get("MEMEXA_LESSON_RECALL_MAX", "3"))
+_MIN_PROMPT_LEN = int(os.environ.get("MEMEXA_LESSON_RECALL_MIN_PROMPT", "10"))
 
 
 # ────────────────────────────────────────────────────────────────────────

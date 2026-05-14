@@ -97,10 +97,10 @@ except Exception:  # pragma: no cover
 
 # SEC-R1 S2: hard-coded username segment ("C--Users-29424-...") breaks on any
 # machine other than the CEO's laptop, causing silent 0-ingestion.  Allow the
-# caller to override via MEMEX_MEMORY_DIR.  If neither env nor the legacy path
+# caller to override via MEMEXA_MEMORY_DIR.  If neither env nor the legacy path
 # exists we emit a WARNING (not a silent no-op) so the problem is visible.
 def _resolve_default_memory_dir() -> Path:
-    env_val = os.environ.get("MEMEX_MEMORY_DIR", "")
+    env_val = os.environ.get("MEMEXA_MEMORY_DIR", "")
     if env_val:
         return Path(env_val)
     legacy = (
@@ -109,7 +109,7 @@ def _resolve_default_memory_dir() -> Path:
     if not legacy.exists():
         logger.warning(
             "ingest_watcher: default memory dir does not exist: %s. "
-            "Set MEMEX_MEMORY_DIR env var to override.",
+            "Set MEMEXA_MEMORY_DIR env var to override.",
             legacy,
         )
     return legacy
@@ -958,16 +958,16 @@ def scan_with_timeout(
     """SessionStart-safe wrapper. Runs scan_and_ingest with a hard wall-clock
     cap. On timeout, files whose ingest did not complete are already routed
     into ingest_queue.jsonl by the per-file haiku_slow path, so returning
-    partial counts is safe. Kill switches: MEMEX_T10_DISABLE_WATCHER=1,
-    MEMEX_T10_WATCHER_MODE=queue_only (skip sync scan entirely).
+    partial counts is safe. Kill switches: MEMEXA_T10_DISABLE_WATCHER=1,
+    MEMEXA_T10_WATCHER_MODE=queue_only (skip sync scan entirely).
     """
-    if os.environ.get("MEMEX_T10_DISABLE_WATCHER") == "1":
+    if os.environ.get("MEMEXA_T10_DISABLE_WATCHER") == "1":
         return {"skipped": "watcher_disabled"}
     # A5 fix (CON-R1-001): env_overrides.json was a dead drop — analyze_haiku_latency
     # Yellow band writes there but this function only read os.environ. Now we also
     # honor file overrides so CEO doesn't need to setx+restart.
     _load_env_overrides_to_env()
-    if os.environ.get("MEMEX_T10_WATCHER_MODE") == "queue_only":
+    if os.environ.get("MEMEXA_T10_WATCHER_MODE") == "queue_only":
         # AC-T10-8b Yellow band: skip sync scan; rely on heartbeat drain_queue.
         return {"skipped": "queue_only_mode"}
 
@@ -999,7 +999,7 @@ def _load_env_overrides_to_env() -> None:
     """A5 fix: honor env_overrides.json without restart.
 
     analyze_haiku_latency.py writes Yellow-band overrides (e.g.,
-    MEMEX_T10_WATCHER_MODE=queue_only) to this file. Previously a dead drop.
+    MEMEXA_T10_WATCHER_MODE=queue_only) to this file. Previously a dead drop.
     Now scan_with_timeout calls this before reading os.environ so the
     CEO does not need setx + restart for latency-band degradation.
     """
@@ -1011,9 +1011,9 @@ def _load_env_overrides_to_env() -> None:
         return
     if not isinstance(data, dict):
         return
-    # Only apply MEMEX_T10_* keys — narrow scope for safety.
+    # Only apply MEMEXA_T10_* keys — narrow scope for safety.
     for k, v in data.items():
-        if not isinstance(k, str) or not k.startswith("MEMEX_T10_"):
+        if not isinstance(k, str) or not k.startswith("MEMEXA_T10_"):
             continue
         if isinstance(v, (str, int, float, bool)):
             # env takes precedence if already set — file is a fallback only.
@@ -1247,9 +1247,9 @@ def drain_queue(
     → KB. On failure: retry_count++; if >3 moves to ingest_deadletter.jsonl.
 
     AC-T10-13: 4 test cases (empty / 3-success / 1-retry / retry>3→DLQ).
-    Kill switch: MEMEX_T10_DISABLE_DRAIN=1.
+    Kill switch: MEMEXA_T10_DISABLE_DRAIN=1.
     """
-    if os.environ.get("MEMEX_T10_DISABLE_DRAIN") == "1":
+    if os.environ.get("MEMEXA_T10_DISABLE_DRAIN") == "1":
         return {"skipped": "disabled", "drained": 0, "retried": 0,
                 "deadlettered": 0}
 
