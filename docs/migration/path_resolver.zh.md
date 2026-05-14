@@ -8,14 +8,14 @@
 > 一些模块还含这些占位 token — 它们在文件顶部用 `TODO(memgraph-oss)`
 > 注释标记。
 >
-> 本文档是把那些占位替换成调用 `src.core._path_resolver` 的食谱。
+> 本文档是把那些占位替换成调用 `memexa.core._path_resolver` 的食谱。
 
 ## 问题的形态
 
 典型 legacy 文件长这样:
 
 ```python
-# src/core/hard_rule_audit.py
+# memexa/core/hard_rule_audit.py
 PROJECT_PROJECTS_PATTERN = (
     "<USERPROFILE>/.claude/projects/"
     "<WORKSPACE_ID>/memory"
@@ -29,7 +29,7 @@ PROJECT_PROJECTS_PATTERN = (
 
 ```python
 from pathlib import Path
-from src.core._path_resolver import workspace_root
+from memexa.core._path_resolver import workspace_root
 
 # workspace_root() 默认返 Path(~/.claude/projects/<workspace-id>);
 # 用户可通过 MEMEXA_WORKSPACE_ROOT 覆盖
@@ -62,7 +62,7 @@ DEFAULT_BANK_PATH = "<USERPROFILE>/.claude/data/audit_corpus.jsonl"
 之后:
 
 ```python
-from src.core._path_resolver import workspace_root
+from memexa.core._path_resolver import workspace_root
 
 DEFAULT_BANK_PATH = workspace_root().parent / ".claude" / "data" / "audit_corpus.jsonl"
 ```
@@ -71,7 +71,7 @@ DEFAULT_BANK_PATH = workspace_root().parent / ".claude" / "data" / "audit_corpus
 优先用:
 
 ```python
-from src.core._path_resolver import audit_corpus_path
+from memexa.core._path_resolver import audit_corpus_path
 
 DEFAULT_BANK_PATH = audit_corpus_path()
 ```

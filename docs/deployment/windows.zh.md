@@ -59,9 +59,9 @@ docker compose -f docker-compose.example.yml up -d
 
 | Task                   | 调度            | Driver                                                |
 |------------------------|-----------------|--------------------------------------------------------|
-| `Memgraph_Cron6h`      | 6 h `00:30`     | `python -m src.cron.cron_orchestrator run-incremental --all` |
-| `Memgraph_AudioIngest` | 6 h `00:45`     | `python -m src.drivers.backfill_v5_audio_driver`        |
-| `Memgraph_Dashboard`   | 登录时          | `python -m src.dashboard.sys_monitor.server`            |
+| `Memgraph_Cron6h`      | 6 h `00:30`     | `python -m memexa.cron.cron_orchestrator run-incremental --all` |
+| `Memgraph_AudioIngest` | 6 h `00:45`     | `python -m memexa.drivers.backfill_v5_audio_driver`        |
+| `Memgraph_Dashboard`   | 登录时          | `python -m memexa.dashboard.sys_monitor.server`            |
 
 验证:
 
@@ -72,9 +72,9 @@ Get-ScheduledTask -TaskPath '\Memgraph\' | Format-Table TaskName,State,LastRunTi
 ## 6. 子进程 timeout 陷阱
 
 Windows 上 `subprocess.run(timeout=...)` 超时**不**杀孙进程。
-`src/core/win_job_subprocess.py` 用 Win32 Job Object 包每个 cron-invoked
+`memexa/core/win_job_subprocess.py` 用 Win32 Job Object 包每个 cron-invoked
 子进程, 孙进程跟父一起死。Driver 自动用这个 wrapper; 如果你自己从 Memgraph
-内部 launch 子进程, 优先用 `from src.core.win_job_subprocess import run_with_job_object`。
+内部 launch 子进程, 优先用 `from memexa.core.win_job_subprocess import run_with_job_object`。
 
 见 [lessons_learned/04_win_job_subprocess.md](../lessons_learned/04_win_job_subprocess.md)。
 

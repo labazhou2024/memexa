@@ -1,6 +1,6 @@
 """Integration tests for the ``memexa`` top-level CLI dispatcher.
 
-Each test invokes :func:`src.cli.main.main` directly with controlled ``argv``;
+Each test invokes :func:`memexa.cli.main.main` directly with controlled ``argv``;
 no subprocesses, no network. ``memexa doctor`` and ``memexa quick`` paths that
 require a backend are exercised separately under ``tests/integration/test_query_with_mock_backend.py``.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from src.cli.main import main
+from memexa.cli.main import main
 
 pytestmark = pytest.mark.integration
 

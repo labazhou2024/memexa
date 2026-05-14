@@ -112,8 +112,8 @@ ssh gpu-host '
 python scripts/wait_for_vllm.py http://gpu-host:8312 http://gpu-host:8313
 
 # run gate workers (one per port)
-python -m src.extraction.l0_worker_api --stage A --gate-port 8312 &
-python -m src.extraction.l0_worker_api --stage A --gate-port 8313 &
+python -m memexa.extraction.l0_worker_api --stage A --gate-port 8312 &
+python -m memexa.extraction.l0_worker_api --stage A --gate-port 8313 &
 wait
 
 # Phase 2 — swap to extractor
@@ -127,8 +127,8 @@ ssh gpu-host '
 '
 
 # run extract workers
-python -m src.extraction.l0_worker_api --stage B --extract-port 8312 &
-python -m src.extraction.l0_worker_api --stage B --extract-port 8313 &
+python -m memexa.extraction.l0_worker_api --stage B --extract-port 8312 &
+python -m memexa.extraction.l0_worker_api --stage B --extract-port 8313 &
 wait
 ```
 
@@ -142,6 +142,6 @@ pipeline stages, when the stages are heterogeneously expensive*.
 
 ## See also
 
-- `src/extraction/l0_worker_api.py` — supports `--stage A` or `--stage B`
+- `memexa/extraction/l0_worker_api.py` — supports `--stage A` or `--stage B`
   on the same codebase.
 - `scripts/swap_to_gemma.sh` — operational helper for Phase 2 swap.

@@ -65,7 +65,7 @@ A complete worked example is in [5_phase_query.md](5_phase_query.md).
 ### `quick`
 
 ```
-python -m src.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
+python -m memexa.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
 ```
 
 - `--max-k` raises the recall budget (default 10). Pair with
@@ -74,7 +74,7 @@ python -m src.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
 ### `topic`
 
 ```
-python -m src.core.memory_query topic "X" [--max-cards 100] [--by-salience]
+python -m memexa.core.memory_query topic "X" [--max-cards 100] [--by-salience]
 ```
 
 - Fan-outs 11 variants in parallel (`ThreadPoolExecutor(max_workers=4)`).
@@ -85,7 +85,7 @@ python -m src.core.memory_query topic "X" [--max-cards 100] [--by-salience]
 ### `arc`
 
 ```
-python -m src.core.memory_query arc "X" [--max-cards 80]
+python -m memexa.core.memory_query arc "X" [--max-cards 80]
 ```
 
 - 8 intent variants run **serially** (each variant's results inform the
@@ -96,7 +96,7 @@ python -m src.core.memory_query arc "X" [--max-cards 80]
 ### `timeline`
 
 ```
-python -m src.core.memory_query timeline --start ISO --end ISO [--source S] [--room R]
+python -m memexa.core.memory_query timeline --start ISO --end ISO [--source S] [--room R]
 ```
 
 - Multi-variant fan-out (event / message / important / email / etc.) →
@@ -105,7 +105,7 @@ python -m src.core.memory_query timeline --start ISO --end ISO [--source S] [--r
 ### `person`
 
 ```
-python -m src.core.memory_query person "Y"
+python -m memexa.core.memory_query person "Y"
 ```
 
 - Returns a synthesised article-card + the underlying event cards.
@@ -113,7 +113,7 @@ python -m src.core.memory_query person "Y"
 ### `project`
 
 ```
-python -m src.core.memory_query project "Z"
+python -m memexa.core.memory_query project "Z"
 ```
 
 - Runs `quick` against each of (wechat, qq, email, browser_session,
@@ -122,7 +122,7 @@ python -m src.core.memory_query project "Z"
 ### `pending`
 
 ```
-python -m src.core.memory_query pending
+python -m memexa.core.memory_query pending
 ```
 
 - Reads the calendar index. Returns active commitments sorted by
@@ -131,7 +131,7 @@ python -m src.core.memory_query pending
 ### `reflect`
 
 ```
-python -m src.core.memory_query reflect "Q"
+python -m memexa.core.memory_query reflect "Q"
 ```
 
 - Server-side LLM synthesis. Slower (10-60 s) and requires the daemon
@@ -143,7 +143,7 @@ python -m src.core.memory_query reflect "Q"
   as a disjunction. Post-filter on the client. See
   [lessons_learned/01_tags_are_or.md](lessons_learned/01_tags_are_or.md).
 - **`budget="medium"` is rejected.** The enum is `low / mid / high`,
-  not `medium`. See `src/core/hindsight_client.py`.
+  not `medium`. See `memexa/core/hindsight_client.py`.
 - **`max_tokens` too small returns 1 card.** Average V2 envelope card
   weighs ~866 tokens. The default `max_tokens=1024` packs only one.
 - **0 cards on legacy bank.** The legacy `memory_full` bank has no
@@ -156,9 +156,9 @@ python -m src.core.memory_query reflect "Q"
 
 ```bash
 # diagnose
-python -m src.core.memory_query quick "X" --salience 0.0 --max-k 50
+python -m memexa.core.memory_query quick "X" --salience 0.0 --max-k 50
 # still 0 → try a topic (different fan-out)
-python -m src.core.memory_query topic "X" --salience 0.0 --max-cards 100
+python -m memexa.core.memory_query topic "X" --salience 0.0 --max-cards 100
 # still 0 → check the daemon is reachable
 curl -s http://127.0.0.1:8888/healthz
 ```

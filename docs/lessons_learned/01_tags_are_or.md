@@ -59,7 +59,7 @@ results = [r for r in results if required.issubset(set(r.get("tags") or []))]
 ```
 
 For high-traffic call sites we extracted this into
-`_post_filter()` in `src/core/memory_query.py:107`.
+`_post_filter()` in `memexa/core/memory_query.py:107`.
 
 ## Knock-on consequence
 
@@ -91,5 +91,5 @@ weirder (probably tag-rank-then-cutoff).
 
 ## See also
 
-- `src/core/memory_query.py:107` — `_post_filter` implementation
-- `src/core/hindsight_client.py:205` — recall wrapper docstring
+- `memexa/core/memory_query.py:107` — `_post_filter` implementation
+- `memexa/core/hindsight_client.py:205` — recall wrapper docstring

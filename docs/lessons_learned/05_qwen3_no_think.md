@@ -86,7 +86,7 @@ if "gemma" in model.lower():
     return text   # leave thinking enabled
 ```
 
-The branch is in `src/extraction/paired_eval.py`.
+The branch is in `memexa/extraction/paired_eval.py`.
 
 ## When the lesson generalises
 
@@ -105,7 +105,7 @@ deploying any such model:
 
 ## See also
 
-- `src/extraction/paired_eval.py:130` — branching on model name.
+- `memexa/extraction/paired_eval.py:130` — branching on model name.
 - Qwen3 chat template reference:
   [`qwenlm.github.io/blog/qwen3`](https://qwenlm.github.io/blog/qwen3/)
 - vllm issue tracker for `chat_template_kwargs` forwarding (open as

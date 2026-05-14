@@ -109,7 +109,7 @@ hit one — patches very welcome.
 
 ```bash
 MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
-  python -m src.core.memory_query topic "<query>" --max-cards 100
+  python -m memexa.core.memory_query topic "<query>" --max-cards 100
 
 jq '. | select(.event=="recall_request") | {ts, duration_ms, query, n_results}' \
   /tmp/memexa_trace.jsonl

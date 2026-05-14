@@ -18,8 +18,8 @@
 ## Phase A — seed
 
 ```bash
-python -m src.core.memory_query quick "Course Y" --max-k 30
-python -m src.core.memory_query arc  "Course Y"  --max-cards 80
+python -m memexa.core.memory_query quick "Course Y" --max-k 30
+python -m memexa.core.memory_query arc  "Course Y"  --max-cards 80
 ```
 
 结果:
@@ -33,8 +33,8 @@ python -m src.core.memory_query arc  "Course Y"  --max-cards 80
 弄清群里还有谁, 他们的角色是什么。
 
 ```bash
-python -m src.core.memory_query arc "<TA-handle>"      --max-cards 20
-python -m src.core.memory_query arc "<peer-handle>"    --max-cards 20
+python -m memexa.core.memory_query arc "<TA-handle>"      --max-cards 20
+python -m memexa.core.memory_query arc "<peer-handle>"    --max-cards 20
 ```
 
 - `<TA-handle>` 在同一群发了 7 次作业通知 → 角色 = TA

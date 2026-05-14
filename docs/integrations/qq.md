@@ -29,7 +29,7 @@ backup tool.
 
 > **OSS v0.1.x status**: the SQLCipher decrypt + key-extraction implementation
 > lives in upstream JARVIS (`jarvis/qq_db.py`, 762 lines, standard library
-> only). It is scheduled for migration to `src/extraction/qq/qq_db.py` in
+> only). It is scheduled for migration to `memexa/extraction/qq/qq_db.py` in
 > Memexa v0.2. Until then, OSS users must either copy that file in by hand
 > or rely on the clipboard fallback below.
 
@@ -85,16 +85,16 @@ $EDITOR ~/.memexa/secrets/qq_db.key   # raw hex, single line
 
 # 3. Test the reader can open the DB
 python -c "
-from src.extraction.qq.qq_history_to_batches import probe_db
+from memexa.extraction.qq.qq_history_to_batches import probe_db
 probe_db()
 "
 
 # 4. Run the builder once in --mode dump (NapCat HTTP path is disabled)
-python -m src.extraction.qq.qq_history_to_batches --mode dump \
+python -m memexa.extraction.qq.qq_history_to_batches --mode dump \
     --start-date 2026-05-01 --end-date 2026-05-15
 
 # 5. Run the driver once
-python -m src.drivers.backfill_v5_qq_driver --once --verbose
+python -m memexa.drivers.backfill_v5_qq_driver --once --verbose
 ```
 
 ### Lock contention
@@ -126,7 +126,7 @@ that takes manually forwarded messages:
 ```bash
 # Inside QQ: select messages → right-click → 转发 → 复制
 # Then run:
-python -m src.extraction.qq.qq_clipboard_reader
+python -m memexa.extraction.qq.qq_clipboard_reader
 ```
 
 The reader parses QQ's "转发" clipboard format and produces the same v5
@@ -139,7 +139,7 @@ zero footprint.
 
 ## 3. Discouraged: NapCat / Lagrange / Shamrock / go-cqhttp adapters
 
-The `src/extraction/qq_realtime_watcher.py` and `qq_batch_ingest.py` modules
+The `memexa/extraction/qq_realtime_watcher.py` and `qq_batch_ingest.py` modules
 are kept in the tree for historical reference and will refuse to start unless
 you set `MEMEXA_QQ_NAPCAT_FORCE=1`. **Setting that variable on an account you
 care about is strongly discouraged.**

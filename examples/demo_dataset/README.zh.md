@@ -43,7 +43,7 @@ python -m examples.demo_dataset.ingest
 脚本:
 
 1. 读每个 demo 文件
-2. 调 `src/ingestion/` 和 `src/extraction/` 里匹配 builder 在
+2. 调 `memexa/ingestion/` 和 `memexa/extraction/` 里匹配 builder 在
    `data/demo/<source>/batches/` 下产 per-source batch
 3. 跑双 LLM 抽取 (gate + extract)。**默认用 stub LLM** 吐确定性合成 V2
    envelope, 所以 smoke test 不需要真 LLM endpoint。设
@@ -56,9 +56,9 @@ bank 分开)。
 ## 查询
 
 ```bash
-python -m src.core.memory_query topic "studying" --bank memory_full_v5_demo
-python -m src.core.memory_query timeline --start 2024-01-01 --end 2024-02-01 --bank memory_full_v5_demo
-python -m src.core.memory_query arc "Alice" --bank memory_full_v5_demo
+python -m memexa.core.memory_query topic "studying" --bank memory_full_v5_demo
+python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01 --bank memory_full_v5_demo
+python -m memexa.core.memory_query arc "Alice" --bank memory_full_v5_demo
 ```
 
 ## License

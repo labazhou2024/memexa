@@ -31,10 +31,10 @@
 | 5 | Demo dataset dry-run ingest                   | 26 cards / 6 sources |
 | 6 | Main repo not modified by this session        | confirmed |
 | 7 | oss-prep tree integrity                       | 306 py / 25 md / 7 yaml / 6 json |
-| 8 | `from src.core.X import Y` covers all 8 packages | 0 import failures |
+| 8 | `from memexa.core.X import Y` covers all 8 packages | 0 import failures |
 | 9 | pytest tests/                                 | 17 passed / 2 skipped (drift; doc'd) |
 | 10 | 25 `TODO(memgraph-oss)` markers              | 0 remaining |
-| 11 | `python -m src.core.memory_query --help`     | 14 subcommands listed |
+| 11 | `python -m memexa.core.memory_query --help`     | 14 subcommands listed |
 
 ## What's INTENTIONALLY left undone
 
@@ -115,7 +115,7 @@ None of those edits originated from this Claude session.
 │   ├── windows/   (Phase-11; depends on naming)
 │   ├── macos/     (Phase-11)
 │   └── linux/     (Phase-11)
-├── src/                             (304 .py files)
+├── memexa/                             (304 .py files)
 │   ├── core/      (206 .py — query, hindsight client, helpers, gates)
 │   ├── extraction/ (56 .py — gate + extract pipeline)
 │   ├── ingestion/ (4 .py — 4 builders + 2 in extraction subdirs = 6 source)

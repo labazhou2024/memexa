@@ -86,12 +86,12 @@ the deliverable templates on top differ.
 
 | Source | Builder | Driver |
 |---|---|---|
-| WeChat | `src/ingestion/v5_wechat_batch_builder.py` | `src/drivers/backfill_v5_wechat_driver.py` |
-| QQ | `src/extraction/qq/qq_history_to_batches.py` | `src/drivers/backfill_v5_qq_driver.py` |
-| Email | `src/ingestion/v5_email_batch_builder.py` | `src/drivers/backfill_v5_email_driver.py` |
-| Browser | `src/ingestion/v5_browser_batch_builder.py` | `src/drivers/backfill_v5_browser_driver.py` |
-| AI chat (Claude Code) | `src/extraction/claude_code_to_v5_converter.py` | `src/drivers/backfill_v5_cc_driver.py` |
-| Audio (microphone) | `src/ingestion/v5_audio_batch_builder.py` | `src/drivers/backfill_v5_audio_driver.py` |
+| WeChat | `memexa/ingestion/v5_wechat_batch_builder.py` | `memexa/drivers/backfill_v5_wechat_driver.py` |
+| QQ | `memexa/extraction/qq/qq_history_to_batches.py` | `memexa/drivers/backfill_v5_qq_driver.py` |
+| Email | `memexa/ingestion/v5_email_batch_builder.py` | `memexa/drivers/backfill_v5_email_driver.py` |
+| Browser | `memexa/ingestion/v5_browser_batch_builder.py` | `memexa/drivers/backfill_v5_browser_driver.py` |
+| AI chat (Claude Code) | `memexa/extraction/claude_code_to_v5_converter.py` | `memexa/drivers/backfill_v5_cc_driver.py` |
+| Audio (microphone) | `memexa/ingestion/v5_audio_batch_builder.py` | `memexa/drivers/backfill_v5_audio_driver.py` |
 
 ## Quickstart
 

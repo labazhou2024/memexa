@@ -1,4 +1,4 @@
-"""Integration tests for :mod:`src.chat.metadata_builder`.
+"""Integration tests for :mod:`memexa.chat.metadata_builder`.
 
 Validates the single-source ``HASH_LEN=32`` invariant and the public
 helpers used by all chat-derived ingestion paths.
@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.chat.metadata_builder import (
+from memexa.chat.metadata_builder import (
     HASH_LEN,
     EXTRACTED_BY_CANONICAL,
     chat_room_hash,

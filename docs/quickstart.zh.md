@@ -71,9 +71,9 @@ memexa doctor
 # → [ok] LLM/gate ... responded 200
 
 # 跑几个子命令
-python -m src.core.memory_query topic    "<你的关键词>"
-python -m src.core.memory_query arc      "<某个实体>"
-python -m src.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
+python -m memexa.core.memory_query topic    "<你的关键词>"
+python -m memexa.core.memory_query arc      "<某个实体>"
+python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
 ```
 
 ## 5. 接入你自己的数据
@@ -105,7 +105,7 @@ driver 跑 6 小时一轮抽取 pipeline。
 ## 7. 打开 dashboard
 
 ```bash
-python -m src.dashboard.sys_monitor.server
+python -m memexa.dashboard.sys_monitor.server
 # 浏览器打开 http://127.0.0.1:8765
 ```
 

@@ -46,7 +46,7 @@ python -m examples.demo_dataset.ingest
 This script:
 
 1. Reads each demo file.
-2. Calls the matching builder in `src/ingestion/` and `src/extraction/`
+2. Calls the matching builder in `memexa/ingestion/` and `memexa/extraction/`
    to produce per-source batches under `data/demo/<source>/batches/`.
 3. Runs the two-LLM extraction (gate + extract). **By default this
    uses a stub LLM** that emits deterministic synthetic V2 envelopes
@@ -61,9 +61,9 @@ After ingestion you should see ~80-120 cards in the
 ## Querying
 
 ```bash
-python -m src.core.memory_query topic "studying" --bank memory_full_v5_demo
-python -m src.core.memory_query timeline --start 2024-01-01 --end 2024-02-01 --bank memory_full_v5_demo
-python -m src.core.memory_query arc "Alice" --bank memory_full_v5_demo
+python -m memexa.core.memory_query topic "studying" --bank memory_full_v5_demo
+python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01 --bank memory_full_v5_demo
+python -m memexa.core.memory_query arc "Alice" --bank memory_full_v5_demo
 ```
 
 ## License

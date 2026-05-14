@@ -20,7 +20,7 @@ but extracts ~30 % fewer cards per batch.
 Yes. Set `MEMEXA_REMOTE_LLM_BASE_URL` to any OpenAI-compatible endpoint.
 Confirmed working: vLLM, Ollama, LiteLLM proxy, DeepSeek API, OpenRouter,
 OneAPI. The extractor prompt is in
-[`src/extraction/pass2_prompt.py`](../src/extraction/pass2_prompt.py)
+[`memexa/extraction/pass2_prompt.py`](../src/extraction/pass2_prompt.py)
 and is provider-agnostic.
 
 ### Q: My Hindsight container won't start.
@@ -47,7 +47,7 @@ Three usual suspects:
 The builder expects WeChatMsg-style JSON. Other exporters use different
 schemas. If you used a different tool, write a 50-line converter that
 turns its output into the canonical envelope schema
-(`src/ingestion/v5_wechat_batch_builder.py` shows the target shape).
+(`memexa/ingestion/v5_wechat_batch_builder.py` shows the target shape).
 
 ### Q: Why does Stage B return 0 cards on HIGH-verdict batches?
 
@@ -65,7 +65,7 @@ recall threshold, not a precision threshold.
 You hit the PG-no-marker drift case. Run:
 
 ```bash
-python -m src.core.pg_bid_cache <source> --force-refresh
+python -m memexa.core.pg_bid_cache <source> --force-refresh
 ```
 
 This rebuilds the local "already in PG" cache from Postgres truth and
@@ -74,11 +74,11 @@ the next driver run skips those batches.
 ### Q: How do I add a new source?
 
 1. Write a builder that converts the raw export to the canonical envelope
-   schema. Use `src/ingestion/v5_email_batch_builder.py` as the template.
+   schema. Use `memexa/ingestion/v5_email_batch_builder.py` as the template.
 2. Write a driver that wires the builder into the 6-hour cycle. Use
-   `src/drivers/backfill_v5_email_driver.py` as the template.
+   `memexa/drivers/backfill_v5_email_driver.py` as the template.
 3. Register the driver in `data/cron_manifest.yaml`.
-4. Run `python -m src.core.cron_orchestrator validate-manifest`.
+4. Run `python -m memexa.core.cron_orchestrator validate-manifest`.
 5. Open a PR.
 
 ## Query
@@ -96,9 +96,9 @@ Walk down the diagnostic ladder:
 
 ```bash
 # 1. broaden recall
-python -m src.core.memory_query quick "X" --salience 0.0 --max-k 50
+python -m memexa.core.memory_query quick "X" --salience 0.0 --max-k 50
 # 2. try the topic fan-out
-python -m src.core.memory_query topic "X" --salience 0.0 --max-cards 100
+python -m memexa.core.memory_query topic "X" --salience 0.0 --max-cards 100
 # 3. check backend health
 memexa doctor
 # 4. check the bank has cards
@@ -147,7 +147,7 @@ WHERE bank_id = 'memory_full_v5'
   AND text LIKE '%<surface-form>%';
 ```
 
-Then run `python -m src.core.pg_bid_cache all --force-refresh` so the
+Then run `python -m memexa.core.pg_bid_cache all --force-refresh` so the
 drivers rebuild their pending set. Open an issue if you want this
 automated.
 

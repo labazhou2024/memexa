@@ -61,7 +61,7 @@ Phase E  反证
 ### `quick`
 
 ```
-python -m src.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
+python -m memexa.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
 ```
 
 - `--max-k` 提高 recall budget (默认 10)。配 `--salience 0.0` 看完整分布
@@ -69,7 +69,7 @@ python -m src.core.memory_query quick "X" [--max-k 30] [--salience 0.0]
 ### `topic`
 
 ```
-python -m src.core.memory_query topic "X" [--max-cards 100] [--by-salience]
+python -m memexa.core.memory_query topic "X" [--max-cards 100] [--by-salience]
 ```
 
 - 11 变体并发扇出 (`ThreadPoolExecutor(max_workers=4)`)
@@ -79,7 +79,7 @@ python -m src.core.memory_query topic "X" [--max-cards 100] [--by-salience]
 ### `arc`
 
 ```
-python -m src.core.memory_query arc "X" [--max-cards 80]
+python -m memexa.core.memory_query arc "X" [--max-cards 80]
 ```
 
 - 8 个意图变体**串行**跑 (每个变体的结果引导下一个)
@@ -88,7 +88,7 @@ python -m src.core.memory_query arc "X" [--max-cards 80]
 ### `timeline`
 
 ```
-python -m src.core.memory_query timeline --start ISO --end ISO [--source S] [--room R]
+python -m memexa.core.memory_query timeline --start ISO --end ISO [--source S] [--room R]
 ```
 
 - 多变体扇出 (event / message / important / email / etc.) → union →
@@ -97,7 +97,7 @@ python -m src.core.memory_query timeline --start ISO --end ISO [--source S] [--r
 ### `person`
 
 ```
-python -m src.core.memory_query person "Y"
+python -m memexa.core.memory_query person "Y"
 ```
 
 - 返合成的 article-card + 底下的 event card
@@ -105,7 +105,7 @@ python -m src.core.memory_query person "Y"
 ### `project`
 
 ```
-python -m src.core.memory_query project "Z"
+python -m memexa.core.memory_query project "Z"
 ```
 
 - 对 (wechat, qq, email, browser_session, browser_search, claude_code)
@@ -114,7 +114,7 @@ python -m src.core.memory_query project "Z"
 ### `pending`
 
 ```
-python -m src.core.memory_query pending
+python -m memexa.core.memory_query pending
 ```
 
 - 读 calendar index。返 active commitment 按 `due_iso` 升序, `salience` 平局
@@ -122,7 +122,7 @@ python -m src.core.memory_query pending
 ### `reflect`
 
 ```
-python -m src.core.memory_query reflect "Q"
+python -m memexa.core.memory_query reflect "Q"
 ```
 
 - 服务端 LLM 综合。慢 (10-60s) 且需 daemon 配好 LLM provider
@@ -133,7 +133,7 @@ python -m src.core.memory_query reflect "Q"
   在 client 端 post-filter。见
   [lessons_learned/01_tags_are_or.md](lessons_learned/01_tags_are_or.md)。
 - **`budget="medium"` 会被拒。** enum 是 `low / mid / high`, 不是 `medium`。
-  见 `src/core/hindsight_client.py`。
+  见 `memexa/core/hindsight_client.py`。
 - **`max_tokens` 太小返 1 张卡。** V2 envelope 卡平均 ~866 tokens。默认
   `max_tokens=1024` 只塞得下 1 张。
 - **legacy bank 0 卡。** 老 `memory_full` bank 没有 `schema:v2` tag 政策;
@@ -145,9 +145,9 @@ python -m src.core.memory_query reflect "Q"
 
 ```bash
 # 诊断
-python -m src.core.memory_query quick "X" --salience 0.0 --max-k 50
+python -m memexa.core.memory_query quick "X" --salience 0.0 --max-k 50
 # 还 0 → 试 topic (不同扇出)
-python -m src.core.memory_query topic "X" --salience 0.0 --max-cards 100
+python -m memexa.core.memory_query topic "X" --salience 0.0 --max-cards 100
 # 还 0 → 看 daemon 是否可达
 curl -s http://127.0.0.1:8888/healthz
 ```

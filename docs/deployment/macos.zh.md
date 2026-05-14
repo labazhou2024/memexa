@@ -54,9 +54,9 @@ bash scripts/macos/install_launchd.sh
 
 | Label                                 | 调度       | 任务                                              |
 |---------------------------------------|-----------|--------------------------------------------------|
-| `org.memexa.cron6h`                    | 6 小时    | `python -m src.cron.cron_orchestrator run-incremental --all` |
+| `org.memexa.cron6h`                    | 6 小时    | `python -m memexa.cron.cron_orchestrator run-incremental --all` |
 | `org.memexa.audio_recorder_watch`      | 2 分钟    | 从 `data/audio/inbox/` 拉新文件, 跑 ASR              |
-| `org.memexa.dashboard`                 | KeepAlive | `python -m src.dashboard.sys_monitor.server`       |
+| `org.memexa.dashboard`                 | KeepAlive | `python -m memexa.dashboard.sys_monitor.server`       |
 
 验证:
 

@@ -85,7 +85,7 @@ Linux/CUDA).
 | Variable                   | Default          | Notes                                         |
 |----------------------------|------------------|-----------------------------------------------|
 | `MEMEXA_DASHBOARD_PORT`     | `8765`           |                                               |
-| `MEMEXA_DASHBOARD_HOSTS`    | unset            | JSON array of remote hosts to probe (see schema in `src/dashboard/sys_monitor/server.py` docstring). Unset → localhost-only dashboard. |
+| `MEMEXA_DASHBOARD_HOSTS`    | unset            | JSON array of remote hosts to probe (see schema in `memexa/dashboard/sys_monitor/server.py` docstring). Unset → localhost-only dashboard. |
 | `MEMEXA_PG_SNAPSHOT_DIR`    | unset            | Path on `MEMEXA_PG_SNAPSHOT_HOST` where `v5_*.sql.gz` snapshots live |
 | `MEMEXA_PG_SNAPSHOT_HOST`   | unset            | ssh target for the snapshot poll              |
 

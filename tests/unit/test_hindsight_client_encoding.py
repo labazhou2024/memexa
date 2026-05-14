@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.core.hindsight_client import _decode_with_fallback
+from memexa.core.hindsight_client import _decode_with_fallback
 
 
 # ---------- Case 1: UTF-8 with BOM ----------

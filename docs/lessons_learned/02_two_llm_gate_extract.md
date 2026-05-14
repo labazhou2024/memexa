@@ -104,9 +104,9 @@ Two where it does not:
 
 ## See also
 
-- `src/extraction/pass1_prompt.py` — gatekeeper prompt template.
-- `src/extraction/pass2_prompt.py` — extractor prompt + V2 envelope spec.
-- `src/extraction/l0_worker_serial.py` — serial worker that ping-pongs
+- `memexa/extraction/pass1_prompt.py` — gatekeeper prompt template.
+- `memexa/extraction/pass2_prompt.py` — extractor prompt + V2 envelope spec.
+- `memexa/extraction/l0_worker_serial.py` — serial worker that ping-pongs
   between the two stages on a single laptop with two model swaps.
-- `src/extraction/l0_worker_api.py` — parallel worker for two OpenAI-
+- `memexa/extraction/l0_worker_api.py` — parallel worker for two OpenAI-
   compatible endpoints (separate gate + extract models).

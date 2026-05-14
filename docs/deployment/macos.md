@@ -55,9 +55,9 @@ Installed:
 
 | Label                                 | Schedule  | Job                                              |
 |---------------------------------------|-----------|--------------------------------------------------|
-| `org.memexa.cron6h`                  | 6 h       | `python -m src.cron.cron_orchestrator run-incremental --all` |
+| `org.memexa.cron6h`                  | 6 h       | `python -m memexa.cron.cron_orchestrator run-incremental --all` |
 | `org.memexa.audio_recorder_watch`    | 2 min     | Pulls new files from `data/audio/inbox/`, runs ASR |
-| `org.memexa.dashboard`               | KeepAlive | `python -m src.dashboard.sys_monitor.server`       |
+| `org.memexa.dashboard`               | KeepAlive | `python -m memexa.dashboard.sys_monitor.server`       |
 
 Verify:
 

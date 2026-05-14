@@ -10,14 +10,14 @@
 > a `TODO(memgraph-oss)` comment near the top of the file.
 >
 > This document is the recipe for replacing those placeholders with
-> calls to `src.core._path_resolver`.
+> calls to `memexa.core._path_resolver`.
 
 ## The shape of the problem
 
 A typical legacy file looks like:
 
 ```python
-# src/core/hard_rule_audit.py
+# memexa/core/hard_rule_audit.py
 PROJECT_PROJECTS_PATTERN = (
     "<USERPROFILE>/.claude/projects/"
     "<WORKSPACE_ID>/memory"
@@ -31,7 +31,7 @@ After migration:
 
 ```python
 from pathlib import Path
-from src.core._path_resolver import workspace_root
+from memexa.core._path_resolver import workspace_root
 
 # workspace_root() returns Path(~/.claude/projects/<workspace-id>) by
 # default; users can override via MEMEXA_WORKSPACE_ROOT.
@@ -67,7 +67,7 @@ DEFAULT_BANK_PATH = "<USERPROFILE>/.claude/data/audit_corpus.jsonl"
 After:
 
 ```python
-from src.core._path_resolver import workspace_root
+from memexa.core._path_resolver import workspace_root
 
 DEFAULT_BANK_PATH = workspace_root().parent / ".claude" / "data" / "audit_corpus.jsonl"
 ```
@@ -76,7 +76,7 @@ Convenience: `_path_resolver` already exposes `audit_corpus_path()`
 for this specific file, so prefer:
 
 ```python
-from src.core._path_resolver import audit_corpus_path
+from memexa.core._path_resolver import audit_corpus_path
 
 DEFAULT_BANK_PATH = audit_corpus_path()
 ```

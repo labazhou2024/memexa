@@ -1,4 +1,4 @@
-"""Integration tests for :mod:`src.core._path_resolver`.
+"""Integration tests for :mod:`memexa.core._path_resolver`.
 
 Verifies the env → config → default resolution order and that cached
 results can be reset between tests.
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from src.core import _path_resolver
+from memexa.core import _path_resolver
 
 pytestmark = pytest.mark.integration
 

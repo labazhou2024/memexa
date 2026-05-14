@@ -49,7 +49,7 @@ pre-commit install
 
 - Python: PEP 8, `black` formatter (行长 100), `ruff` lint。推前
   `make fmt`
-- Type hint 鼓励但不必须。`src/core/` 的 public function 应加 type
+- Type hint 鼓励但不必须。`memexa/core/` 的 public function 应加 type
 - 测试在 `tests/unit/`, `tests/integration/`, `tests/e2e/`。用 `pytest`
 - Commit message: 祈使语气, subject 行 ≤72 字符
 
