@@ -72,7 +72,7 @@ windows = [
     "pywin32>=306; sys_platform == 'win32'",
     "uiautomation>=2.0; sys_platform == 'win32'",
     "pystray>=0.19; sys_platform == 'win32'",
-    "keyboard>=0.13; sys_platform == 'win32'",
+    "keyboard>=0.13.5; sys_platform == 'win32'",
 ]
 bench = [
     # Optional: in-process benchmark harness against a Hindsight server.
