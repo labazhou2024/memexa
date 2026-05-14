@@ -1,0 +1,11 @@
+{
+  "session_id": "demo_audio_001",
+  "started_at": "2024-01-11T08:32:00+08:00",
+  "speakers": ["demo_user"],
+  "utterances": [
+    {"speaker_id": "demo_user", "start_ms": 0,     "end_ms": 4200,  "text": "今天想理一下中期报告的实验部分。"},
+    {"speaker_id": "demo_user", "start_ms": 4500,  "end_ms": 9800,  "text": "Bob 的数据明早会齐，Carol 的实验我已经看过了，没问题。"},
+    {"speaker_id": "demo_user", "start_ms": 10200, "end_ms": 15600, "text": "我负责的第三部分今晚写完，明天给 Alice 合稿。"},
+    {"speaker_id": "demo_user", "start_ms": 16000, "end_ms": 21400, "text": "中期报告 16 号晚上 11 点 59 截止，时间还算够。"}
+  ]
+}

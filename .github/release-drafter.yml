@@ -1,0 +1,59 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+template: |
+  ## Highlights
+  $CHANGES
+
+  ## Installation
+  ```bash
+  pip install memex==$RESOLVED_VERSION
+  ```
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+categories:
+  - title: ⚠ Breaking changes
+    labels:
+      - breaking
+  - title: 🚀 Features
+    labels:
+      - feature
+      - enhancement
+  - title: 🐛 Bug fixes
+    labels:
+      - bug
+      - fix
+  - title: 📝 Documentation
+    labels:
+      - docs
+  - title: 🔬 Tests
+    labels:
+      - tests
+  - title: 🛠 Internal
+    labels:
+      - refactor
+      - chore
+      - ci
+version-resolver:
+  major:
+    labels:
+      - breaking
+  minor:
+    labels:
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - bug
+      - fix
+      - docs
+      - chore
+      - refactor
+  default: patch
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+exclude-labels:
+  - skip-changelog
+  - ignore-for-release
+exclude-contributors:
+  - dependabot
+  - dependabot[bot]

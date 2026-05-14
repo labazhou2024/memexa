@@ -1,0 +1,147 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memex"
+version = "0.1.0a0"
+description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = [
+    "personal-memory", "knowledge-graph", "chinese-nlp",
+    "retrieval-augmented-generation", "self-hosted",
+    "deliverable-factory", "action-card", "report-generation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Natural Language :: Chinese (Simplified)",
+]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "aiosqlite>=0.20",
+    "PyYAML>=6.0",
+    "filelock>=3.16",
+    "psutil>=5.9",
+    "openai>=1.30",
+    "psycopg2-binary>=2.9",
+    "numpy>=1.26",
+    "rich>=13.7",
+    "json-repair>=0.30",
+    # NOTE: memex talks to a Hindsight FastAPI server over HTTP. The plain
+    # `hindsight_client.py` shipped here is a pure httpx wrapper and needs
+    # no extra package. The `bench` extra adds the upstream `hindsight` SDK
+    # only when you want to run the in-process benchmark harness.
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5",
+    "pytest-timeout>=2.3",
+    "respx>=0.21",
+    "ruff>=0.4",
+    "black>=24.4",
+    "pre-commit>=3.7",
+    "mypy>=1.10",
+    "build>=1.2",
+    "twine>=5.0",
+]
+audio = [
+    "mlx-whisper>=0.4; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "faster-whisper>=1.0; sys_platform != 'darwin' or platform_machine != 'arm64'",
+    "silero-vad>=5.0",
+    "speechbrain>=1.0",
+]
+windows = [
+    "pywin32>=306; sys_platform == 'win32'",
+    "uiautomation>=2.0; sys_platform == 'win32'",
+    "pystray>=0.19; sys_platform == 'win32'",
+    "keyboard>=0.13; sys_platform == 'win32'",
+]
+bench = [
+    # Optional: in-process benchmark harness against a Hindsight server.
+    # Plain CLI usage does NOT require these.
+    "hindsight-client>=0.5,<0.7",
+    "hindsight-all>=0.4,<0.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/labazhou2024/memex"
+Documentation = "https://github.com/labazhou2024/memex/tree/main/docs"
+Issues = "https://github.com/labazhou2024/memex/issues"
+"Pro tier" = "https://github.com/labazhou2024/memex/blob/main/docs/saas.md"
+
+[project.scripts]
+memex = "src.cli.main:main"
+"镜我" = "src.cli.main:main"
+memex-query = "src.cli.main:main"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+exclude = ["tests*", "examples*", ".audit*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",  # line too long (line-length handles it)
+    "N803",  # argument lowercase (CamelCase legit in some adapters)
+    "N806",  # variable lowercase
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["F841", "B011"]
+"src/extraction/pass2_prompt.py" = ["E501"]  # prompts have long lines
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "-p no:cacheprovider",
+]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration (requires running backend)",
+    "e2e: marks tests as end-to-end (requires docker-compose)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:hindsight_client.*",
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_equality = true
+ignore_missing_imports = true

@@ -1,0 +1,6 @@
+{"ts": "2024-01-04T22:00:00+08:00", "role": "user", "content": "帮我设计一个分布式日志聚合系统的初步架构"}
+{"ts": "2024-01-04T22:00:10+08:00", "role": "assistant", "content": "可以从三层入手：采集层（Fluentd/Filebeat）、传输层（Kafka）、存储层（Elasticsearch 或 ClickHouse）。每一层都有取舍。你的预期日量大约多少？"}
+{"ts": "2024-01-04T22:01:00+08:00", "role": "user", "content": "1TB/天，1000 个 host。"}
+{"ts": "2024-01-04T22:01:10+08:00", "role": "assistant", "content": "在这个量级上 ClickHouse + Kafka 是稳的组合。Elasticsearch 在 >500GB/天 时索引膨胀和成本都成问题。"}
+{"ts": "2024-01-09T11:00:00+08:00", "role": "user", "content": "组会中期报告我应该怎么组织实验部分？"}
+{"ts": "2024-01-09T11:00:10+08:00", "role": "assistant", "content": "实验部分建议三段式：实验设置（数据集、对比组、评估指标）；结果（用表格 + 一张关键图）；讨论（为什么这个数字、与文献的差异）。"}

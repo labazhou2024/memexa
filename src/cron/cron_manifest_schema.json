@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "memex Cron Manifest",
+  "description": "JSON Schema for data/cron_manifest.yaml (R-5 registry)",
+  "type": "object",
+  "required": ["version", "drivers", "schtasks"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "drivers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DriverEntry"
+      }
+    },
+    "schtasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SchtaskEntry"
+      }
+    }
+  },
+  "definitions": {
+    "DriverEntry": {
+      "type": "object",
+      "required": ["id", "host", "schedule", "driver_module", "args", "incremental_args"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "No shell metachars; lowercase alphanumeric + underscore"
+        },
+        "host": {
+          "type": "string",
+          "enum": ["win", "mac"]
+        },
+        "schedule": {
+          "type": "string",
+          "pattern": "^(daily \\d{2}:\\d{2}|every \\d+h|every \\d+min|@\\w+)$"
+        },
+        "driver_module": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.]*$"
+        },
+        "args": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "incremental_args": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 0,
+          "description": "Args appended for incremental run; empty list = use driver default behavior (cursor-based)"
+        },
+        "description": {
+          "type": "string"
+        },
+        "ssh_host": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]*$",
+          "description": "No shell metachars in ssh host"
+        },
+        "skip_in_orchestrator": {
+          "type": "boolean",
+          "description": "If true, run_all_for_host() skips this driver (owned by dedicated schtask, e.g. audio→AudioIngest6h)"
+        }
+      }
+    },
+    "SchtaskEntry": {
+      "type": "object",
+      "required": ["id", "host", "task_path", "schedule"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+        },
+        "host": {
+          "type": "string",
+          "enum": ["win", "mac"]
+        },
+        "task_path": {
+          "type": "string",
+          "pattern": "^\\\\[A-Za-z0-9\\\\]+$"
+        },
+        "schedule": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

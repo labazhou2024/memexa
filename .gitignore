@@ -1,0 +1,61 @@
+# Secrets
+config.yaml
+config.yml
+.env
+.env.*
+!.env.example
+!config/*.example.yaml
+**/secrets/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Runtime data (user MUST NOT commit personal data)
+data/
+!examples/demo_dataset/
+work/
+logs/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# OS
+desktop.ini
+
+# Build artifacts
+*.spec
+*.exe
+dist-electron/
+out/
+
+# Tool caches
+.ruff_cache/
+.mypy_cache/
+
+# Local dev marker
+.local
+
+# Maintainer-only audit artifacts (NEVER commit)
+.audit/

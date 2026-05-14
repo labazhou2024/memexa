@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "memex · 镜我: a self-hosted Chinese personal memory graph"
+abstract: >-
+  memex ingests six categories of personal Chinese-language data
+  (WeChat, QQ, email, browser history, AI conversations, voice memos),
+  extracts entities and temporal evidence with a two-LLM gate-extract
+  pipeline (gatekeeper + extractor), and exposes a query CLI plus a
+  five-phase semantic-state inference workflow over a PostgreSQL +
+  pgvector backed memory graph.
+authors:
+  - alias: "labazhou2024"
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/labazhou2024/memex"
+url: "https://github.com/labazhou2024/memex"
+version: "0.1.0a0"
+date-released: "2026-05-14"
+keywords:
+  - personal-memory
+  - knowledge-graph
+  - chinese-nlp
+  - retrieval-augmented-generation
+  - self-hosted
+  - postgresql
+  - pgvector
+  - bge-m3
+  - llm-pipeline

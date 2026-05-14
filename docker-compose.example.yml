@@ -1,0 +1,66 @@
+# Example docker-compose setup for the memory backend.
+#
+# Copy to docker-compose.yml and edit if you need to:
+# - change the host port
+# - persist data outside the default named volume
+# - point at a pre-existing PostgreSQL instance instead of the bundled one
+#
+# Start: docker compose -f docker-compose.example.yml up -d
+# Stop:  docker compose -f docker-compose.example.yml down
+# Wipe:  docker compose -f docker-compose.example.yml down -v
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: memex-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: memex
+      POSTGRES_PASSWORD: memex_dev
+      POSTGRES_DB: memex
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memex -d memex"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight-api:latest
+    container_name: memex-hindsight
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HINDSIGHT_DATABASE_URL: postgresql://memex:memex_dev@postgres:5432/memex
+      HINDSIGHT_HOST: 0.0.0.0
+      HINDSIGHT_PORT: 8888
+      HINDSIGHT_LOG_LEVEL: info
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8888/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/dashboard.Dockerfile
+    container_name: memex-dashboard
+    restart: unless-stopped
+    depends_on:
+      hindsight:
+        condition: service_healthy
+    environment:
+      MEMEX_HINDSIGHT_URL: http://hindsight:8888
+    ports:
+      - "8765:8765"
+
+volumes:
+  pg-data:

@@ -1,0 +1,49 @@
+# Release orchestration config — consumed by scripts/release_orchestrator.sh
+# Each field corresponds to one stage of the oss-release skill.
+
+owner: labazhou2024
+repo: memex
+description: "Self-hosted Chinese personal memory graph. Six sources, two LLMs, one graph."
+homepage: "https://github.com/labazhou2024/memex"
+
+# Stage 2: profile README (optional; omit to skip)
+profile_readme:
+  owner: labazhou2024
+  repo: labazhou2024
+  path: README.md
+  source_file: .audit/research/profile_readme_new.md
+
+# Stage 3: pre-flight repo renames (optional)
+preflight_renames:
+  - { from: claude-code, to: claude-code-mirror }
+
+# Stage 6: discoverability metadata
+topics:
+  - personal-memory
+  - knowledge-graph
+  - chinese-nlp
+  - retrieval-augmented-generation
+  - self-hosted
+  - postgresql
+  - pgvector
+  - bge-m3
+  - llm-pipeline
+  - cli
+
+discussions: true
+secret_scanning: true
+
+# Stage 7: branch protection
+branch_protect:
+  branch: main
+  required_status_checks:
+    - test
+  enforce_admins: false
+
+# Stage 9: release
+# Note: rc1 is a release candidate; v0.1.0 stable cut after ~1 week of
+# feedback. Both tags will point at the same single orphan commit unless
+# rc1 surfaces issues requiring a re-tag.
+release_tag: v0.1.0-rc1
+release_title: "v0.1.0-rc1 — first public release candidate"
+release_use_existing_tag: v0.1.0-rc1

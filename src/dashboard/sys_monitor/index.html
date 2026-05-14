@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>memex sys_monitor</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 12px;
+    font: 13px/1.4 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0c1014; color: #d6dde6;
+  }
+  h1 { margin: 0 0 10px; font-size: 15px; letter-spacing: 0.5px; color: #7fb3ff; }
+  h1 .meta { float: right; font-size: 11px; color: #6c7a89; font-weight: normal; }
+  .host {
+    display: grid; gap: 10px; margin-bottom: 10px;
+  }
+  .host.split { grid-template-columns: 1fr 1.4fr; }
+  @media (max-width: 1500px) { .host.split { grid-template-columns: 1fr; } }
+  .card {
+    background: #161e26; border: 1px solid #2a3340; border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .card h2 {
+    margin: 0 0 8px; font-size: 13px; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .card h2 .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 8px;
+    background: #2a3340; color: #a8b2bf; margin-left: 6px; font-weight: normal;
+  }
+  .card h2 small { font-weight: normal; color: #6c7a89; font-size: 11px; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; margin: 4px 0 8px; }
+  .stat { flex: 1; min-width: 70px; }
+  .stat .lbl { color: #6c7a89; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .val { font-size: 17px; color: #e8eef5; font-weight: 600; }
+  .stat .val .unit { font-size: 11px; color: #6c7a89; font-weight: normal; margin-left: 2px; }
+  .bar { background: #0c1014; height: 5px; border-radius: 3px; overflow: hidden; margin-top: 2px; }
+  .bar .fill { height: 100%; transition: width 0.4s; }
+  .bar .fill.cpu { background: linear-gradient(90deg, #4ade80 0%, #fbbf24 70%, #f87171 100%); }
+  .bar .fill.mem { background: linear-gradient(90deg, #60a5fa 0%, #a78bfa 70%, #f87171 100%); }
+  .bar .fill.gpu { background: linear-gradient(90deg, #34d399 0%, #fbbf24 60%, #f87171 100%); }
+  canvas { width: 100% !important; max-height: 60px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+  table th { text-align: left; color: #6c7a89; font-weight: 500; padding: 3px 4px; border-bottom: 1px solid #2a3340; }
+  table td { padding: 2px 4px; border-bottom: 1px solid #1a232c; color: #b8c2cc; }
+  table td.num { text-align: right; font-variant-numeric: tabular-nums; color: #d6dde6; }
+  table td.cmd { color: #95a3ae; font-family: "JetBrains Mono", Consolas, monospace; font-size: 10.5px; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table td.user { color: #7fb3ff; font-family: "JetBrains Mono", Consolas, monospace; font-size: 10.5px; }
+  .tabs { display: flex; gap: 4px; margin: 6px 0 4px; }
+  .tab {
+    padding: 3px 10px; border-radius: 3px; cursor: pointer; font-size: 11px;
+    background: #0c1014; color: #6c7a89; border: 1px solid transparent;
+  }
+  .tab.active { background: #2a3340; color: #e8eef5; border-color: #3b4759; }
+  .err-msg { color: #f87171; font-size: 11px; font-family: monospace; padding: 8px; background: #1f0f0f; border-radius: 3px; margin-top: 6px; }
+
+  /* GPU card grid (GPU host) */
+  .gpu-list { display: grid; gap: 8px; }
+  .gpu-card {
+    background: #0e1620; border: 1px solid #1f2a36; border-radius: 4px;
+    padding: 6px 8px;
+  }
+  .gpu-card .gpu-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .gpu-card .gpu-id { color: #7fb3ff; font-weight: 600; font-size: 12px; }
+  .gpu-card .gpu-name { color: #6c7a89; font-size: 10.5px; }
+  .gpu-card .gpu-stats {
+    font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px;
+    color: #c8d3de; margin-bottom: 3px;
+  }
+  .gpu-card .gpu-stats .util { color: #fbbf24; }
+  .gpu-card .gpu-stats .temp.hot { color: #f87171; }
+  .gpu-card .gpu-stats .pow { color: #a8b2bf; }
+  .gpu-card .gpu-procs {
+    font-size: 10.5px; font-family: "JetBrains Mono", Consolas, monospace;
+    margin-top: 4px;
+  }
+  .gpu-card .gpu-procs .row-p {
+    display: grid; grid-template-columns: 70px 80px 60px 1fr;
+    gap: 6px; padding: 1px 0; color: #b8c2cc;
+  }
+  .gpu-card .gpu-procs .row-p .u { color: #7fb3ff; }
+  .gpu-card .gpu-procs .row-p .m { color: #fbbf24; text-align: right; }
+  .gpu-card .gpu-procs .row-p .c { color: #95a3ae; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gpu-card .gpu-procs .no-procs { color: #6c7a89; font-style: italic; padding: 4px 0; }
+
+  .badges { font-size: 10.5px; color: #6c7a89; margin-top: 4px; }
+  .badges span { display: inline-block; padding: 1px 6px; background: #0c1014; border-radius: 2px; margin-right: 4px; }
+  .badges .hot { color: #fbbf24; }
+  .route-badge {
+    display: inline-block; padding: 1px 6px; border-radius: 8px;
+    font-size: 10px; background: #1b2a3b; color: #7fb3ff;
+    margin-left: 4px; font-weight: 500;
+  }
+  .route-badge.fallback { background: #3a2818; color: #fbbf24; }
+
+  /* Kill button (small × in process tables) */
+  .kill-btn {
+    background: #2a1818; color: #f87171; border: 1px solid #4a2828;
+    border-radius: 3px; padding: 1px 6px; cursor: pointer;
+    font-size: 10px; font-family: inherit;
+  }
+  .kill-btn:hover { background: #4a2828; }
+  .kill-menu {
+    position: fixed; z-index: 999;
+    background: #1b232c; border: 1px solid #4a2828; border-radius: 6px;
+    padding: 12px; min-width: 280px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    font-size: 12px;
+  }
+  .kill-menu h3 { margin: 0 0 8px; color: #f87171; font-size: 13px; }
+  .kill-menu .info { color: #95a3ae; margin: 4px 0; font-family: monospace; font-size: 11px; word-break: break-all; }
+  .kill-menu .row-btns { display: flex; gap: 6px; margin-top: 10px; }
+  .kill-menu button {
+    flex: 1; padding: 6px 10px; border: 1px solid #2a3340;
+    background: #0c1014; color: #d6dde6; border-radius: 4px;
+    cursor: pointer; font-size: 11px;
+  }
+  .kill-menu button.term { background: #3a2818; color: #fbbf24; border-color: #5a3a18; }
+  .kill-menu button.kill { background: #4a1818; color: #f87171; border-color: #6a2828; }
+  .kill-menu button.cancel { background: #1b232c; color: #95a3ae; }
+  .kill-menu button:hover { filter: brightness(1.3); }
+  .kill-result {
+    margin-top: 8px; padding: 6px 8px; font-size: 11px;
+    border-radius: 3px; font-family: monospace;
+  }
+  .kill-result.ok  { background: #0e2a18; color: #6ee7b7; }
+  .kill-result.err { background: #2a0e0e; color: #f87171; }
+</style>
+</head>
+<body>
+<h1>
+  memex · sys_monitor
+  <span class="meta">
+    poll <span id="poll">2s</span> · last <span id="last">--</span> · rtt <span id="rtt">--</span>
+  </span>
+</h1>
+
+<!-- WIN row (CPU only) -->
+<div class="host">
+  <div class="card" id="card-win-cpu">
+    <h2>
+      <span><span class="ok">●</span> Windows (本机) — CPU</span>
+      <small id="win-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">CPU</div>
+        <div class="val"><span id="win-cpu">--</span><span class="unit">%</span></div>
+        <div class="bar"><div class="fill cpu" id="win-cpu-bar" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">RAM</div>
+        <div class="val"><span id="win-mem">--</span><span class="unit"> GiB</span></div>
+        <div class="bar"><div class="fill mem" id="win-mem-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <canvas id="win-chart"></canvas>
+    <div class="tabs">
+      <span class="tab active" data-host="win" data-tab="top_cpu">Top CPU</span>
+      <span class="tab" data-host="win" data-tab="top_mem">Top Mem</span>
+      <span class="tab" data-host="win" data-tab="users">Users</span>
+    </div>
+    <div id="win-table"></div>
+  </div>
+</div>
+
+<!-- MAC row (CPU | MLX/GPU procs) -->
+<div class="host split">
+  <div class="card" id="card-mac-cpu">
+    <h2>
+      <span><span class="ok">●</span> Mac Studio — CPU</span>
+      <small id="mac-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">CPU</div>
+        <div class="val"><span id="mac-cpu">--</span><span class="unit">%</span></div>
+        <div class="bar"><div class="fill cpu" id="mac-cpu-bar" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">RAM 统一内存</div>
+        <div class="val"><span id="mac-mem">--</span><span class="unit"> GiB</span></div>
+        <div class="bar"><div class="fill mem" id="mac-mem-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <canvas id="mac-chart"></canvas>
+    <div class="badges" id="mac-badges"></div>
+    <div class="tabs">
+      <span class="tab active" data-host="mac" data-tab="top_cpu">Top CPU</span>
+      <span class="tab" data-host="mac" data-tab="top_mem">Top Mem</span>
+      <span class="tab" data-host="mac" data-tab="users">Users</span>
+    </div>
+    <div id="mac-table"></div>
+  </div>
+
+  <div class="card" id="card-mac-gpu">
+    <h2>
+      <span>Mac GPU — <span id="mac-gpu-model">--</span></span>
+      <small id="mac-gpu-meta">IOAccelerator · 与 Activity Monitor 同口径</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">GPU 利用率</div>
+        <div class="val"><span id="mac-gpu-util">--</span><span class="unit">%</span></div>
+        <div class="bar"><div class="fill gpu" id="mac-gpu-bar" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">GPU 显存 (in-use)</div>
+        <div class="val"><span id="mac-gpu-mem">--</span><span class="unit"> GiB</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">wired / compressed</div>
+        <div class="val"><span id="mac-wired">--</span>/<span id="mac-compressed">--</span><span class="unit"> GiB</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">最近提交 PID</div>
+        <div class="val" id="mac-gpu-last" style="font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">--</div>
+      </div>
+    </div>
+    <div class="badges" id="mac-gpu-detail-badges"></div>
+    <div id="mac-gpu-procs"></div>
+  </div>
+</div>
+
+<!-- GPU host row (CPU | GPU x4 with per-proc) -->
+<div class="host split">
+  <div class="card" id="card-ustc-cpu">
+    <h2>
+      <span><span class="ok">●</span> GPU host GPU server — CPU</span>
+      <small id="ustc-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">CPU</div>
+        <div class="val"><span id="ustc-cpu">--</span><span class="unit">%</span></div>
+        <div class="bar"><div class="fill cpu" id="ustc-cpu-bar" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">RAM</div>
+        <div class="val"><span id="ustc-mem">--</span><span class="unit"> GiB</span></div>
+        <div class="bar"><div class="fill mem" id="ustc-mem-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <canvas id="ustc-chart"></canvas>
+    <div class="badges" id="ustc-badges"></div>
+    <div class="tabs">
+      <span class="tab active" data-host="ustc" data-tab="top_cpu">Top CPU</span>
+      <span class="tab" data-host="ustc" data-tab="top_mem">Top Mem</span>
+      <span class="tab" data-host="ustc" data-tab="users">Users</span>
+    </div>
+    <div id="ustc-table"></div>
+  </div>
+
+  <div class="card" id="card-ustc-gpu">
+    <h2>
+      <span>GPU host GPU — 4× RTX A6000 (per-PID 显存排序)</span>
+      <small id="ustc-gpu-meta">--</small>
+    </h2>
+    <div class="gpu-list" id="ustc-gpus"></div>
+  </div>
+</div>
+
+<!-- API Usage + Memory System row -->
+<div class="host split">
+  <div class="card" id="card-api-usage">
+    <h2>
+      <span><span id="api-health-dot" class="ok">●</span> GPU host API 使用情况 <span id="api-health-badge" class="badge"></span></span>
+      <small id="api-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">24h 请求</div>
+        <div class="val"><span id="api-req-24h">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">24h tokens in</div>
+        <div class="val"><span id="api-tokin-24h">--</span><span class="unit">k</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">24h tokens out</div>
+        <div class="val"><span id="api-tokout-24h">--</span><span class="unit">k</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">24h cards</div>
+        <div class="val"><span id="api-cards-24h">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">非 LOW 0-card 率</div>
+        <div class="val"><span id="api-zero-rate">--</span><span class="unit">%</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">parse_fail 24h</div>
+        <div class="val"><span id="api-parsefail-24h">--</span></div>
+      </div>
+    </div>
+    <div class="badges" id="api-verdict-badges"></div>
+    <div id="api-source-table" style="margin-top: 6px;"></div>
+    <div class="badges" id="api-last-call" style="margin-top: 6px;"></div>
+  </div>
+
+  <div class="card" id="card-memory-system">
+    <h2>
+      <span><span class="ok">●</span> Memory System 控制面板</span>
+      <small id="mem-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">PG memory_full_v5</div>
+        <div class="val"><span id="mem-bank">--</span><span class="unit"> nodes</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Outbox 队列</div>
+        <div class="val"><span id="mem-outbox">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Schtasks</div>
+        <div class="val"><span id="mem-schtasks">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><span id="mem-pending-label">source 待抽</span></div>
+        <div class="val"><span id="mem-pending-total">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">PG snapshot</div>
+        <div class="val" style="font-size:14px"><span id="mem-pg-snapshot">--</span></div>
+      </div>
+    </div>
+    <div id="mem-pending-table" style="margin-top: 6px;"></div>
+    <div class="badges" id="mem-drivers" style="margin-top: 6px;"></div>
+  </div>
+</div>
+
+<!-- Cron Health 监控 (added 2026-05-12, T2-10) -->
+<div class="host">
+  <div class="card" id="card-cron-health">
+    <h2>
+      <span><span id="ch-status-dot" class="warn">●</span> Cron 健康 / Scheduled Tasks
+      <span id="ch-status-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="ch-meta">--</small>
+    </h2>
+    <div id="ch-table" style="margin-top:6px;font-size:12px;font-family:monospace"></div>
+  </div>
+</div>
+
+<!-- Cron 实时进度 (added 2026-05-13, per user req "显示现在进行到哪里了") -->
+<div class="host">
+  <div class="card" id="card-cron-activity">
+    <h2>
+      <span><span id="ca-dot" class="warn">●</span> Cron 实时进度 / Live Activity
+      <span id="ca-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="ca-meta">--</small>
+    </h2>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">GraphMaintenance6h 驱动状态</div>
+    <div id="ca-drivers" style="margin-top:4px;font-size:12px;font-family:monospace"></div>
+    <div style="margin-top:10px;font-size:13px;color:#aaa">Per-source 累积进度 (filesystem 真值)</div>
+    <div id="ca-per-source" style="margin-top:4px;font-size:12px;font-family:monospace"></div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">Audio Transcripts 状态</div>
+    <div class="row" style="margin-top:4px">
+      <div class="stat">
+        <div class="lbl">sessions</div>
+        <div class="val"><span id="ca-audio-sessions">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">latest mtime</div>
+        <div class="val"><span id="ca-audio-latest-age" style="font-size:13px">--</span></div>
+      </div>
+    </div>
+    <div id="ca-audio-latest" style="margin-top:6px;font-size:12px;color:#aaa"></div>
+  </div>
+</div>
+
+<!-- 图记忆查询监控 (added 2026-05-12) -->
+<div class="host">
+  <div class="card" id="card-graph-query">
+    <h2>
+      <span><span id="gq-active-dot" class="warn">●</span> 图记忆查询 / Graph Memory Queries
+      <span id="gq-active-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="gq-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">最近 1 分钟查询</div>
+        <div class="val"><span id="gq-recent-1m">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">最近 1 小时查询</div>
+        <div class="val"><span id="gq-recent-1h">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Phase B 抽取</div>
+        <div class="val"><span id="gq-phaseb-pct">--</span><span class="unit">%</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Phase B 速率</div>
+        <div class="val"><span id="gq-phaseb-rate">--</span><span class="unit">/s</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Phase B ETA</div>
+        <div class="val" style="font-size:13px;font-weight:normal"><span id="gq-phaseb-eta">--</span></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">按子命令统计</div>
+    <div id="gq-by-subcmd" style="margin-top:4px;font-size:12px;font-family:monospace"></div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">最近查询 (newest first)</div>
+    <div id="gq-recent-list" style="margin-top:4px;font-size:12px;font-family:monospace;max-height:280px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- B1 NEW (2026-05-13): Calendar daemon panel -->
+<div class="host">
+  <div class="card" id="card-calendar">
+    <h2>
+      <span><span id="cal-dot" class="ok">●</span> Calendar / 日历守护
+      <span id="cal-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="cal-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">active</div>
+        <div class="val"><span id="cal-active">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">📌pinned</div>
+        <div class="val"><span id="cal-pinned">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">cancel veto</div>
+        <div class="val"><span id="cal-persistent">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">last tick</div>
+        <div class="val" style="font-size:13px"><span id="cal-tick-age">--</span></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">24h filter drops + veto hits</div>
+    <div id="cal-drops" style="margin-top:4px;font-size:12px;font-family:monospace"></div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">Upcoming commitments (next 14d)</div>
+    <div id="cal-upcoming" style="margin-top:4px;font-size:12px;font-family:monospace;max-height:240px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- B1 NEW (2026-05-13): Dead-letter panel -->
+<div class="host">
+  <div class="card" id="card-dead-letter">
+    <h2>
+      <span><span id="dl-dot" class="ok">●</span> Dead-letter / POST 失败累积
+      <span id="dl-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="dl-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">total dead</div>
+        <div class="val"><span id="dl-total">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">health</div>
+        <div class="val" style="font-size:13px"><span id="dl-health">--</span></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">By source</div>
+    <div id="dl-by-source" style="margin-top:4px;font-size:12px;font-family:monospace"></div>
+    <div style="margin-top:8px;font-size:13px;color:#aaa">Recent dead-letter (oldest first)</div>
+    <div id="dl-recent" style="margin-top:4px;font-size:12px;font-family:monospace;max-height:200px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- B1 NEW (2026-05-13): Identity manifest panel -->
+<div class="host">
+  <div class="card" id="card-identity">
+    <h2>
+      <span><span id="id-dot" class="ok">●</span> Identity / 实体身份覆盖
+      <span id="id-badge" class="badge" style="margin-left:8px">--</span></span>
+      <small id="id-meta">--</small>
+    </h2>
+    <div class="row">
+      <div class="stat">
+        <div class="lbl">persons</div>
+        <div class="val"><span id="id-persons">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">surface forms</div>
+        <div class="val"><span id="id-surface">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">canonical</div>
+        <div class="val"><span id="id-canon">--</span></div>
+      </div>
+      <div class="stat">
+        <div class="lbl">manifest age</div>
+        <div class="val" style="font-size:13px"><span id="id-mtime">--</span></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#888">identity_aliases.json + identity_manifest.yaml — Win-end query (memory_query.quick) 自动加 canon: tag filter</div>
+  </div>
+</div>
+
+<script>
+const HISTORY = 60;
+const POLL_MS = 2000;
+const state = {
+  win:  { cpu: [], mem: [], gpu: [] },
+  mac:  { cpu: [], mem: [], gpu: [] },
+  ustc: { cpu: [], mem: [], gpu: [] },
+  tab:  { win: "top_cpu", mac: "top_cpu", ustc: "top_cpu" },
+  latest: null,
+};
+
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[c]));
+}
+function $(id) { return document.getElementById(id); }
+function fmtGiB(mb) { return (mb / 1024).toFixed(1); }
+function clamp(v, mx) { return Math.max(0, Math.min(100, (v / mx) * 100)); }
+
+function drawChart(canvasId, hist) {
+  const cvs = $(canvasId);
+  if (!cvs) return;
+  const ctx = cvs.getContext("2d");
+  const w = cvs.width = cvs.clientWidth;
+  const h = cvs.height = 60;
+  ctx.clearRect(0, 0, w, h);
+  if (hist.cpu.length < 2) return;
+  function line(arr, color, max) {
+    ctx.beginPath();
+    arr.forEach((v, i) => {
+      const x = (i / (HISTORY - 1)) * w;
+      const y = h - (Math.min(v, max) / max) * (h - 4) - 2;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  function pad(a) { const out = a.slice(-HISTORY); while (out.length < HISTORY) out.unshift(0); return out; }
+  line(pad(hist.cpu), "#4ade80", 100);
+  line(pad(hist.mem), "#60a5fa", 100);
+  if (hist.gpu.length > 0) line(pad(hist.gpu), "#fbbf24", 100);
+  ctx.strokeStyle = "#1f2a36"; ctx.lineWidth = 0.5;
+  for (let f of [0.25, 0.5, 0.75]) {
+    const y = h - f * (h - 4) - 2;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+}
+
+function renderTable(host, x) {
+  const tab = state.tab[host];
+  const tableEl = $(host + "-table");
+  if (!x || !x.ok) {
+    tableEl.innerHTML = `<div class="err-msg">probe error: ${escapeHtml(x?.error || "no data")}${x?.stderr ? "<br>" + escapeHtml(x.stderr) : ""}</div>`;
+    return;
+  }
+  const procs = x.procs || {};
+  const rows = procs[tab] || [];
+  let html = "<table><thead><tr>";
+  if (tab === "users") {
+    html += "<th>user</th><th>n</th><th>cpu%</th><th>mem</th></tr></thead><tbody>";
+    for (const r of rows) {
+      html += `<tr><td class="user">${escapeHtml(r.user)}</td>` +
+              `<td class="num">${r.n}</td>` +
+              `<td class="num">${r.cpu.toFixed(1)}</td>` +
+              `<td class="num">${(r.mem_mb/1024).toFixed(2)}G</td></tr>`;
+    }
+  } else {
+    html += "<th>pid</th><th>user</th><th>cpu%</th><th>mem</th><th>cmd</th><th></th></tr></thead><tbody>";
+    for (const r of rows) {
+      const safeCmd = escapeHtml(r.cmd);
+      html += `<tr><td class="num">${r.pid}</td>` +
+              `<td class="user">${escapeHtml(r.user)}</td>` +
+              `<td class="num">${r.cpu.toFixed(1)}</td>` +
+              `<td class="num">${(r.mem_mb/1024).toFixed(2)}G</td>` +
+              `<td class="cmd" title="${safeCmd}">${safeCmd}</td>` +
+              `<td><button class="kill-btn" data-host="${host}" data-pid="${r.pid}" data-cmd="${safeCmd}" data-user="${escapeHtml(r.user)}">kill</button></td></tr>`;
+    }
+  }
+  html += "</tbody></table>";
+  tableEl.innerHTML = html;
+}
+
+function renderHostCPU(host, x) {
+  const ok = x && x.ok;
+  const hist = state[host];
+  const cpuEl = $(host + "-cpu"), memEl = $(host + "-mem");
+  const cpuBar = $(host + "-cpu-bar"), memBar = $(host + "-mem-bar");
+  const metaEl = $(host + "-meta");
+  if (!ok) {
+    cpuEl.textContent = "ERR"; memEl.textContent = "ERR";
+    metaEl.textContent = x?.error?.slice(0, 60) || "no data";
+    renderTable(host, x);
+    return;
+  }
+  const c = x.cpu;
+  const cpu = c.pct ?? 0;
+  const memPct = c.mem_total_mb > 0 ? (c.mem_used_mb / c.mem_total_mb) * 100 : 0;
+  cpuEl.textContent = cpu.toFixed(1);
+  memEl.textContent = fmtGiB(c.mem_used_mb) + "/" + fmtGiB(c.mem_total_mb);
+  cpuBar.style.width = clamp(cpu, 100) + "%";
+  memBar.style.width = clamp(memPct, 100) + "%";
+  let routeBadge = "";
+  if (x._route && x._route !== "local") {
+    const isFallback = x._route.includes("via-mac") || x._route.includes("primary-host");
+    routeBadge = ` <span class="route-badge${isFallback ? " fallback" : ""}">${escapeHtml(x._route)}</span>`;
+  }
+  metaEl.innerHTML = `${c.ncpu} cores · load ${c.load_1}${routeBadge}`;
+
+  hist.cpu.push(cpu);
+  hist.mem.push(memPct);
+  if (hist.cpu.length > HISTORY) hist.cpu.shift();
+  if (hist.mem.length > HISTORY) hist.mem.shift();
+
+  // badges
+  const badges = $(host + "-badges");
+  if (badges) {
+    const k = x.counters || {};
+    const parts = [];
+    if (k.workers) parts.push(`<span class="hot">workers: ${k.workers}</span>`);
+    if (k.vllms)   parts.push(`<span class="hot">vllm: ${k.vllms}</span>`);
+    if (k.mlxs)    parts.push(`<span class="hot">mlx_lm: ${k.mlxs}</span>`);
+    badges.innerHTML = parts.join(" ");
+  }
+  drawChart(host + "-chart", hist);
+  renderTable(host, x);
+}
+
+function renderUstcGPU(x) {
+  const meta = $("ustc-gpu-meta");
+  const list = $("ustc-gpus");
+  if (!x || !x.ok || !x.gpu || x.gpu.kind !== "nvidia") {
+    meta.textContent = "no nvidia gpus";
+    list.innerHTML = "";
+    return;
+  }
+  const cards = x.gpu.cards || [];
+  meta.textContent = `${cards.length} cards`;
+  let maxUt = 0;
+  let totalMemUsed = 0, totalMemTotal = 0;
+  let html = "";
+  for (const c of cards) {
+    maxUt = Math.max(maxUt, c.util);
+    totalMemUsed += c.mem_used_mb; totalMemTotal += c.mem_total_mb;
+    const memPct = (c.mem_used_mb / c.mem_total_mb) * 100;
+    const tempClass = (c.temp_c != null && c.temp_c >= 80) ? "temp hot" : "temp";
+    const power = c.power_w != null
+      ? `<span class="pow">${c.power_w.toFixed(0)}/${c.power_limit_w?.toFixed(0) || "?"}W</span>`
+      : "";
+    let procsHtml;
+    if (!c.procs || c.procs.length === 0) {
+      procsHtml = `<div class="no-procs">(空闲,无进程)</div>`;
+    } else {
+      procsHtml = c.procs.map(p => {
+        const sc = escapeHtml(p.cmd);
+        return `<div class="row-p" style="grid-template-columns: 70px 75px 55px 1fr 38px;">` +
+          `<span class="p">${p.pid}</span>` +
+          `<span class="u" title="user">${escapeHtml(p.user)}</span>` +
+          `<span class="m">${(p.mem_mb/1024).toFixed(1)}G</span>` +
+          `<span class="c" title="${sc}">${sc}</span>` +
+          `<button class="kill-btn" data-host="ustc" data-pid="${p.pid}" data-cmd="${sc}" data-user="${escapeHtml(p.user)}">kill</button>` +
+          `</div>`;
+      }).join("");
+    }
+    html += `<div class="gpu-card">
+      <div class="gpu-head">
+        <span><span class="gpu-id">GPU${c.i}</span> <span class="gpu-name">${escapeHtml(c.name)}</span></span>
+        <span class="gpu-stats">
+          <span class="util">${c.util}%</span> util ·
+          ${(c.mem_used_mb/1024).toFixed(1)}/${(c.mem_total_mb/1024).toFixed(0)}G ·
+          <span class="${tempClass}">${c.temp_c != null ? c.temp_c+"°C" : "?"}</span> · ${power}
+        </span>
+      </div>
+      <div class="bar"><div class="fill gpu" style="width:${memPct}%"></div></div>
+      <div class="gpu-procs">${procsHtml}</div>
+    </div>`;
+  }
+  list.innerHTML = html;
+  // push history (max util across cards for trend)
+  const hist = state.ustc;
+  hist.gpu.push(maxUt);
+  if (hist.gpu.length > HISTORY) hist.gpu.shift();
+}
+
+function renderMacGPU(x) {
+  const wiredEl = $("mac-wired"), comprEl = $("mac-compressed");
+  const modelEl = $("mac-gpu-model"), utilEl = $("mac-gpu-util"), barEl = $("mac-gpu-bar");
+  const memEl = $("mac-gpu-mem"), lastEl = $("mac-gpu-last"), badgesEl = $("mac-gpu-detail-badges");
+  const list = $("mac-gpu-procs");
+  if (!x || !x.ok || !x.mac_gpu) {
+    [wiredEl, comprEl, modelEl, utilEl, memEl, lastEl].forEach(e => { if (e) e.textContent = "--"; });
+    if (barEl) barEl.style.width = "0%";
+    if (badgesEl) badgesEl.innerHTML = "";
+    list.innerHTML = "";
+    return;
+  }
+  const m = x.mac_gpu;
+  const s = m.stats || {};
+  wiredEl.textContent = fmtGiB(m.wired_mb);
+  comprEl.textContent = fmtGiB(m.compressed_mb);
+  modelEl.textContent = (s.model || "?") + (s.cores ? ` · ${s.cores} cores` : "");
+  const util = (typeof s.util_pct === "number") ? s.util_pct : 0;
+  utilEl.textContent = util;
+  barEl.style.width = clamp(util, 100) + "%";
+  memEl.textContent = ((s.mem_in_use_mb || 0)/1024).toFixed(2) + "/" + ((s.mem_alloc_mb || 0)/1024).toFixed(1);
+  const lpid = s.last_submission_pid || 0;
+  if (lpid > 0) {
+    const lu = s.last_submission_user || "?";
+    const lc = s.last_submission_cmd || "";
+    lastEl.textContent = `${lpid} · ${lu}`;
+    lastEl.title = lc;
+  } else {
+    lastEl.textContent = "--"; lastEl.title = "";
+  }
+  const parts = [];
+  if (typeof s.renderer_pct === "number") parts.push(`<span>R:${s.renderer_pct}%</span>`);
+  if (typeof s.tiler_pct === "number") parts.push(`<span>T:${s.tiler_pct}%</span>`);
+  if (s.recovery_count) parts.push(`<span class="hot">recoveries:${s.recovery_count}</span>`);
+  badgesEl.innerHTML = parts.join(" ");
+
+  // Push GPU util to mac chart history for trend overlay
+  const hist = state.mac;
+  hist.gpu.push(util);
+  if (hist.gpu.length > HISTORY) hist.gpu.shift();
+
+  if (!m.procs || m.procs.length === 0) {
+    list.innerHTML = `<div class="no-procs" style="color:#6c7a89; font-style:italic; padding: 8px 0;">(no MLX/vllm/Metal-heavy procs detected)</div>`;
+    return;
+  }
+  let html = `<table><thead><tr><th>pid</th><th>user</th><th>cpu%</th><th>mem (footprint)</th><th>cmd</th></tr></thead><tbody>`;
+  for (const p of m.procs) {
+    html += `<tr><td class="num">${p.pid}</td>` +
+            `<td class="user">${escapeHtml(p.user)}</td>` +
+            `<td class="num">${p.cpu.toFixed(1)}</td>` +
+            `<td class="num">${(p.mem_mb/1024).toFixed(2)}G</td>` +
+            `<td class="cmd" title="${escapeHtml(p.cmd)}">${escapeHtml(p.cmd)}</td></tr>`;
+  }
+  html += `</tbody></table>`;
+  list.innerHTML = html;
+}
+
+function fmtK(n) { return (n / 1000).toFixed(1); }
+function fmtRelTime(ts) {
+  if (!ts) return "--";
+  const dt = (Date.now() / 1000) - ts;
+  if (dt < 60) return Math.round(dt) + "s ago";
+  if (dt < 3600) return Math.round(dt / 60) + "m ago";
+  if (dt < 86400) return Math.round(dt / 3600) + "h ago";
+  return Math.round(dt / 86400) + "d ago";
+}
+
+function renderApiUsage(x) {
+  const metaEl = $("api-meta");
+  const dot = $("api-health-dot");
+  const badgeEl = $("api-health-badge");
+  if (!x || !x.ok) {
+    metaEl.textContent = "ERR: " + (x?.error?.slice(0, 60) || "no data");
+    dot.style.color = "#f87171";
+    badgeEl.textContent = "ERR";
+    return;
+  }
+  metaEl.textContent = `${x.endpoint || "?"} · gk=${x.gatekeeper_model} ext=${x.extractor_model}`;
+
+  // Health dot + badge: green/yellow/red based on 0-card rate
+  const health = x.health || "yellow";
+  dot.style.color = health === "green" ? "#4ade80"
+                  : health === "yellow" ? "#fbbf24"
+                  : "#f87171";
+  badgeEl.textContent = health.toUpperCase();
+  badgeEl.style.background = health === "green" ? "#0e2a18"
+                           : health === "yellow" ? "#2a2010"
+                           : "#2a0e0e";
+  badgeEl.style.color = health === "green" ? "#6ee7b7"
+                      : health === "yellow" ? "#fbbf24"
+                      : "#f87171";
+
+  const t24 = x.total_24h || {};
+  $("api-req-24h").textContent = t24.req || 0;
+  $("api-tokin-24h").textContent = fmtK(t24.tok_in || 0);
+  $("api-tokout-24h").textContent = fmtK(t24.tok_out || 0);
+  $("api-cards-24h").textContent = t24.cards || 0;
+  const zeroRate = (x.zero_card_rate_24h || 0) * 100;
+  const zeroEl = $("api-zero-rate");
+  zeroEl.textContent = zeroRate.toFixed(1);
+  zeroEl.style.color = zeroRate > 30 ? "#f87171" : zeroRate > 10 ? "#fbbf24" : "#4ade80";
+  $("api-parsefail-24h").textContent = x.parse_fail_24h || 0;
+
+  // Verdict badges
+  const v = x.verdict_24h || {};
+  const parts = [];
+  if (v.HIGH)   parts.push(`<span class="hot">HIGH: ${v.HIGH}</span>`);
+  if (v.MEDIUM) parts.push(`<span>MEDIUM: ${v.MEDIUM}</span>`);
+  if (v.LOW)    parts.push(`<span>LOW: ${v.LOW}</span>`);
+  if (v.EMPTY)  parts.push(`<span>EMPTY: ${v.EMPTY}</span>`);
+  if (v.FAIL)   parts.push(`<span class="hot">FAIL: ${v.FAIL}</span>`);
+  if (x.zero_card_nonlow_24h != null) {
+    parts.push(`<span class="hot">0-card on non-LOW: ${x.zero_card_nonlow_24h}/${x.nonlow_total_24h}</span>`);
+  }
+  $("api-verdict-badges").innerHTML = parts.join(" ");
+
+  // Per-source table — adds 0-card column for diagnostics
+  const by = x.by_source || {};
+  const srcs = Object.entries(by).sort((a, b) => (b[1].req_24h || 0) - (a[1].req_24h || 0));
+  let html = "<table><thead><tr><th>source</th><th>req</th><th>tok in</th><th>tok out</th><th>cards</th><th>H</th><th>M</th><th>L</th><th>0-card</th></tr></thead><tbody>";
+  for (const [src, b] of srcs) {
+    const nonlow = (b.high_24h || 0) + (b.medium_24h || 0);
+    const zero = b.zero_card_on_nonlow_24h || 0;
+    const zPct = nonlow > 0 ? (zero / nonlow * 100).toFixed(0) : "-";
+    const zCls = (nonlow > 0 && zero / nonlow > 0.3) ? " hot" : "";
+    html += `<tr><td class="user">${escapeHtml(src)}</td>` +
+            `<td class="num">${b.req_24h}</td>` +
+            `<td class="num">${fmtK(b.tok_in_24h)}k</td>` +
+            `<td class="num">${fmtK(b.tok_out_24h)}k</td>` +
+            `<td class="num">${b.cards_24h}</td>` +
+            `<td class="num">${b.high_24h}</td>` +
+            `<td class="num">${b.medium_24h}</td>` +
+            `<td class="num">${b.low_24h}</td>` +
+            `<td class="num"><span class="${zCls}">${zero}/${nonlow} (${zPct}%)</span></td></tr>`;
+  }
+  html += "</tbody></table>";
+  $("api-source-table").innerHTML = html;
+
+  // Last call + scope clarification (2026-05-12)
+  const lastEl = $("api-last-call");
+  const scope = x.scope_note ? `<span style="color:#fa3;font-size:11px">${escapeHtml(x.scope_note)}</span>` : '';
+  // 2026-05-12: 把"24h cards"改成"24h batches"避免与顶部"24h cards (= 抽出的卡数)"语义冲突
+  const filesInfo = `<span>24h batches in Win extract dir: ${x.n_files_24h ?? x.n_files_scanned ?? 0} · alltime: ${(x.n_files_total_alltime ?? x.n_files_total ?? 0).toLocaleString()}</span>`;
+  if (x.last_call_ts) {
+    lastEl.innerHTML = `<span>最近调用: ${escapeHtml(x.last_call_source)} · ${fmtRelTime(x.last_call_ts)}</span>` +
+                       ` ${filesInfo}` +
+                       (scope ? `<br/>${scope}` : '');
+  } else {
+    lastEl.innerHTML = `<span>无 24h 内调用</span>` +
+                       (scope ? `<br/>${scope}` : '');
+  }
+}
+
+function renderMemorySystem(x) {
+  const metaEl = $("mem-meta");
+  if (!x || !x.ok) {
+    metaEl.textContent = "ERR: " + (x?.error?.slice(0, 60) || "no data");
+    return;
+  }
+  // Bank stats with growth delta (2026-05-12 v2: hide noise zeros)
+  const bank = x.bank || {};
+  const growth = x.bank_growth || {};
+  if (bank.ok) {
+    let txt = (bank.total_nodes ?? "?").toLocaleString();
+    // Show non-zero delta with appropriate color
+    if (growth.delta_24h != null && growth.delta_24h > 0) {
+      txt += ` <span style="font-size:12px;color:#6ee7b7"> +${growth.delta_24h.toLocaleString()} (24h)</span>`;
+    } else if (growth.delta_1h != null && growth.delta_1h > 0) {
+      txt += ` <span style="font-size:12px;color:#6ee7b7"> +${growth.delta_1h.toLocaleString()} (1h)</span>`;
+    } else if (growth.window_24h_s != null && growth.window_24h_s < 600) {
+      // History too new to show growth meaningfully — show baseline notice
+      txt += ` <span style="font-size:11px;color:#888"> (tracking from ${Math.round(growth.window_24h_s)}s)</span>`;
+    }
+    // 2026-05-12: consolidation 状态 — by_design_disabled 时显灰色"frozen"标签,
+    // 与 USAGE_MANUAL §B.5 + §C.-3 #3 (bank cutover phase consolidation 故意 disabled)
+    // 对齐. active 时不显. 这样 user 不会被 failed_consolidation=15615 吓到.
+    if (bank.consolidation_mode === "by_design_disabled") {
+      txt += ` <span style="font-size:10px;color:#888;border:1px solid #555;` +
+             `padding:1px 4px;border-radius:3px;margin-left:6px" ` +
+             `title="consolidation daemon by design disabled in bank cutover phase;` +
+             ` recall 不依赖 — BGE 向量 + 自动 link 已覆盖. (USAGE_MANUAL §B.5)">consolidation frozen</span>`;
+    }
+    $("mem-bank").innerHTML = txt;
+  } else {
+    $("mem-bank").textContent = "ERR";
+  }
+  // Outbox
+  const outbox = x.outbox || {};
+  $("mem-outbox").textContent = outbox.count ?? "?";
+  // Schtasks — 2026-05-12 v3: 3-bucket (healthy/failed/disabled). disabled 不算入
+  // active 总数. headline 用 healthy / active_total 比例,disabled 单独标灰.
+  const st = x.schtasks || {};
+  if (st.ok && st.total > 0) {
+    const active = (st.active_total != null) ? st.active_total : (st.total - (st.disabled || 0));
+    const parts = [`${st.healthy}/${active} ok`];
+    if (st.failed)   parts.push(`<span class="hot">${st.failed} fail</span>`);
+    if (st.disabled) parts.push(`<span style="color:#888">${st.disabled} disabled</span>`);
+    if (st.stale)    parts.push(`${st.stale} stale`);
+    $("mem-schtasks").innerHTML = parts.join(" · ");
+    // 2026-05-12: LIVE source indicator vs stale file fallback
+    const ageS = st.snapshot_age_s || 0;
+    const src = st.source === "live_powershell"
+              ? `<span style="color:#6ee7b7">LIVE</span>`
+              : `<span class="hot">stale ${Math.round(ageS/60)}m</span>`;
+    metaEl.innerHTML = `PG memory_full_v5 · schtask ${src}`;
+  } else if (st.ok) {
+    $("mem-schtasks").textContent = "(empty)";
+    metaEl.textContent = "schtask: 0 tasks";
+  } else {
+    $("mem-schtasks").textContent = "ERR";
+    metaEl.textContent = "schtask data unavailable: " + (st.error?.slice(0, 50) || "?");
+  }
+  // PG snapshot health (NEW 2026-05-12 #5)
+  const snap = x.pg_snapshot || {};
+  const snapEl = $("mem-pg-snapshot");
+  if (snap.ok) {
+    const ageStr = snap.age_h == null ? "?" :
+                   snap.age_h < 1 ? Math.round(snap.age_h * 60) + "m" :
+                   snap.age_h < 48 ? snap.age_h + "h" :
+                   Math.round(snap.age_h / 24) + "d";
+    const col = snap.health === "green" ? "#6ee7b7" :
+                snap.health === "yellow" ? "#fbbf24" : "#f87171";
+    snapEl.innerHTML = `<span style="color:${col}">${ageStr}</span> ` +
+                       `<span style="font-size:11px;color:#aaa">${snap.latest_size_mb}MB · ${snap.n_snapshots} files</span>`;
+  } else {
+    snapEl.innerHTML = `<span class="hot">ERR</span> ` +
+                       `<span style="font-size:11px;color:#aaa">${escapeHtml((snap.error || 'no data').slice(0, 40))}</span>`;
+  }
+
+  // Pending total + per-source table
+  const pending = x.pending || [];
+  const pendTotal = pending.reduce((a, b) => a + (b.pending || 0), 0);
+  $("mem-pending-total").textContent = pendTotal.toLocaleString();
+  // 2026-05-12: source 数量动态化 (audio 已是第 6 个 v5 source)
+  const pendLbl = $("mem-pending-label");
+  if (pendLbl) pendLbl.textContent = `${pending.length} source 待抽`;
+  // Show: input · posted_local · cards_local · pg_truth · pending(set diff)
+  // 2026-05-12 v2: clearer column headers + tooltips
+  let html = '<table style="font-size:11px"><thead><tr>' +
+             '<th>source</th>' +
+             '<th title="batches built (prompt.json files in input_batches/)">input_b</th>' +
+             '<th title=".posted markers from streaming_post (may include cross-run repeats)">post_mk</th>' +
+             '<th title="card_v2 JSON files (extracted output, includes empty-verdict)">card_f</th>' +
+             '<th title="batch_ids found in Mac PG memory_full_v5 (authoritative)">in_PG</th>' +
+             '<th title="input_b - post_mk - card_f - in_PG (true backlog needing extraction+post)">pending</th>' +
+             '<th>health</th>' +
+             '</tr></thead><tbody>';
+  for (const p of pending) {
+    const inp = p.input || 0;
+    const post = p.posted || 0;
+    const card = p.cards || 0;
+    const pg = p.pg || 0;
+    const pend = p.pending || 0;
+    // Health label: GREEN <50 pending, YELLOW 50-500, RED >500
+    let healthLbl, healthCls;
+    if (pend > 500)  { healthLbl = 'BACKLOG'; healthCls = 'hot'; }
+    else if (pend > 50) { healthLbl = 'lag'; healthCls = ''; }
+    else if (inp === 0) { healthLbl = '(no input)'; healthCls = ''; }
+    else { healthLbl = 'ok'; healthCls = 'ok'; }
+    // Anomaly flag: posted > input means stale .posted markers from cleared inputs
+    const inpStyle = (post > inp && inp > 0) ? 'color:#fa3' : '';
+    html += `<tr>` +
+            `<td class="user">${escapeHtml(p.source)}</td>` +
+            `<td class="num" style="${inpStyle}">${inp.toLocaleString()}</td>` +
+            `<td class="num">${post.toLocaleString()}</td>` +
+            `<td class="num">${card.toLocaleString()}</td>` +
+            `<td class="num">${pg.toLocaleString()}</td>` +
+            `<td class="num"><span class="${healthCls === 'hot' ? 'hot' : ''}">${pend.toLocaleString()}</span></td>` +
+            `<td><span class="${healthCls}">${healthLbl}</span></td></tr>`;
+  }
+  html += `</tbody></table>`;
+  html += `<div style="font-size:10px;color:#888;margin-top:4px">列含义: input_b=batches built · post_mk=.posted markers · card_f=card json files · in_PG=Mac PG truth · pending=待补全的真实差集 · 橙色 input=有 stale posted_markers (无害,旧 markers 跨次保留)</div>`;
+  $("mem-pending-table").innerHTML = html;
+  // Drivers freshness
+  const drivers = x.drivers || [];
+  const dparts = drivers.map(d => {
+    const ageStr = d.age_h == null ? "—" : (d.age_h < 1 ? Math.round(d.age_h * 60) + "m" : d.age_h + "h");
+    const cls = (d.age_h != null && d.age_h > 12) ? " hot" : "";
+    return `<span class="${cls}">${escapeHtml(d.name)}: ${ageStr}</span>`;
+  });
+  $("mem-drivers").innerHTML = dparts.length ? ("driver cursors: " + dparts.join(" ")) : "(no driver progress files)";
+}
+
+function renderCronHealth(c) {
+  if (!c) return;
+  const dot = $("ch-status-dot");
+  const badge = $("ch-status-badge");
+  const meta = $("ch-meta");
+  const tbl = $("ch-table");
+
+  const total = c.n_total || 0;
+  const failing = c.n_failing || 0;
+  if (c.error) {
+    dot.className = "warn";
+    badge.textContent = "ERR";
+    badge.style.background = "#a40";
+    badge.style.color = "#fff";
+    meta.textContent = c.error;
+    return;
+  }
+  if (failing > 0) {
+    dot.className = "warn";
+    badge.textContent = failing + " FAILING / " + total;
+    badge.style.background = "#a00";
+    badge.style.color = "#fff";
+  } else {
+    dot.className = "ok";
+    badge.textContent = total + " HEALTHY";
+    badge.style.background = "#0a6";
+    badge.style.color = "#000";
+  }
+  meta.textContent = c.ts || "--";
+
+  let html = '<table style="width:100%;border-collapse:collapse">';
+  html += '<tr style="color:#888;border-bottom:1px solid #333">'
+       +  '<th style="text-align:left;padding:2px 4px">name</th>'
+       +  '<th style="padding:2px 4px">state</th>'
+       +  '<th style="padding:2px 4px">last_run</th>'
+       +  '<th style="padding:2px 4px">last_result</th>'
+       +  '<th style="padding:2px 4px">next_run</th>'
+       +  '</tr>';
+  (c.tasks || []).forEach(t => {
+    const rowStyle = t.last_result_ok ? "" : "background:rgba(180,0,0,.15)";
+    const rcCol = t.last_result_ok ? "color:#0c6" : "color:#f66;font-weight:600";
+    const stateCol = t.state === "Running" ? "color:#3cf"
+                   : (t.state === "Disabled" ? "color:#888" : "color:#aaa");
+    html += `<tr style="border-bottom:1px solid #222;${rowStyle}">`
+          + `<td style="padding:2px 4px">${t.name}</td>`
+          + `<td style="padding:2px 4px;${stateCol}">${t.state}</td>`
+          + `<td style="padding:2px 4px;color:#aaa">${(t.last_run || '').slice(0, 19).replace('T',' ')}</td>`
+          + `<td style="padding:2px 4px;${rcCol}">${t.last_result}</td>`
+          + `<td style="padding:2px 4px;color:#aaa">${(t.next_run || '').slice(5, 19).replace('T',' ')}</td>`
+          + `</tr>`;
+  });
+  html += '</table>';
+  tbl.innerHTML = html;
+}
+
+function renderCronActivity(ca) {
+  // 2026-05-13: live per-driver progress (GraphMaintenance6h) + audio pipeline
+  // input/cards/posted/transcripts. Reads /api/cron_activity (8s TTL backend).
+  if (!ca || !ca.ok) {
+    $("ca-meta").textContent = "no activity data";
+    return;
+  }
+  const orch = ca.orchestrator || {};
+  const audio = ca.audio || {};
+  const dot = $("ca-dot");
+  const badge = $("ca-badge");
+  const meta = $("ca-meta");
+  // Status: in-flight if orch has current + no end_ts
+  if (orch.current && !orch.end_ts) {
+    dot.className = "warn";  // amber
+    badge.textContent = `RUNNING ${orch.current}`;
+    badge.style.background = "#fbbf24";
+    badge.style.color = "#000";
+  } else if (orch.summary) {
+    const s = orch.summary;
+    dot.className = (s.fail > 0) ? "hot" : "ok";
+    badge.textContent = `LAST: ${s.ok}/${s.n} ok · ${s.fail} fail`;
+    badge.style.background = (s.fail > 0) ? "#f87171" : "#6ee7b7";
+    badge.style.color = "#000";
+  } else {
+    dot.className = "ok";
+    badge.textContent = "idle";
+    badge.style.background = "#555";
+    badge.style.color = "#fff";
+  }
+  const start = orch.start_ts ? `started ${orch.start_ts.slice(11,19)}` : "";
+  const end = orch.end_ts ? ` · ended ${orch.end_ts.slice(11,19)}` : "";
+  meta.textContent = start + end;
+
+  // Per-driver table
+  const drivers = orch.drivers || [];
+  let html = '<table style="font-size:11px"><thead><tr>' +
+             '<th>driver</th><th>状态</th><th>耗时</th>' +
+             '</tr></thead><tbody>';
+  for (const d of drivers) {
+    let stCls = "", stTxt = "";
+    if (d.skipped) {
+      stCls = ""; stTxt = "SKIP (own schtask)";
+    } else if (d.exit === 0) {
+      stCls = "ok"; stTxt = "ok";
+    } else if (d.exit !== null && d.exit !== undefined && d.exit !== 0) {
+      stCls = "hot"; stTxt = `fail rc=${d.exit}`;
+    } else if (d.started && (d.exit === null || d.exit === undefined)) {
+      stCls = "warn"; stTxt = "RUNNING";
+    } else {
+      stCls = ""; stTxt = "pending";
+    }
+    let durTxt = "--";
+    if (d.duration_ms != null) {
+      const s = d.duration_ms / 1000;
+      durTxt = s < 60 ? `${s.toFixed(1)}s` :
+               s < 3600 ? `${(s/60).toFixed(1)}m` :
+               `${(s/3600).toFixed(2)}h`;
+    }
+    html += `<tr><td class="user">${escapeHtml(d.id)}</td>` +
+            `<td><span class="${stCls}">${stTxt}</span></td>` +
+            `<td class="num">${durTxt}</td></tr>`;
+  }
+  html += "</tbody></table>";
+  $("ca-drivers").innerHTML = html;
+
+  // Per-source cards table (2026-05-13: user req "我要看每一个来源的 cards 数量")
+  // Each row = one v5 source (wechat/qq/email/browser/cc/audio) with filesystem truth.
+  const perSrc = ca.per_source || [];
+  const nowS = Date.now() / 1000;
+  let psHtml = '<table style="font-size:11px"><thead><tr>' +
+               '<th>source</th>' +
+               '<th class="num" title="input batches built (prompt.json)">input</th>' +
+               '<th class="num" title="cards extracted (cards_v2_*/*.json)">cards</th>' +
+               '<th class="num" title="posted markers (.posted)">posted</th>' +
+               '<th title="age of newest card file">latest card</th>' +
+               '</tr></thead><tbody>';
+  for (const p of perSrc) {
+    const lm = p.latest_card_mtime || 0;
+    let ageStr = "--";
+    let ageCls = "";
+    if (lm > 0) {
+      const ageMin = (nowS - lm) / 60;
+      ageStr = ageMin < 60 ? `${Math.round(ageMin)}m`
+             : ageMin < 1440 ? `${(ageMin/60).toFixed(1)}h`
+             : `${(ageMin/1440).toFixed(1)}d`;
+      if (ageMin < 60) ageCls = "ok";
+      else if (ageMin < 1440) ageCls = "warn";
+      else ageCls = "hot";
+    }
+    psHtml += `<tr><td class="user">${escapeHtml(p.source || "?")}</td>` +
+              `<td class="num">${(p.input_batches ?? 0).toLocaleString()}</td>` +
+              `<td class="num">${(p.cards_extracted ?? 0).toLocaleString()}</td>` +
+              `<td class="num">${(p.posted_markers ?? 0).toLocaleString()}</td>` +
+              `<td><span class="${ageCls}">${ageStr}</span></td></tr>`;
+  }
+  psHtml += "</tbody></table>";
+  $("ca-per-source").innerHTML = psHtml;
+
+  // Audio transcripts info (kept separate — only audio source has Win-side transcripts/)
+  $("ca-audio-sessions").textContent = (audio.transcripts_n_sessions ?? "?").toLocaleString();
+  let latestTxt = "";
+  let latestAge = "--";
+  if (audio.transcripts_latest_session && audio.transcripts_latest_mtime) {
+    const ageMin = (Date.now()/1000 - audio.transcripts_latest_mtime) / 60;
+    latestAge = ageMin < 60 ? `${Math.round(ageMin)}m ago` :
+                ageMin < 1440 ? `${(ageMin/60).toFixed(1)}h ago` :
+                `${(ageMin/1440).toFixed(1)}d ago`;
+    latestTxt = `最新 transcript: <code>${escapeHtml(audio.transcripts_latest_session)}</code>`;
+  }
+  $("ca-audio-latest-age").textContent = latestAge;
+  $("ca-audio-latest").innerHTML = latestTxt;
+}
+
+function renderGraphQueries(g) {
+  if (!g) return;
+  const dot = $("gq-active-dot");
+  const badge = $("gq-active-badge");
+  const meta = $("gq-meta");
+
+  if (g.active_now) {
+    dot.className = "ok";
+    badge.textContent = "ACTIVE · " + (g.active_subcmd || "?");
+    badge.style.background = "#0a6";
+    badge.style.color = "#fff";
+  } else {
+    dot.className = "warn";
+    badge.textContent = "IDLE";
+    badge.style.background = "#444";
+    badge.style.color = "#ccc";
+  }
+  meta.textContent = g.log_exists
+    ? ("log: " + (g.log_path || "").split(/[\\/]/).slice(-2).join("/"))
+    : "(no query log yet)";
+
+  // Recent-window counts
+  const now = Date.now();
+  let n1m = 0, n1h = 0;
+  (g.queries_recent || []).forEach(q => {
+    const t = Date.parse(q.ts);
+    if (!isNaN(t)) {
+      const dt = (now - t) / 1000;
+      if (dt < 60) n1m++;
+      if (dt < 3600) n1h++;
+    }
+  });
+  $("gq-recent-1m").textContent = n1m;
+  $("gq-recent-1h").textContent = n1h;
+
+  // Phase B
+  const pb = g.phaseb || {};
+  $("gq-phaseb-pct").textContent = pb.pct_done != null ? pb.pct_done : "--";
+  $("gq-phaseb-rate").textContent = pb.rate_per_sec != null ? pb.rate_per_sec : "--";
+  $("gq-phaseb-eta").textContent = pb.eta_iso ? pb.eta_iso.slice(0, 19) : "--";
+
+  // Per-subcmd table
+  const subDiv = $("gq-by-subcmd");
+  if (!g.by_subcmd || g.by_subcmd.length === 0) {
+    subDiv.innerHTML = "<span style='color:#888'>(尚无调用记录)</span>";
+  } else {
+    let html = '<table style="width:100%;border-collapse:collapse">';
+    html += '<tr style="color:#888;border-bottom:1px solid #333">'
+         +  '<th style="text-align:left;padding:2px 4px">subcmd</th>'
+         +  '<th style="text-align:right;padding:2px 4px">n</th>'
+         +  '<th style="text-align:right;padding:2px 4px">ok%</th>'
+         +  '<th style="text-align:right;padding:2px 4px">0-res%</th>'
+         +  '<th style="text-align:right;padding:2px 4px">avg_n</th>'
+         +  '<th style="text-align:right;padding:2px 4px">p50ms</th>'
+         +  '<th style="text-align:right;padding:2px 4px">p95ms</th>'
+         +  '<th style="text-align:left;padding:2px 4px">last</th>'
+         +  '</tr>';
+    g.by_subcmd.forEach(s => {
+      const zCol = s.zero_pct > 50 ? "color:#f66" : (s.zero_pct > 20 ? "color:#fa3" : "");
+      html += `<tr><td style="padding:2px 4px">${s.subcmd}</td>`
+            + `<td style="text-align:right;padding:2px 4px">${s.n_calls}</td>`
+            + `<td style="text-align:right;padding:2px 4px">${s.success_pct}</td>`
+            + `<td style="text-align:right;padding:2px 4px;${zCol}">${s.zero_pct}</td>`
+            + `<td style="text-align:right;padding:2px 4px">${s.avg_n}</td>`
+            + `<td style="text-align:right;padding:2px 4px">${s.p50_ms ?? '-'}</td>`
+            + `<td style="text-align:right;padding:2px 4px">${s.p95_ms ?? '-'}</td>`
+            + `<td style="padding:2px 4px;color:#888">${(s.last_ts || '').slice(11, 19)}</td>`
+            + '</tr>';
+    });
+    html += '</table>';
+    subDiv.innerHTML = html;
+  }
+
+  // Recent queries list
+  const recentDiv = $("gq-recent-list");
+  if (!g.queries_recent || g.queries_recent.length === 0) {
+    recentDiv.innerHTML = "<span style='color:#888'>(no queries logged)</span>";
+  } else {
+    let html = '<table style="width:100%;border-collapse:collapse">';
+    g.queries_recent.slice(0, 25).forEach(q => {
+      const ok = q.ok ? '<span style="color:#0c6">✓</span>' : '<span style="color:#f66">✗</span>';
+      const nCol = (q.n_results === 0) ? "color:#fa3" : "";
+      const qTxt = escapeHtml((q.query || "").toString().slice(0, 50));
+      html += `<tr style="border-bottom:1px solid #222">`
+            + `<td style="padding:2px 4px;color:#888;width:75px">${(q.ts || '').slice(11, 19)}</td>`
+            + `<td style="padding:2px 4px;color:#9cf;width:100px">${q.subcmd || '?'}</td>`
+            + `<td style="padding:2px 4px">${qTxt}</td>`
+            + `<td style="padding:2px 4px;text-align:right;width:40px;${nCol}">${q.n_results ?? 0}</td>`
+            + `<td style="padding:2px 4px;text-align:right;width:60px;color:#aaa">${q.latency_ms ?? '-'}ms</td>`
+            + `<td style="padding:2px 4px;text-align:center;width:24px">${ok}</td>`
+            + `</tr>`;
+    });
+    html += '</table>';
+    recentDiv.innerHTML = html;
+  }
+}
+
+// B1 NEW (2026-05-13): Calendar / Dead-letter / Identity render functions
+
+function renderCalendarState(c) {
+  if (!c || !c.ok) return;
+  const counts = c.counts || {};
+  $("cal-active").textContent = counts.active || 0;
+  $("cal-pinned").textContent = counts.pinned || 0;
+  $("cal-persistent").textContent = counts.persistent_cancel || 0;
+  const lt = c.last_tick || {};
+  const ageS = lt.age_s;
+  const ageStr = ageS == null ? "--" : (
+    ageS < 60 ? Math.round(ageS) + "s" :
+    ageS < 3600 ? Math.round(ageS / 60) + "m" :
+    Math.round(ageS / 3600) + "h"
+  );
+  $("cal-tick-age").textContent = ageStr;
+  // Health: ok if last_tick < 7h, lag 7-12h, BACKLOG > 12h
+  const dot = $("cal-dot");
+  const badge = $("cal-badge");
+  let healthCls = "ok", healthLbl = "OK";
+  if (ageS != null && ageS > 12 * 3600) { healthCls = "hot"; healthLbl = "STALE >12h"; }
+  else if (ageS != null && ageS > 7 * 3600) { healthCls = ""; healthLbl = "lag"; }
+  dot.className = healthCls;
+  badge.textContent = healthLbl;
+  badge.style.background = healthCls === "ok" ? "#0a6" : (healthCls === "hot" ? "#a04" : "#444");
+  $("cal-meta").textContent = "tick " + (lt.tick_n || "?") + " · llm_calls=" + (lt.llm_calls ?? "?") + " cache=" + (lt.cached_hits ?? "?");
+
+  // Drops counters (24h events)
+  const evts = c.recent_24h_events || {};
+  const dropTags = [
+    ["audience_drop", "audience"],
+    ["responsibility_drop", "resp."],
+    ["origin_drop", "origin"],
+    ["skip_persistent_cancel", "🚫persist cancel"],
+    ["skip_manually_pinned", "📌pinned skip"],
+  ];
+  let dHtml = "";
+  dropTags.forEach(([k, lbl]) => {
+    const v = evts[k] || 0;
+    const color = v > 0 ? (k.startsWith("skip_") ? "color:#9cf" : "color:#fa3") : "color:#666";
+    dHtml += `<span style="${color};margin-right:14px">${lbl}: <b>${v}</b></span>`;
+  });
+  $("cal-drops").innerHTML = dHtml || "<span style='color:#888'>(no events 24h)</span>";
+
+  // Upcoming
+  const upDiv = $("cal-upcoming");
+  if (!c.upcoming || c.upcoming.length === 0) {
+    upDiv.innerHTML = "<span style='color:#888'>(no active commitments)</span>";
+  } else {
+    let html = "";
+    c.upcoming.forEach(u => {
+      const pin = u.pinned ? "📌pin " : "       ";
+      const due = u.due || "?";
+      const summary = escapeHtml(u.summary || "");
+      html += `<div><span style="color:#aaa">${due}</span> ${pin}${summary}</div>`;
+    });
+    upDiv.innerHTML = html;
+  }
+}
+
+function renderDeadLetter(d) {
+  if (!d || !d.ok) return;
+  $("dl-total").textContent = d.total_dead || 0;
+  const h = d.health || "ok";
+  $("dl-health").textContent = h;
+  const dot = $("dl-dot");
+  const badge = $("dl-badge");
+  const healthCls = h === "ok" ? "ok" : (h === "lag" ? "" : "hot");
+  dot.className = healthCls;
+  badge.textContent = h.toUpperCase();
+  badge.style.background = healthCls === "ok" ? "#0a6" : (healthCls === "hot" ? "#a04" : "#444");
+  $("dl-meta").textContent = "scan " + (d.by_source ? d.by_source.length : 0) + " sources";
+
+  // By source
+  const bsDiv = $("dl-by-source");
+  if (!d.by_source || d.by_source.length === 0) {
+    bsDiv.innerHTML = "<span style='color:#888'>(empty)</span>";
+  } else {
+    let html = "";
+    d.by_source.forEach(s => {
+      const color = s.dead > 0 ? "color:#f66" : "color:#5a5";
+      html += `<div><span style="${color};display:inline-block;width:140px">${s.source}</span> dead=${s.dead}`;
+      if (s.recovered) html += ` <span style="color:#aaa">recovered=${s.recovered}</span>`;
+      html += "</div>";
+    });
+    bsDiv.innerHTML = html;
+  }
+  // Recent
+  const rDiv = $("dl-recent");
+  if (!d.recent_dead || d.recent_dead.length === 0) {
+    rDiv.innerHTML = "<span style='color:#5a5'>✓ no dead-letters</span>";
+  } else {
+    let html = "";
+    d.recent_dead.forEach(r => {
+      html += `<div><span style="color:#fa3">${r.source}</span> ${r.batch_id.slice(0,12)} <span style="color:#888">${r.age_h}h</span> ${escapeHtml(r.reason || '').slice(0,60)}</div>`;
+    });
+    rDiv.innerHTML = html;
+  }
+}
+
+function renderIdentity(d) {
+  if (!d || !d.ok) return;
+  const m = d.manifest || {};
+  const a = d.aliases || {};
+  $("id-persons").textContent = m.n_persons || 0;
+  $("id-surface").textContent = a.n_surface_forms || 0;
+  $("id-canon").textContent = a.n_unique_canons || 0;
+  const ageH = m.mtime_h_ago;
+  $("id-mtime").textContent = ageH == null ? "--" : (
+    ageH < 24 ? Math.round(ageH) + "h" : Math.round(ageH / 24) + "d"
+  );
+  $("id-badge").textContent = "OK";
+  $("id-badge").style.background = "#0a6";
+  $("id-dot").className = "ok";
+  $("id-meta").textContent = (a.n_ambiguous || 0) + " ambiguous";
+}
+
+async function tick() {
+  const t0 = performance.now();
+  try {
+    const [r1, r2, r3, r4, r5, r6, r7] = await Promise.all([
+      fetch("/api/metrics", { cache: "no-store" }),
+      fetch("/api/graph_queries", { cache: "no-store" }).catch(() => null),
+      fetch("/api/cron_health", { cache: "no-store" }).catch(() => null),
+      fetch("/api/cron_activity", { cache: "no-store" }).catch(() => null),
+      fetch("/api/calendar_state", { cache: "no-store" }).catch(() => null),
+      fetch("/api/dead_letter", { cache: "no-store" }).catch(() => null),
+      fetch("/api/identity", { cache: "no-store" }).catch(() => null),
+    ]);
+    if (r1.status === 503) {
+      $("rtt").textContent = "warming";
+      return;
+    }
+    const data = await r1.json();
+    state.latest = data;
+    renderHostCPU("win", data.win);
+    renderHostCPU("mac", data.mac);
+    renderHostCPU("ustc", data.ustc);
+    renderMacGPU(data.mac);
+    renderUstcGPU(data.ustc);
+    renderApiUsage(data.api_usage);
+    renderMemorySystem(data.memory_system);
+    if (r2 && r2.ok) {
+      try {
+        const gq = await r2.json();
+        renderGraphQueries(gq);
+      } catch (e) { /* ignore graph-query parse error */ }
+    }
+    if (r3 && r3.ok) {
+      try {
+        const ch = await r3.json();
+        renderCronHealth(ch);
+      } catch (e) { /* ignore cron-health parse error */ }
+    }
+    if (r4 && r4.ok) {
+      try {
+        const ca = await r4.json();
+        renderCronActivity(ca);
+      } catch (e) { /* ignore cron-activity parse error */ }
+    }
+    if (r5 && r5.ok) {
+      try {
+        renderCalendarState(await r5.json());
+      } catch (e) { /* ignore */ }
+    }
+    if (r6 && r6.ok) {
+      try {
+        renderDeadLetter(await r6.json());
+      } catch (e) { /* ignore */ }
+    }
+    if (r7 && r7.ok) {
+      try {
+        renderIdentity(await r7.json());
+      } catch (e) { /* ignore */ }
+    }
+    const age = (Date.now()/1000) - data.ts;
+    $("last").textContent = new Date(data.ts * 1000).toLocaleTimeString() + " (age " + age.toFixed(1) + "s)";
+    $("rtt").textContent = Math.round(performance.now() - t0) + "ms";
+  } catch (e) {
+    $("rtt").textContent = "fail";
+  }
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    const host = t.dataset.host, tab = t.dataset.tab;
+    state.tab[host] = tab;
+    document.querySelectorAll(`.tab[data-host="${host}"]`).forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    if (state.latest) renderTable(host, state.latest[host]);
+  });
+});
+
+// ── Kill button + confirm menu ─────────────────────────────────────────
+let killMenu = null;
+function closeKillMenu() {
+  if (killMenu) { killMenu.remove(); killMenu = null; }
+}
+document.addEventListener("click", (e) => {
+  // Open menu on kill-btn click
+  if (e.target.classList.contains("kill-btn")) {
+    e.stopPropagation();
+    const host = e.target.dataset.host;
+    const pid = parseInt(e.target.dataset.pid);
+    const cmd = e.target.dataset.cmd;
+    const user = e.target.dataset.user;
+    closeKillMenu();
+    const menu = document.createElement("div");
+    menu.className = "kill-menu";
+    menu.innerHTML = `
+      <h3>⚠ Kill remote process</h3>
+      <div class="info">host: <b>${host}</b>  pid: <b>${pid}</b>  user: <b>${user || "?"}</b></div>
+      <div class="info">cmd: ${cmd}</div>
+      <div class="row-btns">
+        <button class="term" data-sig="TERM">SIGTERM (优雅)</button>
+        <button class="kill" data-sig="KILL">SIGKILL (强杀)</button>
+        <button class="cancel">取消</button>
+      </div>
+      <div class="kill-result" id="kill-result" style="display:none"></div>
+    `;
+    const rect = e.target.getBoundingClientRect();
+    let left = rect.left;
+    if (left + 300 > window.innerWidth) left = window.innerWidth - 300;
+    menu.style.left = Math.max(8, left) + "px";
+    menu.style.top  = (rect.bottom + 4) + "px";
+    document.body.appendChild(menu);
+    killMenu = menu;
+
+    menu.querySelector(".cancel").addEventListener("click", closeKillMenu);
+    for (const btn of menu.querySelectorAll("[data-sig]")) {
+      btn.addEventListener("click", async () => {
+        const sig = btn.dataset.sig;
+        const result = menu.querySelector("#kill-result");
+        result.style.display = "block";
+        result.className = "kill-result";
+        result.textContent = `sending ${sig} to ${host}:${pid} ...`;
+        try {
+          // 2026-05-13: /api/kill requires X-Auth-Token; fetch once per page load.
+          if (!window._jarvisAuthToken) {
+            try {
+              const tr = await fetch("/api/auth_token");
+              const td = await tr.json();
+              window._jarvisAuthToken = td.token || "";
+            } catch (_) { window._jarvisAuthToken = ""; }
+          }
+          const r = await fetch("/api/kill", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Auth-Token": window._jarvisAuthToken,
+            },
+            body: JSON.stringify({
+              host: host, pid: pid, signal: sig,
+              confirm: `yes-${host}-${pid}`,
+            }),
+          });
+          const data = await r.json();
+          if (data.ok) {
+            result.className = "kill-result ok";
+            result.textContent = `✓ ${data.output || "killed"} (via ${data.route})`;
+            setTimeout(closeKillMenu, 1800);
+          } else {
+            result.className = "kill-result err";
+            result.textContent = `✗ ${data.error || "failed"}` + (data.stderr ? `\n  ${data.stderr}` : "");
+          }
+        } catch (exc) {
+          result.className = "kill-result err";
+          result.textContent = `✗ network error: ${exc.message}`;
+        }
+      });
+    }
+    return;
+  }
+  // Click outside the menu → close
+  if (killMenu && !killMenu.contains(e.target)) closeKillMenu();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeKillMenu(); });
+
+$("poll").textContent = (POLL_MS / 1000) + "s";
+tick();
+setInterval(tick, POLL_MS);
+window.addEventListener("resize", () => {
+  for (const h of ["win", "mac", "ustc"]) drawChart(h + "-chart", state[h]);
+});
+</script>
+</body>
+</html>
