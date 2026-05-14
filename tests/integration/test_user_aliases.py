@@ -1,4 +1,4 @@
-"""Integration tests for :mod:`src.core._user_aliases`.
+"""Integration tests for :mod:`memexa.core._user_aliases`.
 
 Verifies alias loading from env path / default config / defaults, plus the
 ``is_self`` predicate.
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from src.core import _user_aliases
+from memexa.core import _user_aliases
 
 pytestmark = pytest.mark.integration
 

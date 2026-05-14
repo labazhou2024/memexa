@@ -95,7 +95,7 @@ provider timeout"。
 Marker / PG 真值漂移。从 PG 强制重建 cache:
 
 ```bash
-python -m src.core.pg_bid_cache all --force-refresh
+python -m memexa.core.pg_bid_cache all --force-refresh
 ```
 
 退出标准: 下次 cron run 该 source `pending=0`。
@@ -112,7 +112,7 @@ provider 在响应但返坏 JSON。抓一次真调用:
 
 ```bash
 MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
-  python -m src.drivers.backfill_v5_wechat_driver --once --verbose
+  python -m memexa.drivers.backfill_v5_wechat_driver --once --verbose
 jq . /tmp/memexa_trace.jsonl
 ```
 
@@ -173,7 +173,7 @@ RC。一个 8 小时前 RC=0 的任务在 dashboard 看是 "健康" 在 `schtask
 
 仅 localhost 装机。设 `MEMEXA_DASHBOARD_HOSTS` env 成 JSON 数组点亮
 远程 host 面板。Schema 见
-[`src/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
+[`memexa/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
 docstring。
 
 ### 症状: "Graph queries" 面板跑了查询还是空
@@ -181,12 +181,12 @@ docstring。
 检查日志路径:
 
 ```bash
-python -c "from src.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)"
-ls -la $(python -c "from src.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)")
+python -c "from memexa.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)"
+ls -la $(python -c "from memexa.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)")
 ```
 
 如果路径在 `_MEI*\Temp\` 下你撞上 PyInstaller frozen-path 问题 — 从源码
-跑而不是 bundled exe。`src/core/_path_resolver.py` 里的 path resolver
+跑而不是 bundled exe。`memexa/core/_path_resolver.py` 里的 path resolver
 就是为了打这个补丁, 所以提 issue 时附上实际打印的路径。
 
 ## 最后兜底

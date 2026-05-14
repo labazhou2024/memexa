@@ -30,9 +30,9 @@ into a single queryable memory graph that can answer:
                                   │
                 ┌────────────────────────────────────────┐
    Layer 1      │  Per-source batch builders             │
-   (ingestion)  │   src/ingestion/v5_*_batch_builder.py  │
-                │   + src/extraction/qq/*                 │
-                │   + src/extraction/claude_code_to_v5*  │
+   (ingestion)  │   memexa/ingestion/v5_*_batch_builder.py  │
+                │   + memexa/extraction/qq/*                 │
+                │   + memexa/extraction/claude_code_to_v5*  │
                 │   Normalise to a single                 │
                 │   ``messages_envelope.json`` schema.    │
                 └────────────────────────────────────────┘
@@ -62,7 +62,7 @@ into a single queryable memory graph that can answer:
                                   │
                 ┌────────────────────────────────────────┐
    Layer 4      │  Query CLI + 5-phase state inference   │
-   (query)      │   src/core/memory_query.py              │
+   (query)      │   memexa/core/memory_query.py              │
                 │   8 subcommands +                        │
                 │   dashboard live progress panel         │
                 └────────────────────────────────────────┘
@@ -107,9 +107,9 @@ column carries a JSON envelope wrapped in sentinel tokens:
 【MEMORYCARD_V2_HEADER_END】
 ```
 
-Schema specification is canonical in `src/extraction/pass2_prompt.py`.
+Schema specification is canonical in `memexa/extraction/pass2_prompt.py`.
 A non-V2 row in `memory_full_v5` is **a bug** (see ingestion guard in
-`src/extraction/streaming_post_v5.py`).
+`memexa/extraction/streaming_post_v5.py`).
 
 ## 5. PG-aware pending tracking
 
@@ -121,7 +121,7 @@ which batches have been ingested. This drifts:
 - *PG-no-marker* — row present in PostgreSQL, no local marker (worker
   was killed before writing the sidecar file).
 
-`src/core/pg_bid_cache.py` adds a 1-hour LRU over the PostgreSQL truth.
+`memexa/core/pg_bid_cache.py` adds a 1-hour LRU over the PostgreSQL truth.
 Drivers query it first; markers become a fast-path hint, not the source
 of truth. See [lessons_learned/03_pg_aware_pending.md](lessons_learned/03_pg_aware_pending.md).
 
@@ -144,7 +144,7 @@ for the complete protocol with template queries.
 
 ## 7. Cron orchestrator
 
-`src/cron/cron_orchestrator.py` owns the 6-hour incremental cycle:
+`memexa/cron/cron_orchestrator.py` owns the 6-hour incremental cycle:
 
 1. Per-source driver `list_pending_batches()` (PG-aware).
 2. Build new batches if input data has grown.
@@ -160,7 +160,7 @@ long-running. See [deployment/macos.md](deployment/macos.md) and
 
 ## 8. Dashboard
 
-`src/dashboard/sys_monitor` is a FastAPI + vanilla-JS dashboard that
+`memexa/dashboard/sys_monitor` is a FastAPI + vanilla-JS dashboard that
 polls live state on a 2-second tick:
 
 - Cron health table (last result, runtime, scheduled-vs-actual).

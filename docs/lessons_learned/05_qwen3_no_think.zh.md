@@ -75,7 +75,7 @@ if "gemma" in model.lower():
     return text   # 让 thinking 开着
 ```
 
-分支在 `src/extraction/paired_eval.py`。
+分支在 `memexa/extraction/paired_eval.py`。
 
 ## 这个教训泛化时
 
@@ -90,7 +90,7 @@ if "gemma" in model.lower():
 
 ## 相关
 
-- `src/extraction/paired_eval.py:130` — 按 model name 分支
+- `memexa/extraction/paired_eval.py:130` — 按 model name 分支
 - Qwen3 chat 模板参考:
   [`qwenlm.github.io/blog/qwen3`](https://qwenlm.github.io/blog/qwen3/)
 - vllm issue tracker 关于 `chat_template_kwargs` 转发 (v0.6.x 仍 open)

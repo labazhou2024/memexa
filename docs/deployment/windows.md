@@ -60,9 +60,9 @@ Tasks created under `\Memgraph\` task path:
 
 | Task                  | Schedule        | Driver                                                |
 |-----------------------|-----------------|--------------------------------------------------------|
-| `Memgraph_Cron6h`      | 6 h `00:30`     | `python -m src.cron.cron_orchestrator run-incremental --all` |
-| `Memgraph_AudioIngest` | 6 h `00:45`     | `python -m src.drivers.backfill_v5_audio_driver`        |
-| `Memgraph_Dashboard`   | At logon        | `python -m src.dashboard.sys_monitor.server`            |
+| `Memgraph_Cron6h`      | 6 h `00:30`     | `python -m memexa.cron.cron_orchestrator run-incremental --all` |
+| `Memgraph_AudioIngest` | 6 h `00:45`     | `python -m memexa.drivers.backfill_v5_audio_driver`        |
+| `Memgraph_Dashboard`   | At logon        | `python -m memexa.dashboard.sys_monitor.server`            |
 
 Verify with:
 
@@ -73,11 +73,11 @@ Get-ScheduledTask -TaskPath '\Memgraph\' | Format-Table TaskName,State,LastRunTi
 ## 6. Subprocess timeout gotcha
 
 `subprocess.run(timeout=...)` on Windows does **not** kill grandchild
-processes when the timeout fires. `src/core/win_job_subprocess.py`
+processes when the timeout fires. `memexa/core/win_job_subprocess.py`
 wraps every cron-invoked subprocess in a Win32 Job Object so the
 grandchild is killed alongside the parent. Drivers use this wrapper
 automatically; if you launch your own subprocess from within Memgraph,
-prefer `from src.core.win_job_subprocess import run_with_job_object`.
+prefer `from memexa.core.win_job_subprocess import run_with_job_object`.
 
 See [lessons_learned/04_win_job_subprocess.md](../lessons_learned/04_win_job_subprocess.md).
 

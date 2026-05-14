@@ -60,7 +60,7 @@ jobs:
       - name: Import smoke
         run: |
           python -c "import pkgutil, importlib; \
-            [importlib.import_module(name) for _, name, _ in pkgutil.iter_modules(['src/core'], 'src.core.')]; \
+            [importlib.import_module(name) for _, name, _ in pkgutil.iter_modules(['src/core'], 'memexa.core.')]; \
             print('import smoke OK')"
       - name: Pytest (unit + integration)
         run: pytest -m "not e2e" --cov=src --cov-report=xml --cov-report=term-missing
@@ -108,9 +108,9 @@ jobs:
         run: python -m examples.demo_dataset.ingest --dry-run
       - name: CLI smoke
         run: |
-          python -m src.cli.main --version
-          python -m src.cli.main version
-          python -m src.cli.main config
+          python -m memexa.cli.main --version
+          python -m memexa.cli.main version
+          python -m memexa.cli.main config
 
   pii-scan:
     name: PII residual scan

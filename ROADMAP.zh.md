@@ -33,7 +33,7 @@
 
 ## v0.2 — QQ db-only 适配器移植 (用户影响最大的待办)
 
-- [ ] 把 `jarvis/qq_db.py` (762 行, 仅标准库) 从上游 JARVIS 移植到 `src/extraction/qq/qq_db.py`
+- [ ] 把 `jarvis/qq_db.py` (762 行, 仅标准库) 从上游 JARVIS 移植到 `memexa/extraction/qq/qq_db.py`
 - [ ] 同样移植 `jarvis/qq_reader.py` (剪贴板兜底)
 - [ ] 把两个 reader 接进 `backfill_v5_qq_driver.py`，让 `--mode dump` 和 `--mode clipboard` 开箱可用
 - [ ] 加 SQLCipher synthetic fixture smoke 测试 (不需要真 QQ)

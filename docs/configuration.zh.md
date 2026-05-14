@@ -82,7 +82,7 @@ whisper) 或远程跑 (Linux/CUDA faster-whisper)。
 | 变量                         | 默认             | 备注                                          |
 |----------------------------|------------------|-----------------------------------------------|
 | `MEMEXA_DASHBOARD_PORT`     | `8765`           |                                               |
-| `MEMEXA_DASHBOARD_HOSTS`    | unset            | JSON 数组列出要探测的远程 host (schema 见 `src/dashboard/sys_monitor/server.py` docstring)。unset → 只看 localhost。 |
+| `MEMEXA_DASHBOARD_HOSTS`    | unset            | JSON 数组列出要探测的远程 host (schema 见 `memexa/dashboard/sys_monitor/server.py` docstring)。unset → 只看 localhost。 |
 | `MEMEXA_PG_SNAPSHOT_DIR`    | unset            | `MEMEXA_PG_SNAPSHOT_HOST` 上 `v5_*.sql.gz` snapshot 路径 |
 | `MEMEXA_PG_SNAPSHOT_HOST`   | unset            | snapshot 轮询的 ssh target                   |
 

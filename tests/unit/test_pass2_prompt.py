@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.extraction.pass2_prompt import (
+from memexa.extraction.pass2_prompt import (
     PASS2_SYSTEM_PROMPT,
     Pass2OutputError,
     build_pass2_user_prompt,

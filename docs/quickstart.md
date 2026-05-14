@@ -73,9 +73,9 @@ memexa doctor
 # → [ok] LLM/gate ... responded 200
 
 # Run a few subcommands
-python -m src.core.memory_query topic    "<your-keyword>"
-python -m src.core.memory_query arc      "<entity>"
-python -m src.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
+python -m memexa.core.memory_query topic    "<your-keyword>"
+python -m memexa.core.memory_query arc      "<entity>"
+python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
 ```
 
 ## 5. Wire up your own data
@@ -107,7 +107,7 @@ Pick a deployment guide and follow it end-to-end:
 ## 7. Open the dashboard
 
 ```bash
-python -m src.dashboard.sys_monitor.server
+python -m memexa.dashboard.sys_monitor.server
 # Open http://127.0.0.1:8765
 ```
 

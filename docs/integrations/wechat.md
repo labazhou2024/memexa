@@ -53,13 +53,13 @@ the extractor.
 export MEMEXA_WECHAT_EXPORT_DIR=/path/to/wechat/export
 
 # 2. Run the builder once (writes batch files to data/l0_v5/input_batches/)
-python -m src.ingestion.v5_wechat_batch_builder
+python -m memexa.ingestion.v5_wechat_batch_builder
 
 # 3. Confirm pending batches appear
 ls data/l0_v5/input_batches/$(date +%Y-%m-%d)/ | head
 
 # 4. Run the driver once to extract + POST
-python -m src.drivers.backfill_v5_wechat_driver --once --verbose
+python -m memexa.drivers.backfill_v5_wechat_driver --once --verbose
 
 # 5. Query
 memexa quick "<an entity name from the export>"

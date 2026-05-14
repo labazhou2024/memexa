@@ -47,7 +47,7 @@ the Job, and every process those processes spawn, is tracked. Calling
 `TerminateJobObject` kills them all atomically.
 
 ```python
-# src/core/win_job_subprocess.py (simplified)
+# memexa/core/win_job_subprocess.py (simplified)
 def run_with_job_object(cmd: list[str], timeout: float, **kwargs):
     job = _create_job_object(kill_on_close=True)
 
@@ -131,7 +131,7 @@ nested Jobs and this is no longer a concern.
 
 ## See also
 
-- `src/core/win_job_subprocess.py` — full implementation.
+- `memexa/core/win_job_subprocess.py` — full implementation.
 - Microsoft docs on Job Objects:
   [`docs.microsoft.com/en-us/windows/win32/procthread/job-objects`](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)
 - Python issue [bpo-34453](https://bugs.python.org/issue34453) — request

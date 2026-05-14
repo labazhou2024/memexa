@@ -33,7 +33,7 @@ Markdown/LaTeX layout + a couple of `memory_query` calls under the hood.
 
 ## v0.2 — QQ db-only adapter migration (highest user-impact backlog)
 
-- [ ] Migrate `jarvis/qq_db.py` (762 lines, stdlib only) from upstream JARVIS to `src/extraction/qq/qq_db.py`
+- [ ] Migrate `jarvis/qq_db.py` (762 lines, stdlib only) from upstream JARVIS to `memexa/extraction/qq/qq_db.py`
 - [ ] Migrate `jarvis/qq_reader.py` (clipboard fallback) similarly
 - [ ] Wire both into `backfill_v5_qq_driver.py` so `--mode dump` and `--mode clipboard` work out of the box
 - [ ] Add a smoke test against a synthetic SQLCipher fixture (no real QQ required)

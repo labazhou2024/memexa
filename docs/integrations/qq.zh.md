@@ -26,7 +26,7 @@
 
 > **OSS v0.1.x 状态**: SQLCipher 解密 + key 提取实现在上游 JARVIS
 > (`jarvis/qq_db.py`，762 行，仅依赖标准库)。已计划在 Memexa v0.2 移植到
-> `src/extraction/qq/qq_db.py`。在那之前，OSS 用户需要自己把那一个文件
+> `memexa/extraction/qq/qq_db.py`。在那之前，OSS 用户需要自己把那一个文件
 > 拷过来，或者先用下面的剪贴板兜底。
 
 ### 权衡
@@ -77,16 +77,16 @@ $EDITOR ~/.memexa/secrets/qq_db.key   # 原始 hex, 单行
 
 # 3. 测 reader 能开 DB
 python -c "
-from src.extraction.qq.qq_history_to_batches import probe_db
+from memexa.extraction.qq.qq_history_to_batches import probe_db
 probe_db()
 "
 
 # 4. 跑一次 builder, 用 --mode dump (NapCat HTTP 路径已禁)
-python -m src.extraction.qq.qq_history_to_batches --mode dump \
+python -m memexa.extraction.qq.qq_history_to_batches --mode dump \
     --start-date 2026-05-01 --end-date 2026-05-15
 
 # 5. 跑一次 driver
-python -m src.drivers.backfill_v5_qq_driver --once --verbose
+python -m memexa.drivers.backfill_v5_qq_driver --once --verbose
 ```
 
 ### 锁竞争
@@ -114,7 +114,7 @@ Builder 报 `unknown schema version <N>` 时带版本号提 issue。
 ```bash
 # QQ 里: 选消息 → 右键 → 转发 → 复制
 # 然后跑:
-python -m src.extraction.qq.qq_clipboard_reader
+python -m memexa.extraction.qq.qq_clipboard_reader
 ```
 
 Reader 解析 QQ "转发" 剪贴板格式, 生成跟 db 路径相同的 v5 envelope batches。
@@ -125,7 +125,7 @@ Reader 解析 QQ "转发" 剪贴板格式, 生成跟 db 路径相同的 v5 envel
 
 ## 3. 不推荐: NapCat / Lagrange / Shamrock / go-cqhttp 适配器
 
-`src/extraction/qq_realtime_watcher.py` 和 `qq_batch_ingest.py` 保留在树中作为
+`memexa/extraction/qq_realtime_watcher.py` 和 `qq_batch_ingest.py` 保留在树中作为
 历史参考, 默认拒绝启动除非你设 `MEMEXA_QQ_NAPCAT_FORCE=1`。**在你在乎的账号上
 开这个 flag 是强烈不推荐的。**
 

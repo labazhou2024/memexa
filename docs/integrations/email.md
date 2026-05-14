@@ -26,13 +26,13 @@ $EDITOR ~/.memexa/identity.yaml
 export MEMEXA_IMAP_PASSWORD='<your-imap-app-specific-password>'
 
 # 3. Smoke test the connection
-python -m src.ingestion.v5_email_batch_builder --probe
+python -m memexa.ingestion.v5_email_batch_builder --probe
 
 # 4. Run the builder
-python -m src.ingestion.v5_email_batch_builder
+python -m memexa.ingestion.v5_email_batch_builder
 
 # 5. Run the driver
-python -m src.drivers.backfill_v5_email_driver --once --verbose
+python -m memexa.drivers.backfill_v5_email_driver --once --verbose
 ```
 
 ## Use app-specific passwords, not your account password
@@ -71,7 +71,7 @@ from `data/cursors/email.json` and pulls everything newer.
 For first-time backfill of an N-year mailbox:
 
 ```bash
-python -m src.ingestion.v5_email_batch_builder \
+python -m memexa.ingestion.v5_email_batch_builder \
     --since-days 3650 --batch-size 100
 ```
 
@@ -93,7 +93,7 @@ Most providers use IMAP folder names with provider-specific quirks:
 When in doubt:
 
 ```bash
-python -m src.ingestion.v5_email_batch_builder --list-folders
+python -m memexa.ingestion.v5_email_batch_builder --list-folders
 ```
 
 prints the canonical names for your account.

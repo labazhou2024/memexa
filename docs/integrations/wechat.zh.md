@@ -50,13 +50,13 @@ Builder 读这种目录树:
 export MEMEXA_WECHAT_EXPORT_DIR=/path/to/wechat/export
 
 # 2. 跑一次 builder (写 batch 文件到 data/l0_v5/input_batches/)
-python -m src.ingestion.v5_wechat_batch_builder
+python -m memexa.ingestion.v5_wechat_batch_builder
 
 # 3. 确认 pending batch 出现
 ls data/l0_v5/input_batches/$(date +%Y-%m-%d)/ | head
 
 # 4. 跑一次 driver 抽取 + POST
-python -m src.drivers.backfill_v5_wechat_driver --once --verbose
+python -m memexa.drivers.backfill_v5_wechat_driver --once --verbose
 
 # 5. 查询
 memexa quick "<export 里某个实体名>"

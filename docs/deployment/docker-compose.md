@@ -69,7 +69,7 @@ Type=oneshot
 User=%I
 WorkingDirectory=/home/%I/memexa
 EnvironmentFile=/home/%I/memexa/.env
-ExecStart=/home/%I/memexa/.venv/bin/python -m src.cron.cron_orchestrator run-incremental --all
+ExecStart=/home/%I/memexa/.venv/bin/python -m memexa.cron.cron_orchestrator run-incremental --all
 ```
 
 ```ini

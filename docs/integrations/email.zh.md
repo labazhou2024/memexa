@@ -26,13 +26,13 @@ $EDITOR ~/.memexa/identity.yaml
 export MEMEXA_IMAP_PASSWORD='<你的-imap-应用专用密码>'
 
 # 3. Smoke 测连接
-python -m src.ingestion.v5_email_batch_builder --probe
+python -m memexa.ingestion.v5_email_batch_builder --probe
 
 # 4. 跑 builder
-python -m src.ingestion.v5_email_batch_builder
+python -m memexa.ingestion.v5_email_batch_builder
 
 # 5. 跑 driver
-python -m src.drivers.backfill_v5_email_driver --once --verbose
+python -m memexa.drivers.backfill_v5_email_driver --once --verbose
 ```
 
 ## 用应用专用密码, 不要用账号密码
@@ -69,7 +69,7 @@ Builder 默认增量: 从 `data/cursors/email.json` 读 UID cursor, 拉更新的
 第一次回填 N 年邮箱:
 
 ```bash
-python -m src.ingestion.v5_email_batch_builder \
+python -m memexa.ingestion.v5_email_batch_builder \
     --since-days 3650 --batch-size 100
 ```
 
@@ -90,7 +90,7 @@ python -m src.ingestion.v5_email_batch_builder \
 不确定时:
 
 ```bash
-python -m src.ingestion.v5_email_batch_builder --list-folders
+python -m memexa.ingestion.v5_email_batch_builder --list-folders
 ```
 
 打印你账号的规范名。

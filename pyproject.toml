@@ -4,10 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memexa"
-version = "0.1.0rc1"
+version = "0.1.0rc2"
 description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
 readme = "README.md"
 license = { file = "LICENSE" }
+authors = [{ name = "labazhou2024" }]
+maintainers = [{ name = "labazhou2024" }]
 requires-python = ">=3.10"
 keywords = [
     "personal-memory", "knowledge-graph", "chinese-nlp",
@@ -88,16 +90,16 @@ Issues = "https://github.com/labazhou2024/memexa/issues"
 "Pro tier" = "https://github.com/labazhou2024/memexa/blob/main/docs/saas.md"
 
 [project.scripts]
-memexa = "src.cli.main:main"
-"镜我" = "src.cli.main:main"
-memexa-query = "src.cli.main:main"
+memexa = "memexa.cli.main:main"
+"镜我" = "memexa.cli.main:main"
+memexa-query = "memexa.cli.main:main"
 
 [tool.setuptools]
 package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*"]
+include = ["memexa*"]
 exclude = ["tests*", "examples*", ".audit*"]
 
 [tool.ruff]

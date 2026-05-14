@@ -53,7 +53,7 @@ Marker 有吸引力, 因为:
 
 ## 修法: PG-aware pending
 
-`src/core/pg_bid_cache.py` 在 PostgreSQL 权威状态上加 1 小时 LRU。
+`memexa/core/pg_bid_cache.py` 在 PostgreSQL 权威状态上加 1 小时 LRU。
 
 ```python
 def list_pending_batches(source: str, all_input: list[Path]) -> list[Path]:
@@ -114,6 +114,6 @@ else:
 
 ## 相关
 
-- `src/core/pg_bid_cache.py` — LRU 缓存实现
-- `src/extraction/streaming_post_v5.py` — POST-then-GET 模式
-- `src/drivers/backfill_v5_*_driver.py` — 每个 driver 消费 `pg_bid_cache.get()`
+- `memexa/core/pg_bid_cache.py` — LRU 缓存实现
+- `memexa/extraction/streaming_post_v5.py` — POST-then-GET 模式
+- `memexa/drivers/backfill_v5_*_driver.py` — 每个 driver 消费 `pg_bid_cache.get()`

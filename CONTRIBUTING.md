@@ -55,7 +55,7 @@ pre-commit install
 - Python: PEP 8, `black` formatter (line length 100), `ruff` for
   linting. Run `make fmt` before pushing.
 - Type hints encouraged but not required. Public functions in
-  `src/core/` should be typed.
+  `memexa/core/` should be typed.
 - Tests live in `tests/unit/`, `tests/integration/`, `tests/e2e/`. Use
   `pytest`.
 - Commit messages: imperative mood, ≤72 chars in the subject line.

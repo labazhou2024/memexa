@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `jarvis/qq_reader.py`) and scheduled for OSS migration in v0.2. Bilingual.
 - **docs(env)**: rename `MEMEXA_USTC_CONCURRENT` → `MEMEXA_EXTRACT_CONCURRENT`
   in `configuration.md`, `performance.md`, `troubleshooting.md` (en + zh).
-  No `src/` callsites — pure docs rename.
+  No `memexa/` callsites — pure docs rename.
 - **roadmap**: add explicit v0.2 milestone for the QQ adapter migration
   (5 sub-tasks).
 

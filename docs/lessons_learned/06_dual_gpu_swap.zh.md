@@ -100,8 +100,8 @@ ssh gpu-host '
 python scripts/wait_for_vllm.py http://gpu-host:8312 http://gpu-host:8313
 
 # 跑 gate worker (一 port 一个)
-python -m src.extraction.l0_worker_api --stage A --gate-port 8312 &
-python -m src.extraction.l0_worker_api --stage A --gate-port 8313 &
+python -m memexa.extraction.l0_worker_api --stage A --gate-port 8312 &
+python -m memexa.extraction.l0_worker_api --stage A --gate-port 8313 &
 wait
 
 # Phase 2 — swap 到 extractor
@@ -115,8 +115,8 @@ ssh gpu-host '
 '
 
 # 跑 extract worker
-python -m src.extraction.l0_worker_api --stage B --extract-port 8312 &
-python -m src.extraction.l0_worker_api --stage B --extract-port 8313 &
+python -m memexa.extraction.l0_worker_api --stage B --extract-port 8312 &
+python -m memexa.extraction.l0_worker_api --stage B --extract-port 8313 &
 wait
 ```
 
@@ -128,6 +128,6 @@ wait
 
 ## 相关
 
-- `src/extraction/l0_worker_api.py` — 同一代码库支持 `--stage A` 或
+- `memexa/extraction/l0_worker_api.py` — 同一代码库支持 `--stage A` 或
   `--stage B`
 - `scripts/swap_to_gemma.sh` — Phase 2 swap 操作 helper

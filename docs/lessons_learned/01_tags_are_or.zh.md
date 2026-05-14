@@ -52,7 +52,7 @@ required = {"kind:event", "schema:v2", "source:wechat"}
 results = [r for r in results if required.issubset(set(r.get("tags") or []))]
 ```
 
-高频调用点抽成了 `src/core/memory_query.py:107` 的 `_post_filter()`。
+高频调用点抽成了 `memexa/core/memory_query.py:107` 的 `_post_filter()`。
 
 ## 连带后果
 
@@ -79,5 +79,5 @@ tag `["a", "b"]` 和 `["a", "c"]`, 查 `tags=["b", "c"]`, 数结果。
 
 ## 相关
 
-- `src/core/memory_query.py:107` — `_post_filter` 实现
-- `src/core/hindsight_client.py:205` — recall wrapper docstring
+- `memexa/core/memory_query.py:107` — `_post_filter` 实现
+- `memexa/core/hindsight_client.py:205` — recall wrapper docstring

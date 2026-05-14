@@ -98,7 +98,7 @@ provider hung; see "LLM provider timeout" below.
 Marker / PG truth drift. Force-rebuild the cache from PG:
 
 ```bash
-python -m src.core.pg_bid_cache all --force-refresh
+python -m memexa.core.pg_bid_cache all --force-refresh
 ```
 
 Exit criterion: next cron run shows `pending=0` for the affected source.
@@ -117,7 +117,7 @@ real call:
 
 ```bash
 MEMEXA_HINDSIGHT_TRACE_LOG=/tmp/memexa_trace.jsonl \
-  python -m src.drivers.backfill_v5_wechat_driver --once --verbose
+  python -m memexa.drivers.backfill_v5_wechat_driver --once --verbose
 jq . /tmp/memexa_trace.jsonl
 ```
 
@@ -185,7 +185,7 @@ question.
 
 Localhost-only install. Set `MEMEXA_DASHBOARD_HOSTS` env to a JSON array
 to light up remote-host panels. See
-[`src/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
+[`memexa/dashboard/sys_monitor/server.py`](../src/dashboard/sys_monitor/server.py)
 docstring for the schema.
 
 ### Symptom: "Graph queries" panel is empty even after running queries
@@ -193,13 +193,13 @@ docstring for the schema.
 Check the log path:
 
 ```bash
-python -c "from src.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)"
-ls -la $(python -c "from src.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)")
+python -c "from memexa.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)"
+ls -la $(python -c "from memexa.core.memory_query import _QUERY_LOG_PATH; print(_QUERY_LOG_PATH)")
 ```
 
 If the path is under `_MEI*\Temp\` you have a PyInstaller frozen-path
 issue — re-run from source, not the bundled exe. The path resolver in
-`src/core/_path_resolver.py` is meant to defeat this, so file an issue
+`memexa/core/_path_resolver.py` is meant to defeat this, so file an issue
 with the exact path printed.
 
 ## Last resort

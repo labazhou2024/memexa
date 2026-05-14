@@ -1,4 +1,4 @@
-"""Integration tests for :mod:`src.core._user_identity`.
+"""Integration tests for :mod:`memexa.core._user_identity`.
 
 Verifies env-first resolution + yaml fallback + None-on-missing.
 """
@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from src.core import _user_identity
+from memexa.core import _user_identity
 
 pytestmark = pytest.mark.integration
 

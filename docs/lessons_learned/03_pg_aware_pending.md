@@ -60,7 +60,7 @@ They go wrong because:
 
 ## The fix: PG-aware pending
 
-`src/core/pg_bid_cache.py` adds a 1-hour LRU over the authoritative
+`memexa/core/pg_bid_cache.py` adds a 1-hour LRU over the authoritative
 state in PostgreSQL.
 
 ```python
@@ -126,7 +126,7 @@ two cheap mitigations are:
 
 ## See also
 
-- `src/core/pg_bid_cache.py` — the LRU cache implementation.
-- `src/extraction/streaming_post_v5.py` — POST-then-GET pattern.
-- `src/drivers/backfill_v5_*_driver.py` — every driver consumes
+- `memexa/core/pg_bid_cache.py` — the LRU cache implementation.
+- `memexa/extraction/streaming_post_v5.py` — POST-then-GET pattern.
+- `memexa/drivers/backfill_v5_*_driver.py` — every driver consumes
   `pg_bid_cache.get()`.

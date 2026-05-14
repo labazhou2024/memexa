@@ -64,13 +64,13 @@ demo-ingest:
 
 demo-query:
 	@echo "--- quick ---"
-	python -m src.core.memory_query quick "demo"
+	python -m memexa.core.memory_query quick "demo"
 	@echo "--- topic ---"
-	python -m src.core.memory_query topic "demo"
+	python -m memexa.core.memory_query topic "demo"
 	@echo "--- timeline ---"
-	python -m src.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
+	python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
 	@echo "--- pending ---"
-	python -m src.core.memory_query pending
+	python -m memexa.core.memory_query pending
 
 smoke: backend-up demo-ingest demo-query
 

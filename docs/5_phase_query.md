@@ -23,8 +23,8 @@ chatter) but cannot answer the *state* question.
 ## Phase A — seed
 
 ```bash
-python -m src.core.memory_query quick "Course Y" --max-k 30
-python -m src.core.memory_query arc  "Course Y"  --max-cards 80
+python -m memexa.core.memory_query quick "Course Y" --max-k 30
+python -m memexa.core.memory_query arc  "Course Y"  --max-cards 80
 ```
 
 Result:
@@ -39,8 +39,8 @@ Result:
 Identify who else is in the group, and what their role is.
 
 ```bash
-python -m src.core.memory_query arc "<TA-handle>"      --max-cards 20
-python -m src.core.memory_query arc "<peer-handle>"    --max-cards 20
+python -m memexa.core.memory_query arc "<TA-handle>"      --max-cards 20
+python -m memexa.core.memory_query arc "<peer-handle>"    --max-cards 20
 ```
 
 - `<TA-handle>` posted 7 homework notices in the same group → role = TA.
