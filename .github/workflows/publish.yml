@@ -1,11 +1,13 @@
 name: Publish to PyPI
 
 on:
-  # release.types=[published] removed 2026-05-14 — PyPI Trusted Publisher
-  # not yet configured on the PyPI side; auto-triggering on every release
-  # was causing red CI runs. Re-enable once `pip install memexa` is wired
-  # via PyPI trusted publishing (see ROADMAP v0.1.0 stable / v0.2 PyPI
-  # release). Until then, publish manually via workflow_dispatch.
+  # release-trigger restored 2026-05-14 after PyPI Trusted Publisher was
+  # configured (project=memexa, owner=labazhou2024, workflow=publish.yml,
+  # environment=pypi) and the first manual publish (workflow_dispatch
+  # target=pypi @ v0.1.0-rc1) succeeded. From now on, every published
+  # GitHub release auto-publishes to PyPI.
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       target:
