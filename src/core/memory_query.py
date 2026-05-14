@@ -918,7 +918,7 @@ def topic(
     topic 是 topic/事件 视角 (11 个 default variants 覆盖买卖决策流程等).
 
     Args:
-        topic: 主题关键词 (e.g. "Mac Studio" / "新荷学者经费" / "PRL 投稿")
+        topic: 主题关键词 (e.g. "Mac Studio" / "项目经费报销" / "PRL 投稿")
         variants: 自定义查询变体列表; None 则用 _TOPIC_VARIANT_TEMPLATES
         max_cards: 去重后最大返回数
         salience_min: salience 阈值 (默认 0.0 即不过滤,因 fan-out 已收敛)

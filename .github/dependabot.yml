@@ -23,10 +23,6 @@ updates:
     commit-message:
       prefix: "ci"
 
-  - package-ecosystem: docker
-    directory: "/"
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 1
-    labels:
-      - docker
+  # docker package-ecosystem removed: this repo does not ship a Dockerfile.
+  # The `docker-compose.example.yml` references the upstream pgvector + hindsight
+  # images directly; their versions are pinned in that file and updated manually.
