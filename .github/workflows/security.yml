@@ -26,7 +26,7 @@ jobs:
         # informational confidence; combined with the per-rule skips this
         # surfaces real issues without false-positives on internal cache
         # keys (SHA1/MD5 used as content fingerprints, not for crypto).
-        run: bandit -r src -c pyproject.toml -ll
+        run: bandit -r memexa -c pyproject.toml -ll
         continue-on-error: true  # warn-only for v0.1.0-rc1; tighten in v0.2
 
   secret-scan:

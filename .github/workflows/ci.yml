@@ -29,9 +29,9 @@ jobs:
           python -m pip install -U pip
           pip install -e ".[dev]"
       - name: Ruff (correctness rules only — style queued for v0.2)
-        run: ruff check src tests
+        run: ruff check memexa tests
       - name: Black (check only, warn-only for v0.1.0-rc1)
-        run: black --check src tests
+        run: black --check memexa tests
         continue-on-error: true
 
   test:
@@ -60,10 +60,10 @@ jobs:
       - name: Import smoke
         run: |
           python -c "import pkgutil, importlib; \
-            [importlib.import_module(name) for _, name, _ in pkgutil.iter_modules(['src/core'], 'memexa.core.')]; \
+            [importlib.import_module(name) for _, name, _ in pkgutil.iter_modules(['memexa/core'], 'memexa.core.')]; \
             print('import smoke OK')"
       - name: Pytest (unit + integration)
-        run: pytest -m "not e2e" --cov=src --cov-report=xml --cov-report=term-missing
+        run: pytest -m "not e2e" --cov=memexa --cov-report=xml --cov-report=term-missing
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.11'
         uses: codecov/codecov-action@v4
