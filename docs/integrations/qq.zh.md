@@ -2,21 +2,20 @@
 
 [English](qq.md) · **中文**
 
-> ## ⚠️ 状态: 实验性 / 高风险 (2026-05-15 更新)
+> ## 适配器状态 (2026-05-15 更新)
 >
-> **本项目 maintainer 的 QQ 账号 2026-05-14 被腾讯封号**, 在开发本项目的过程中。
-> 事后分析指向 [2025-09-05 NapCat 公网 OneBot 攻击事件](https://www.xcnahida.cn/?p=b8AROpEJ),
-> 该事件之后腾讯开始对**所有曾使用过 NapCat / LiteLoaderQQNT 的 QQ**
-> 进行指纹匹配并批量封号。
+> **NapCat / OneBot 路径: 已弃用。** 默认关。原因是
+> [2025-09-05 NapCat 公网 OneBot 事件](https://www.xcnahida.cn/?p=b8AROpEJ)
+> 之后腾讯开始对所有曾用过 NapCat / LiteLoaderQQNT 的 QQ 做指纹匹配 +
+> 批量封号。本项目 maintainer 的 QQ 在 2026-05-14 也被卷入。
+> 用 `MEMEX_QQ_NAPCAT_FORCE=1` 可强行启用, **仅限可弃用的研究账号**。
 >
-> **Memex 默认不再附带 NapCat / OneBot 适配器。**
-> 如果你强行启用, 请接受 QQ 随时可能被封, 通常无预警, 有时是停用工具几周/几个月后。
-> 这一类封号腾讯客服**不会**因申诉解封。
+> **db-only 路径: 推荐方案。已在上游 JARVIS LIVE，OSS v0.2 移植。**
+> 当前 OSS v0.1.x 用户需要手工把上游的 reader (`jarvis/qq_db.py`，
+> 单文件，仅依赖标准库) 引入工程，或先用下面的剪贴板兜底，等 v0.2。
 >
-> 完整事件时间线见 [`docs/lessons_learned/`](../lessons_learned/) 和
-> [JARVIS 上游调研笔记](https://github.com/labazhou2024/memex)。
-
-本页只覆盖 **db-only** 路径 (截至 2026-05 唯一零封号案例) + 剪贴板兜底。
+> **剪贴板兜底: 零协议流量。** Reader 在上游 JARVIS LIVE
+> (`jarvis/qq_reader.py`)，OSS v0.2 移植。
 
 ---
 
@@ -24,6 +23,11 @@
 
 直接读 QQ 本地的 SQLite 数据库。**不**发任何协议包, **不**启动任何第三方客户端。
 对腾讯端的可见性等同于"普通聊天记录备份工具"。
+
+> **OSS v0.1.x 状态**: SQLCipher 解密 + key 提取实现在上游 JARVIS
+> (`jarvis/qq_db.py`，762 行，仅依赖标准库)。已计划在 Memex v0.2 移植到
+> `src/extraction/qq/qq_db.py`。在那之前，OSS 用户需要自己把那一个文件
+> 拷过来，或者先用下面的剪贴板兜底。
 
 ### 权衡
 
@@ -155,9 +159,9 @@ Reader 解析 QQ "转发" 剪贴板格式, 生成跟 db 路径相同的 v5 envel
 
 ## 路线图
 
-- ✅ 文本消息走 db-only 路径 (v0.1)
 - ✅ 语音消息走单独 audio pipeline (v0.1)
-- ✅ 剪贴板适配器 (v0.1)
+- 🔜 db-only 适配器从上游 JARVIS 移植 (v0.2) — 上游已在 maintainer 自己数据上验证 6 个月
+- 🔜 剪贴板适配器从上游 JARVIS 移植 (v0.2)
 - 🔜 引用消息 threading (v0.4)
 - 🔜 完整 sub-account 摄入工作流 + 养号冷却指南 (v0.4)
 - ❌ TIM 客户端变体 — 欢迎社区 PR

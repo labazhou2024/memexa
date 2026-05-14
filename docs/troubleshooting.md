@@ -141,7 +141,7 @@ own logs.
 For vLLM specifically:
 
 - GPU OOM → reduce `--max-model-len` or batch size
-- Engine deadlock under high concurrency → cap `MEMEX_USTC_CONCURRENT=5`
+- Engine deadlock under high concurrency → cap `MEMEX_EXTRACT_CONCURRENT=5`
   (sweet spot for most vLLM deploys)
 
 ## Layer 4 — Query returns nothing useful

@@ -66,7 +66,7 @@ Used by Stage A (gatekeeper) and Stage B (extractor).
 | `MEMEX_REMOTE_LLM_API_KEY`        | provider-dependent | `sk-…`                       |
 | `MEMEX_REMOTE_LLM_GATE_MODEL`     | yes       | `qwen2.5-14b-instruct` / `gpt-4o-mini` |
 | `MEMEX_REMOTE_LLM_EXTRACT_MODEL`  | yes       | `gemma-2-27b-it` / `deepseek-chat`     |
-| `MEMEX_USTC_CONCURRENT`           | `5`       | Per-driver concurrency for the extract endpoint. Sweet spot is 5 for most vLLM deploys. |
+| `MEMEX_EXTRACT_CONCURRENT`        | `5`       | Per-driver concurrency for the extract endpoint. Sweet spot is 5 for most vLLM deploys. |
 
 ### Audio (optional)
 

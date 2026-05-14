@@ -133,7 +133,7 @@ jq . /tmp/memex_trace.jsonl
 vLLM 具体:
 
 - GPU OOM → 缩 `--max-model-len` 或 batch size
-- 高并发 engine 死锁 → 设 `MEMEX_USTC_CONCURRENT=5` (大多数 vLLM 部署
+- 高并发 engine 死锁 → 设 `MEMEX_EXTRACT_CONCURRENT=5` (大多数 vLLM 部署
   甜点)
 
 ## Layer 4 — 查询返回无用结果

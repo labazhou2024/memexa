@@ -49,7 +49,7 @@ fan-out already saturates the daemon's BGE worker pool.
 
 ### LLM concurrency
 
-`MEMEX_USTC_CONCURRENT` controls how many extraction requests a single
+`MEMEX_EXTRACT_CONCURRENT` controls how many extraction requests a single
 driver fires in parallel. Sweet spot for most providers is 5:
 
 | Setting | Batches / min (extractor) | Notes                              |

@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing yet. New work will be tracked here between rc1 and v0.1.0 stable._
+### Changed
+
+- **docs(qq)**: rewrite the QQ integration page to reflect the dual-track
+  reality — NapCat path deprecated and disabled by default, db-only and
+  clipboard adapters LIVE in upstream JARVIS (`jarvis/qq_db.py`,
+  `jarvis/qq_reader.py`) and scheduled for OSS migration in v0.2. Bilingual.
+- **docs(env)**: rename `MEMEX_USTC_CONCURRENT` → `MEMEX_EXTRACT_CONCURRENT`
+  in `configuration.md`, `performance.md`, `troubleshooting.md` (en + zh).
+  No `src/` callsites — pure docs rename.
+- **roadmap**: add explicit v0.2 milestone for the QQ adapter migration
+  (5 sub-tasks).
 
 ## [0.1.0-rc1] — 2026-05-14
 

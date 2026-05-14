@@ -64,7 +64,7 @@ Stage A (gatekeeper) 和 Stage B (extractor) 用。
 | `MEMEX_REMOTE_LLM_API_KEY`        | provider 决定 | `sk-…`                                |
 | `MEMEX_REMOTE_LLM_GATE_MODEL`     | 是        | `qwen2.5-14b-instruct` / `gpt-4o-mini` |
 | `MEMEX_REMOTE_LLM_EXTRACT_MODEL`  | 是        | `gemma-2-27b-it` / `deepseek-chat`     |
-| `MEMEX_USTC_CONCURRENT`           | `5`       | 每 driver extract endpoint 并发。大多数 vLLM 部署甜点是 5。 |
+| `MEMEX_EXTRACT_CONCURRENT`        | `5`       | 每 driver extract endpoint 并发。大多数 vLLM 部署甜点是 5。 |
 
 ### Audio (可选)
 

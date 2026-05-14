@@ -45,7 +45,7 @@ Studio + 远程 GPU box 做抽取), 同硬件可复现。
 
 ### LLM 并发
 
-`MEMEX_USTC_CONCURRENT` 控制单个 driver 并发发多少抽取请求。大多数
+`MEMEX_EXTRACT_CONCURRENT` 控制单个 driver 并发发多少抽取请求。大多数
 provider 甜点是 5:
 
 | 设置 | 每分钟 batch (extractor) | 备注                                 |

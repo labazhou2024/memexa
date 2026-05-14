@@ -2,25 +2,22 @@
 
 **English** · [中文](qq.zh.md)
 
-> ## ⚠️ Status: experimental, high-risk (updated 2026-05-15)
+> ## Adapter status (updated 2026-05-15)
 >
-> **The maintainer's QQ account was banned on 2026-05-14** while developing this
-> project. Forensic analysis traced it to the [2025-09-05 NapCat public-OneBot
-> incident](https://www.xcnahida.cn/?p=b8AROpEJ), after which Tencent began
-> signature-matching every QQ that ever ran NapCat / LiteLoaderQQNT and rolling
-> out batched bans.
+> **NapCat / OneBot path: deprecated.** Disabled by default after a
+> [2025-09-05 NapCat public-OneBot incident](https://www.xcnahida.cn/?p=b8AROpEJ)
+> in which Tencent began signature-matching every QQ that ever ran NapCat /
+> LiteLoaderQQNT and rolling out batched bans. The maintainer's own QQ was
+> caught in this wave on 2026-05-14. Override with `MEMEX_QQ_NAPCAT_FORCE=1`
+> only on a research-disposable account.
 >
-> **Memex no longer ships a NapCat / OneBot adapter by default.**
-> If you turn one on, you accept that your QQ may be banned, often without
-> warning, sometimes weeks or months after the fact. Tencent does not unban
-> accounts on appeal for this category.
+> **db-only path: the recommended one. Hardened in upstream JARVIS;
+> migration to OSS scheduled for v0.2.** OSS v0.1.x users must currently
+> wire in the upstream reader (`jarvis/qq_db.py` — single file, stdlib only)
+> by hand, or use the clipboard fallback below until v0.2 lands.
 >
-> See [`docs/lessons_learned/`](../lessons_learned/) and the
-> [JARVIS upstream research note](https://github.com/labazhou2024/memex) for the
-> full incident timeline.
-
-This page covers the **db-only** path (the only one with zero published
-ban cases as of 2026-05) plus the clipboard fallback.
+> **Clipboard fallback: zero protocol traffic.** Reader exists in upstream
+> JARVIS (`jarvis/qq_reader.py`); migration to OSS scheduled for v0.2.
 
 ---
 
@@ -29,6 +26,12 @@ ban cases as of 2026-05) plus the clipboard fallback.
 Reads QQ's local SQLite database directly. Sends no protocol packets,
 launches no third-party client. Indistinguishable from any chat-history
 backup tool.
+
+> **OSS v0.1.x status**: the SQLCipher decrypt + key-extraction implementation
+> lives in upstream JARVIS (`jarvis/qq_db.py`, 762 lines, standard library
+> only). It is scheduled for migration to `src/extraction/qq/qq_db.py` in
+> Memex v0.2. Until then, OSS users must either copy that file in by hand
+> or rely on the clipboard fallback below.
 
 ### Trade-offs
 
@@ -178,9 +181,9 @@ integrate (community PR welcome).
 
 ## Roadmap
 
-- ✅ Text messages via db-only path (v0.1)
 - ✅ Voice messages via separate audio pipeline (v0.1)
-- ✅ Clipboard adapter (v0.1)
+- 🔜 db-only adapter migrated from upstream JARVIS (v0.2) — already battle-hardened on the maintainer's own data
+- 🔜 Clipboard adapter migrated from upstream JARVIS (v0.2)
 - 🔜 Quoted-message threading (v0.4)
 - 🔜 Documented sub-account ingestion workflow with cool-down guidelines (v0.4)
 - ❌ TIM client variant — community PR welcome
