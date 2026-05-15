@@ -839,7 +839,7 @@ def main(argv: Optional[List[str]] = None) -> int:  # noqa: C901
     last_log = time.time()
     with ThreadPoolExecutor(max_workers=args.concurrent) as ex:
         futures = {ex.submit(_worker, bp): bp for bp in batch_paths}
-        for fut in as_completed(futures):
+        for _ in as_completed(futures):
             if time.time() - last_log > 30:
                 logger.info(f"[mac_worker] PROGRESS: {stats.report()}")
                 last_log = time.time()

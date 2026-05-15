@@ -48,6 +48,7 @@ _GIT_COMMIT_PATTERN = re.compile(r"\bgit\s+commit\b")
 
 def main() -> None:
     """Entry point — read stdin, filter, conditionally probe, respond."""
+    raw = ""
     try:
         raw = sys.stdin.read() if not sys.stdin.isatty() else ""
     except OSError:
@@ -55,6 +56,7 @@ def main() -> None:
     if not raw.strip():
         _respond("allow")
 
+    data: dict = {}
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
@@ -100,6 +102,7 @@ def main() -> None:
         "active_tid": active_tid or "",
         "complexity": complexity,
     })
+    result: dict = {}
     try:
         from memexa.core.mini_loop_runner import run_probes
         result = run_probes(active_tid, complexity)
