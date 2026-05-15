@@ -45,6 +45,42 @@ pre-commit install
   不可接受的)
 - 在 `CHANGELOG.md` 的 `## [Unreleased]` 下加条目
 
+## PR 流程 + merge 策略
+
+`main` 受保护。**禁止直接 push** —— 任何改动 (哪怕一行 typo 修复) 都走 PR。
+1-人 OSS 项目, 保护规则刻意保持极简:
+
+- 0 必需 review (maintainer 可自 merge)
+- 0 必需 status check (CI 在每 PR 上跑但不阻塞 merge 按钮 —— 自律: 别 merge 红 CI)
+- 禁止 force push 和 main 分支删除
+
+开完 PR:
+
+1. 等 CI (lint + 9 格 test matrix + bandit + pip-audit + demo ingest +
+   PII scan + CodeQL)。典型 ~3 min
+2. 绿且是你自己 PR: `gh pr merge <num> --squash --delete-branch`
+3. 红: 排查, push fix 到同 branch, CI 重跑, 重复
+4. 外部 contributor PR: maintainer review, voluntary approve, merge
+   (review 不 gate 但作为礼貌期待)
+
+**Dependabot PR** 通过
+[`.github/workflows/dependabot-auto-merge.yml`](.github/workflows/dependabot-auto-merge.yml)
+在 CI 通过后自动 merge (覆盖 patch / minor / major)。如果 Dependabot PR
+auto-merge 后炸了 main, 开 revert PR + 在 `pyproject.toml` 锁定该包版本。
+
+Branch 命名: `<type>/<short-slug>` (kebab-case)
+
+| 前缀 | 何时 |
+|---|---|
+| `feat/` | 新用户面向功能 |
+| `fix/` | bug 修 |
+| `docs/` | 仅文档 |
+| `chore/` | 依赖 bump / 版本 bump / CI 微调 |
+| `refactor/` | 内部重组, 行为不变 |
+| `ci/` | CI workflow / pre-commit / dependabot 配置 |
+| `test/` | 仅 test |
+| `release/` | 发版准备 (CHANGELOG / version bump 打包) |
+
 ## 代码风格
 
 - Python: PEP 8, `black` formatter (行长 100), `ruff` lint。推前

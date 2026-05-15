@@ -1,0 +1,29 @@
+name: Dependabot auto-merge
+
+# Auto-merges Dependabot PRs (any version bump — patch / minor / major).
+# Per CEO decision 2026-05-14: full auto-merge to keep maintenance overhead
+# near zero on a 1-person OSS project. Tradeoff accepted: a Dependabot
+# major bump *could* break main; the safety net is the CI suite (lint +
+# tests × 3 OS × 3 Python + bandit + pip-audit + demo ingest + PII scan)
+# which `gh pr merge --auto` waits for.
+#
+# To gate stricter (only patch/minor auto, major manual) later: add
+# dependabot/fetch-metadata + a conditional `if:` filter on update-type.
+
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  dependabot:
+    name: Auto-merge dependabot PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Enable auto-merge (squash)
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

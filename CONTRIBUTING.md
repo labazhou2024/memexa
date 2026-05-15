@@ -50,6 +50,46 @@ pre-commit install
   (any reference to your own real-life data is unacceptable in a PR).
 - Update `CHANGELOG.md` under `## [Unreleased]`.
 
+## PR workflow & merge policy
+
+`main` is protected. Direct pushes are blocked — every change goes
+through a PR, even a one-line typo fix. The protection rules are
+intentionally minimal for a one-person OSS project:
+
+- 0 required approving reviews (the maintainer can self-merge)
+- 0 required status checks (CI runs on every PR but does not block the
+  merge button — self-discipline: do not merge red CI)
+- Force pushes and branch deletions on `main` are disabled
+
+After opening a PR:
+
+1. Wait for CI (lint + 9-cell test matrix + bandit + pip-audit + demo
+   ingest + PII scan + CodeQL). Typical wall time ~3 min.
+2. If green and the PR is yours:
+   `gh pr merge <num> --squash --delete-branch`
+3. If red: investigate, push a fix to the same branch, CI re-runs, repeat.
+4. External contributor PR: maintainer reviews, voluntarily approves,
+   merges (review is not gate-required but expected as a courtesy).
+
+**Dependabot PRs** auto-merge via
+[`.github/workflows/dependabot-auto-merge.yml`](.github/workflows/dependabot-auto-merge.yml)
+once CI passes (covers patch / minor / major). If a Dependabot PR ever
+breaks `main` after auto-merge, open a revert PR and pin the offending
+package in `pyproject.toml`.
+
+Branch naming: `<type>/<short-slug>` (kebab-case)
+
+| Prefix | When |
+|---|---|
+| `feat/` | new user-facing feature |
+| `fix/` | bug fix |
+| `docs/` | documentation only |
+| `chore/` | dependency bumps, version bumps, CI tweaks |
+| `refactor/` | internal restructure, no behavior change |
+| `ci/` | CI workflow / pre-commit / dependabot config |
+| `test/` | tests-only |
+| `release/` | release preparation (CHANGELOG / version bump bundle) |
+
 ## Coding style
 
 - Python: PEP 8, `black` formatter (line length 100), `ruff` for
