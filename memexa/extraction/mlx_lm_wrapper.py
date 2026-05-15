@@ -133,11 +133,11 @@ def invoke_http_dual_port(
     """
     import asyncio as _asyncio
 
+    _DEFAULT_PRIMARY_PORT = 18080
+    _DEFAULT_SECONDARY_PORT = 18081
     if ports is None:
         ports = [_DEFAULT_PRIMARY_PORT, _DEFAULT_SECONDARY_PORT]
 
-    _DEFAULT_PRIMARY_PORT = 18080
-    _DEFAULT_SECONDARY_PORT = 18081
     host = HTTP_BACKEND_URL.split("//")[-1].split(":")[0]
     _timeout = timeout or HTTP_BACKEND_TIMEOUT
 
