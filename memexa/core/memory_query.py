@@ -1522,6 +1522,12 @@ def _cli(argv: List[str]) -> int:
     except Exception:
         pass
     p = argparse.ArgumentParser(prog="memexa.core.memory_query")
+    # 2026-05-16 v0.1.x: --json output mode lets AI agents (Claude Code,
+    # Cursor, Cline) parse memexa output via json.loads() instead of
+    # text. Subprocess CLI is the current first-class agent path;
+    # native MCP server lands in v0.5.
+    p.add_argument("--json", action="store_true",
+                   help="emit raw result as JSON array/object for agent parsing")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     pq = sub.add_parser("quick")
@@ -1661,6 +1667,81 @@ def _cli(argv: List[str]) -> int:
     _ok = True
     _err: Optional[str] = None
     try:
+        # 2026-05-16 v0.1.x: --json mode short-circuits text rendering.
+        # Same call surface, raw return value as JSON to stdout. Agents
+        # invoking memexa via subprocess CLI should pass --json.
+        if args.json:
+            if args.cmd == "quick":
+                _res = quick(args.query, source=args.source, types=args.types,
+                             tier_in=args.tier, salience_min=args.salience,
+                             max_k=args.max_k, include_legacy=args.legacy)
+            elif args.cmd == "reflect":
+                _res = reflect(args.query, budget=args.budget,
+                               layers=("event",) if args.no_articles
+                                       else ("event", "article"))
+            elif args.cmd == "timeline":
+                _res = timeline((args.start, args.end), room=args.room,
+                                source=args.source)
+            elif args.cmd == "person":
+                _res = person(args.name)
+            elif args.cmd == "project":
+                _res = project(args.topic)
+            elif args.cmd == "pending":
+                _res = pending()
+            elif args.cmd == "session-context":
+                _res = session_start_context()
+            elif args.cmd == "arc":
+                _res = arc(args.entity, max_cards=args.max_cards,
+                           budget=args.budget,
+                           include_legacy=not args.no_legacy)
+            elif args.cmd == "topic":
+                _res = topic(args.topic, variants=args.variants,
+                             max_cards=args.max_cards,
+                             salience_min=args.salience,
+                             budget=args.budget,
+                             include_legacy=not args.no_legacy,
+                             chronological=not args.by_salience)
+            elif args.cmd == "types":
+                _res = types_query(args.filter, status=args.status,
+                                   source=args.source, days=args.days,
+                                   max_k=args.max_k,
+                                   salience_min=args.salience)
+            elif args.cmd == "graph-walk":
+                _res = graph_walk(args.entity, depth=args.depth,
+                                  max_per_hop=args.max_per_hop,
+                                  salience_min=args.salience)
+            elif args.cmd == "summary":
+                _res = summary(window_days=args.window_days,
+                               source=args.source,
+                               topic_hint=args.topic_hint,
+                               budget=args.budget)
+            elif args.cmd == "trends":
+                _res = trends(by=args.by, window_days=args.window_days,
+                              top_n=args.top_n,
+                              salience_min=args.salience)
+            elif args.cmd == "cross-source":
+                _res = cross_source(args.query, sources=args.sources,
+                                    max_per_source=args.max_per_source,
+                                    days=args.days)
+            else:
+                _res = {"error": f"unknown subcommand: {args.cmd}"}
+            # Count for the query log (best-effort across heterogeneous
+            # return shapes).
+            if isinstance(_res, list):
+                _n_results = len(_res)
+            elif isinstance(_res, dict):
+                _n_results = (
+                    len(_res.get("recent_events") or [])
+                    or len(_res.get("hops") or [])
+                    or len(_res.get("top") or [])
+                    or sum(len(v) for v in (_res.get("by_source") or {}).values()
+                           if isinstance(v, list))
+                    or (1 if _res.get("text") else 0)
+                )
+            print(json.dumps(_res, ensure_ascii=False, default=str))
+            return 0
+        # Below: original text-rendering path, unchanged when --json
+        # is not set.
         if args.cmd == "quick":
             res = quick(args.query, source=args.source, types=args.types,
                          tier_in=args.tier, salience_min=args.salience,
