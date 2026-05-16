@@ -4,283 +4,212 @@
 
 > Aspirational. Not a commitment. Things move when they move.
 
-## Positioning (revised 2026-05-16)
+## Positioning
 
-**Stated goal: become the #1 OSS memory-graph project in China for
-Chinese-native multi-party data.**
+memexa is a self-hosted memory graph for Chinese-native multi-party
+data — WeChat / QQ / 飞书 / 钉钉 group chats, Chinese email threads,
+Chinese audio recordings. Each message is stored verbatim and
+extracted into a structured envelope (narrative + entities +
+per-claim evidence quotes + time resolutions + relation assertions)
+using a two-LLM pipeline. Queries cross sources, return cards with
+citations, and feed into deliverable templates.
 
-memexa targets **the broader Chinese-speaking market** — *not* a single
-demographic. Two compounding moats:
+The project occupies a lane the adjacent OSS memory projects do not
+address: Chinese-native data sources, high-accuracy citation back to
+source sentences, and CLI-first design usable by both humans and AI
+agents.
 
-1. **Chinese-native data sources**: WeChat / QQ / 飞书 / 钉钉 multi-party
-   group chats, Chinese audio, Chinese email threads — OpenHuman /
-   MemPalace's Western-SaaS-OAuth + summary / verbatim model can't
-   handle these well.
-2. **V2 envelope extraction with per-claim citation**: verbatim raw +
-   LLM-extracted narrative + `evidence_quotes` + `identity_assertions`
-   + `time_resolutions` + `relation_assertions`. Hierarchical summaries
-   (OpenHuman) lose information; literal Zettelkasten (MemPalace)
-   can't resolve "who said what to whom" in group chats. memexa keeps
-   both layers and binds every claim back to its source sentence.
+For the per-capability comparison against neighbouring projects
+(OpenHuman, MemPalace, ReMe) and the five user scenarios memexa is
+designed for, see [docs/why.md](docs/why.md).
 
-Adjacent OSS projects (OpenHuman, MemPalace, ReMe) cover the English /
-Western-SaaS / desktop-assistant / dev-tool-MCP lanes. memexa stays in
-the Chinese-native + high-accuracy-citation lane on purpose.
+## Current state (v0.1.0-rc2 on PyPI, 2026-05-16)
 
-**Five user scenarios memexa is designed for:**
+Shipped:
 
-| Scenario | Typical user | Primary deliverable |
-|---|---|---|
-| Knowledge worker / PM / consultant | bilingual office worker, freelancer | `weekly` (cross-source weekly report), `brief <person>` (meeting prep) |
-| Researcher / student / academic | university student, research-track grad student | `brief <topic>` (defense / talk prep), `retro <window>` (project recap) |
-| Content creator / 自媒体 | 公众号 author, 知乎 answerer, Xiaohongshu creator | `retro <window>` (idea recovery), upcoming `notebook` deliverable |
-| Small business / 个体户 | freelance professional, small studio owner | `brief <person>` (client / lead prep), `retro <window>` (deal recap) |
-| Self-quantified / GTD / privacy power user | self-hosted enthusiast, GTD practitioner | `pending` (cross-source to-do), `retro <window>` (weekly review) |
+- CLI: `init` / `version` / `config` / `doctor` / `query`.
+- Fourteen query subcommands (nine basic + five advanced).
+- Six ingestion sources: WeChat, QQ, email, browser, Claude Code, audio.
+- Two-LLM gate-extract pipeline with DeepSeek arbiter quorum.
+- PostgreSQL + pgvector backend (Hindsight FastAPI in docker compose).
+- Live dashboard on port 8765 with seven panels.
+- Deployment guides for macOS, Windows, and Linux + Docker.
+- Eight tests, nineteen CI workflow checks, CodeQL clean.
+- Dependabot security alerts and automated security fixes enabled.
+- Fresh-clone smoke test passes on Win + macOS + Linux ×
+  Python 3.10 / 3.11 / 3.12.
 
-All five share the same backbone (ingestion + extract + graph + query +
-deliverable templates). Templates differ; we ship the three most
-universal (`weekly` / `brief` / `retro`) in v0.2 and let users author
-their own in v0.7.
+Not yet shipped:
 
----
+- One-line onboarding (no Docker, no LLM API key, no configuration).
+- Deliverable templates that produce ready-to-use Markdown documents.
+- Chinese IM sources beyond WeChat and QQ (飞书, 钉钉).
+- Local document source (.md / .pdf / .docx / .txt).
+- Embedded backend mode for users who want to try one source without
+  Docker.
+- MCP server entry point for direct agent integration.
+- Pluggable backend (currently locked to Hindsight FastAPI).
 
-## v0.1.x — close out stable (1–2 weeks)
+## v0.1.x — close out to stable
 
-- [x] CLI dispatcher (`memexa init / version / config / doctor / query`)
-- [x] PII scrubbing pre-commit hook
-- [x] Demo dataset (6 sources, public-domain)
-- [x] Direct psycopg2 PG access (no ssh shell-out by default)
-- [x] Hindsight failover URL with automatic retry
-- [x] 14 query subcommands documented
-- [x] `memexa doctor` round-trips LLM provider
-- [x] PII residual scanner with self-referential SKIP-list
-- [x] **CodeQL: 7 open errors → 0** (PR #12, 2026-05-15)
-- [x] **Dependabot vulnerability alerts ENABLED + automated security fixes ENABLED**
-- [x] **Fresh-clone smoke test passes on Win + macOS + Linux × Python 3.10/3.11/3.12 in CI** (verified by PR #12, 18/18 green)
-- [ ] CHANGELOG `known-limitation` line about PyPI availability — update to reflect LIVE on PyPI
-- [ ] Cut v0.1.0 stable after ≥ 1 week without a critical bug and ≥ 1 non-author issue / discussion
+The remaining v0.1 work unblocks the first-experience path for both
+**human users** and **AI agents**. v0.1.0 is cut from a green rc only
+after every item in this list is true.
 
-## v0.2 — three universal deliverable templates (4–8 weeks)
+- `memexa demo` subcommand: a thirty-second walkthrough that uses the
+  bundled synthetic dataset and the stub extractor. No Docker, no LLM
+  key, no configuration.
+- `--json` output mode for all fourteen query subcommands, so agents
+  invoking memexa via shell can `json.loads()` the result directly
+  instead of parsing text. The subprocess-CLI path is the current
+  first-class agent integration; native MCP server arrives in v0.5.
+- `Makefile` lint and format targets point at `memexa tests` rather
+  than the deprecated `src` path.
+- `CHANGELOG.md` known-limitation about PyPI availability removed
+  (the package has been on PyPI since rc1).
+- At least one non-author issue, discussion, or pull request landed.
+- At least one full week elapsed since the most recent critical bug
+  fix.
 
-The core query system gives you raw signals. v0.2 stitches them into
-copy-paste-ready documents. We ship **three** templates that cover all
-five user scenarios — not five separate templates. Each template = one
-subcommand + a Markdown layout + a couple of `memory_query` calls.
+## v0.2 — agent workflow templates
 
-- [ ] `memexa weekly` — cross-source weekly report
-  (git log + email + IM digest + project pulse → one-page Markdown)
-- [ ] `memexa brief <person|topic>` — pre-meeting / pre-talk / pre-call brief
-  (baseline / last interaction / open threads / landmines)
-- [ ] `memexa retro <window>` — time-window recap
-  (key events / commitments closed / commitments outstanding / surprises)
-- [ ] Template engine: shared Markdown layout + LLM provider abstraction
-  so v0.7 user-authored templates plug into the same pipeline
-- [ ] Three reproducible walkthroughs under `examples/deliverables/` —
-  one per user scenario (knowledge worker / researcher / freelancer)
+memexa is an **agent backbone**, not an end-user product. The typical
+flow is: human → Claude Code / Cursor / Cline → subprocess CLI to
+memexa → composed Markdown answer. v0.2 ships three workflow **spec
+documents** that tell the agent how to orchestrate the fourteen
+subcommands for the most common deliverables — **no new Python code,
+no new CLI subcommands**.
 
-**Cut from earlier draft** (deferred or absorbed into the three above):
-`lab-report` / `action-card` / `dashboard` — too narrow for general
-Chinese-market reach; `retro` covers the underlying pattern.
+- `docs/templates/weekly.md` — cross-source weekly report workflow.
+- `docs/templates/brief.md` — pre-meeting / pre-talk brief workflow.
+- `docs/templates/retro.md` — time-window recap workflow.
+- `docs/templates/README.md` — spec system overview and customisation
+  guide (users add their own templates by copying a spec file, no
+  code; the v0.7 milestone formalises the submission path).
+- One case study walking Claude Code through the weekly workflow on
+  the bundled demo dataset, so newcomers can see the agent + memexa
+  interaction concretely.
 
-## v0.3 — Chinese IM + identity deepening (reflow JARVIS, 4–6 weeks)
+v0.2 ships when the weekly spec lands on main and one walkthrough
+demonstrates a real Claude Code session producing a citation-bearing
+report.
 
-JARVIS upstream has these LIVE for months; the OSS migration is the next
-push. Each item links to the JARVIS HANDOFF entry that proves the
-capability is production-tested.
+## v0.3 — Chinese IM and identity deepening
 
-- [ ] **QQ db-only adapter** — port `jarvis/qq_db.py` (762 lines, stdlib
-      only) → `memexa/extraction/qq/qq_db.py`; rip the OSS-side NapCat
-      adapter
-      _([JARVIS §C.-24 LIVE 2026-05-15](https://github.com/labazhou2024/memexa))_
-- [ ] **doc source = 7th source** — local document graph integration
-      (.md / .pdf / .docx / .txt), file_sha1-bound not path-bound, so
-      moves and renames don't trigger re-extraction
-      _([JARVIS §C.-22 → §C.-26 buildup, v0.5 LIVE 2026-05-15](https://github.com/labazhou2024/memexa))_
-- [ ] **Identity manifest auto-learning** — cross-alias entity
-      resolution (`@张三` / `张老师` / `zhangsan@example.com` →
-      one canonical id), zero-LLM 4-phase algorithm
-      _(USAGE_MANUAL §19 in JARVIS, LIVE 2026-05-10)_
-- [ ] **WeChat PC backup ingestion** — beyond live MicroMsg.db,
-      support PC WeChat backup directory (so users on locked-down
-      devices can still ingest)
-- [ ] **飞书 (Lark) export** — adapter for the JSON export Lark
-      provides for personal accounts
-- [ ] **钉钉 (DingTalk) export** — adapter for the chat export
-- [ ] **Cut from earlier draft**: Discord / Slack / Telegram / iMessage
-      — OpenHuman owns the Western-SaaS lane via Composio OAuth; not
-      our market
+Capabilities proven LIVE in upstream development for ≥ 4 weeks
+without rollback reflow to memexa here. Each item requires a
+PII / abstraction audit before merge.
 
-## v0.4 — Audio + voice-id (reflow JARVIS, 3–5 weeks)
+- QQ db-only adapter; replaces the OSS-side NapCat path, which is
+  removed.
+- Local document source (.md / .pdf / .docx / .txt with file-sha1
+  binding so moves and renames do not trigger re-extraction).
+- Identity manifest auto-learning for cross-alias entity resolution.
+- WeChat PC backup ingestion.
+- 飞书 (Lark) export adapter.
+- 钉钉 (DingTalk) export adapter.
+- Embedded backend mode (`memexa backend --embedded`): sqlite-vss
+  alternative to docker-compose for users who only need one source.
 
-- [ ] **SenseVoice ASR reflow** — JARVIS audio v2 ships SenseVoice
-      replacing Whisper: 6.8% CER (vs Whisper ~10%), 5× realtime,
-      eliminated English-hallucination on Chinese audio
-      _([JARVIS §C.-23/-28 LIVE 2026-05-15/16](https://github.com/labazhou2024/memexa))_
-- [ ] **Cross-session voice manifest** — ECAPA embedding cross-session
-      voting + enroll-user-voice workflow; identify "self" vs "speaker
-      N" across recordings
-- [ ] **Multi-device audio merge** — recording pen (USB-MSC) + iPhone
-      voice memos + classroom dictation, dedup by content fingerprint
-- [ ] `memexa 会议纪要 <session>` — auto extract action items + key
-      decisions from a meeting recording (combines audio source +
-      `brief` template from v0.2)
+## v0.4 — audio and voice
 
-## v0.5 — AI agent integration as first-class (3–4 weeks)
+- SenseVoice ASR (Chinese CER ~6.8 %, replaces Whisper).
+- Cross-session voice manifest (ECAPA-based speaker enrollment).
+- Multi-device audio merge (recording-pen, iPhone Voice Memos,
+  classroom dictation).
+- `memexa 会议纪要 <session>`: meeting summary deliverable.
 
-- [ ] **`memexa-mcp` MCP server entry-point** — official Model Context
-      Protocol server so Claude Code / Cursor / Cline / any MCP-compatible
-      agent reads memexa as a memory backend
-- [ ] **Official `.mcp.json` template** in `examples/agent_integrations/`
-- [ ] **Cursor / Cline integration docs** — step-by-step
-- [ ] **`docs/for_agents.md` v2** — covering MCP spec, function-call
-      protocols, agent skill spec
-- [ ] **Cron + dashboard reflow** — Win schtask + Mac LaunchAgent +
-      Linux systemd templates for the 6-hour incremental cron, plus
-      the sys_monitor dashboard (port 8765, 7 panels)
-      _([JARVIS HANDOFF §E LIVE; Mac failover wrappers §C.-29 LIVE 2026-05-15](https://github.com/labazhou2024/memexa))_
+## v0.5 — AI agent integration completion
 
-## v0.6 — Pluggable LLM + pluggable backend (4–6 weeks)
+The `subprocess` CLI path is the v0.1.x first-class agent integration.
+v0.5 promotes that to a native MCP integration so agents can invoke
+memexa as a structured tool without spawning a shell.
 
-The key strategic move: **memexa stops competing with mem0 / MemPalace
-on backend; we federate to them as user choice.**
+- `memexa-mcp`: Model Context Protocol server entry point exposing all
+  fourteen query subcommands and the v0.2 workflow specs as MCP tools.
+- Official Claude Code, Cursor, and Cline integration examples under
+  `examples/agent_integrations/` with a one-line `.mcp.json` snippet.
+- `docs/for_agents.md` updated to v2 covering MCP spec, function-call
+  protocol, and agent skill specification.
 
-- [ ] **LLM provider abstraction** — adapters for OpenAI / DeepSeek /
-      Qwen3 / vLLM / Ollama / LiteLLM proxy / OpenRouter / 自部署
-      OpenAI-compatible endpoint
-- [ ] **Backend adapter** — `memexa --backend=chroma|mem0|mempalace|hindsight`
-      switches the storage layer without changing the query / deliverable layer
-- [ ] **Schema drift sanitize reflow** — JARVIS §C.-29 §10 ships
-      `_normalize_llm_card` covering 5 new drift classes (date-only ISO,
-      time-only ISO, role=relay, related_episode dict, when_end None);
-      port to OSS so extractor model swaps don't break PG inserts
-- [ ] **5-driver rc=2 graceful-skip pattern** — reflow JARVIS
-      [§C.-29 §2 LIVE 2026-05-15](https://github.com/labazhou2024/memexa);
-      transient backend outage no longer poisons cron
+## v0.6 — pluggable LLM and pluggable backend
 
-## v0.7 — User-authored deliverable templates (4 weeks)
+memexa stops competing with adjacent backends and federates to them
+as a user choice.
 
-The deliverable layer becomes an ecosystem, not a fixed list of three.
+- LLM provider abstraction: adapters for OpenAI, DeepSeek, Qwen,
+  vLLM, Ollama, LiteLLM, OpenRouter, and self-hosted OpenAI-compatible
+  endpoints.
+- Backend adapter: `memexa --backend=chroma|mem0|mempalace|hindsight`
+  switches the storage layer without changing the query or deliverable
+  layer.
+- Schema-drift sanitizer so extractor model swaps do not break
+  database inserts.
 
-- [ ] **Template authoring spec** — `~/.memexa/templates/<name>.yaml`
-      with declared inputs (which subcmds to call), Markdown / LaTeX
-      layout, and optional LLM-rendering step
-- [ ] **Six example user-authored templates** (one per scenario type):
-      - 客户跟进 (small-business)
-      - 学习笔记 (researcher / student)
-      - 阅读简报 (knowledge worker)
-      - 创作素材库 (content creator)
-      - 每日复盘 (GTD / self-quantified)
-      - 答辩 brief (researcher / student)
-- [ ] **Template submission contrib path** — community templates land
-      in `examples/community_templates/` via PR, not built-in
+## v0.7 — user-authored workflow spec templates
 
-## v1.0 — stable schema commitment + ecosystem (≥ 6 months out)
+The workflow-template layer becomes an ecosystem rather than a fixed
+list of three. Users author their own spec documents the same way the
+v0.2 specs are written — Markdown that the agent reads at runtime.
 
-- [ ] V2 envelope frozen; migrations only via additive fields
-- [ ] CLI args frozen; deprecations only with one-release warning
-- [ ] On-disk layout frozen; bumping bumps a major version
-- [ ] Backend adapter interface frozen
-- [ ] ≥ 4 deliverable templates LIVE (3 builtin + ≥ 1 community)
-- [ ] ≥ 4 Chinese-IM sources LIVE (WeChat / QQ / 飞书 / 钉钉)
-- [ ] ≥ 3 external contributors with merged PRs
-- [ ] ≥ 5 real production users (non-author) documented in
-      `docs/case_studies/` or `examples/community_templates/`
+- Spec loading mechanism: memexa discovers user spec files under
+  `~/.memexa/templates/` in addition to the bundled
+  `docs/templates/`. Agents see the combined list as available tools.
+- Six example community spec templates under
+  `examples/community_templates/` covering distinct user scenarios
+  (client follow-up, study notes, reading brief, content backlog,
+  daily retro, defense brief).
+- Spec submission path via pull request into
+  `examples/community_templates/`.
 
-## Permanently out of scope (expanded 2026-05-16)
+No new Python code is required to add a template; v0.7 is documented
+schema + a submission path.
 
-- ❌ **Desktop GUI** — OpenHuman owns this lane via Tauri + 118 OAuth
-- ❌ **Western-SaaS OAuth bulk** — Gmail / Slack / Notion / Linear /
-      Jira via Composio is OpenHuman's moat; we do not chase
-- ❌ **Mobile / web UI rewrites**
-- ❌ **Multi-tenant hosted service**
-- ❌ **Voice synthesis or agent loops** — distinct project category
-- ❌ **English single-thread benchmark race** (LongMemEval / LoCoMo /
-      MemBench on English ChatGPT-style threads) — MemPalace owns these.
-      memexa **will** publish its own benchmark, but on Chinese-native
-      multi-party data: group-chat speaker disambiguation, cross-alias
-      entity resolution accuracy, relative-time anchor correctness,
-      and `evidence_quotes` citation-back-to-source-sentence precision.
-      Target: ship `benchmarks/cn_multiparty/` in v0.3 with 5 reproducible
-      Chinese WeChat / QQ scenarios.
-- ❌ **Anything that prevents you from owning your own data**
+## v0.8+ — desktop GUI (optional, condition-gated)
 
-## How to propose a roadmap change
+Desktop GUI is acknowledged as a real driver of broader audience reach
+but it is not on the critical path. memexa is agent-backbone first;
+a desktop shell is layered on top only when the foundation is solid.
 
-Open a Discussion in the **Ideas** category with:
+Conditions for opening a v0.8 GUI exploration:
 
-- What you would add / drop.
-- Which milestone it fits.
-- Whether you are volunteering to implement it.
-- Which user scenario it serves (knowledge worker / researcher /
-  creator / small-business / self-quantified — or a new one).
+- v0.5 MCP integration shipped and at least one well-known AI agent
+  (Claude Code / Cursor / Cline) has the memexa server snippet pinned
+  in their community docs.
+- v0.7 community templates ≥ 5 merged.
+- Roughly 3 000 GitHub stars and 5 000 PyPI monthly downloads.
 
-The BDFL will respond yes / no / later, with a one-paragraph reason.
+If those conditions hold, an evaluation PR opens to pick one of:
 
----
+- (a) Tauri shell wrapping the CLI as backend.
+- (b) Streamlit local web UI.
+- (c) Stay terminal + agent only.
 
-## Parallel-execution task plan (for fast iteration with multiple contributors)
+This milestone is explicitly **not** committed work; the project may
+remain terminal-only forever and still meet its goals.
 
-Multiple contributors can work in parallel on independent task units.
-Each unit = one feature branch + one PR + isolated test scope. Below
-is the v0.2 / v0.3 / v0.4 task split designed so 3–5 contributors can
-work concurrently without merge conflicts.
+## v1.0 — stable schema commitment
 
-### v0.2 — three deliverable templates (3 parallel tracks)
+- V2 envelope frozen; migrations only via additive fields.
+- CLI arguments frozen; deprecations only with one-release warning.
+- On-disk layout frozen; bumping bumps a major version.
+- Backend adapter interface frozen.
+- At least three external contributors with merged pull requests.
+- At least five non-author production users documented in case
+  studies or community templates.
 
-| Track | Owner | Branch | Files touched (isolated) |
-|---|---|---|---|
-| **A. `memexa weekly`** | contributor #1 | `feat/v0.2-weekly-template` | `memexa/deliverables/weekly.py` (new) + `tests/integration/test_weekly_deliverable.py` (new) + `examples/deliverables/01_weekly_knowledge_worker.md` (new) |
-| **B. `memexa brief <person\|topic>`** | contributor #2 | `feat/v0.2-brief-template` | `memexa/deliverables/brief.py` (new) + `tests/...test_brief_deliverable.py` (new) + `examples/deliverables/02_brief_researcher.md` (new) |
-| **C. `memexa retro <window>`** | contributor #3 | `feat/v0.2-retro-template` | `memexa/deliverables/retro.py` (new) + `tests/...test_retro_deliverable.py` (new) + `examples/deliverables/03_retro_freelancer.md` (new) |
-| **D. Shared template engine** | maintainer | `feat/v0.2-template-engine` | `memexa/deliverables/__init__.py` (new) + `memexa/deliverables/_base.py` (new) + `memexa/deliverables/_provider.py` (LLM provider abstraction) — **lands first, A/B/C depend on this** |
-| **E. CLI dispatch + docs** | maintainer | `feat/v0.2-cli-routes` | `memexa/cli/main.py` (add `weekly`/`brief`/`retro` subcmds) + `docs/usage_guide.md` + `docs/usage_guide.zh.md` |
+## Permanently out of scope
 
-### v0.3 — Chinese IM + identity reflow (5 parallel tracks)
+- Desktop GUI applications.
+- Bulk Western-SaaS OAuth integrations (Gmail, Slack, Notion, Linear,
+  Jira via Composio-style gateways).
+- Mobile or web UI rewrites.
+- Multi-tenant hosted service.
+- Voice synthesis or autonomous agent loops.
+- Anything that prevents users from owning their own data.
 
-| Track | Owner | Branch | Status |
-|---|---|---|---|
-| **F. QQ db-only adapter** | contributor / maintainer | `feat/v0.3-qq-db-only` | reflow `jarvis/qq_db.py` 762 lines from upstream JARVIS |
-| **G. doc source = 7th** | contributor / maintainer | `feat/v0.3-doc-source` | reflow JARVIS doc-source v0.5 LIVE 2026-05-15 |
-| **H. identity manifest** | contributor / maintainer | `feat/v0.3-identity-manifest` | reflow JARVIS USAGE_MANUAL §19 |
-| **I. 飞书 (Lark) export adapter** | contributor | `feat/v0.3-lark-adapter` | new from scratch (no upstream parallel) |
-| **J. 钉钉 (DingTalk) export adapter** | contributor | `feat/v0.3-dingtalk-adapter` | new from scratch |
-| **K. benchmarks/cn_multiparty/** | maintainer | `feat/v0.3-cn-benchmark-suite` | new — 5 reproducible WeChat / QQ scenarios |
+## How to propose a change
 
-### v0.4 — audio + voice (3 parallel tracks)
-
-| Track | Owner | Branch |
-|---|---|---|
-| **L. SenseVoice ASR reflow** | contributor | `feat/v0.4-sensevoice-asr` |
-| **M. Cross-session voice manifest** | contributor | `feat/v0.4-voice-manifest` |
-| **N. `memexa 会议纪要 <session>`** | contributor | `feat/v0.4-meeting-summary` |
-
-### Contributor onboarding
-
-When ≥1 contributor is on-board, the maintainer opens a "v0.X
-coordination" Discussion thread per release; tracks A–N above are
-filed as separate issues with `good-first-issue` or `help-wanted`
-labels. Each track has its own `tests/...` scope so parallel PRs do
-not collide.
-
----
-
-## Reflow status from upstream JARVIS (LIVE capability inventory)
-
-| JARVIS LIVE capability | OSS reflow target | Status |
-|---|---|---|
-| 6 sources (WeChat / QQ / Email / Browser / Claude Code / Audio) | v0.1 | ✅ shipped |
-| 14 query subcommands (basic 9 + advanced 5) | v0.1 | ✅ shipped |
-| Streaming POST + verify + dead-letter retry | v0.1 | ✅ shipped |
-| Doc source (file_sha1-bound, .md/.pdf/.docx/.txt) | **v0.3** | reflow pending |
-| QQ db-only (NapCat → SQLCipher direct) | **v0.3** | reflow pending |
-| Identity manifest cross-alias resolution | **v0.3** | reflow pending |
-| SenseVoice ASR + voice enroll | **v0.4** | reflow pending |
-| MCP server entry-point | **v0.5** | new in OSS |
-| Schema drift sanitize (5 classes) | **v0.6** | reflow pending |
-| 5-driver rc=2 graceful-skip pattern | **v0.6** | reflow pending |
-| Mac failover wrappers (PG stale-lock + hindsight pg_isready) | docs in v0.5 | reflow pending |
-| Win cron + Mac LaunchAgent + sys_monitor dashboard | **v0.5** | reflow pending |
-
-JARVIS upstream remains the experimental edge; OSS reflow happens after
-a capability runs ≥ 4 weeks LIVE in JARVIS without rollback. This keeps
-OSS users on capabilities that survived real production load.
+Open a Discussion in the **Ideas** category with what to add or drop,
+which milestone it fits, and whether you can implement it. The
+maintainer responds yes / no / later with a paragraph of reasoning.

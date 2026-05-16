@@ -2,126 +2,258 @@
 
 **English** · [中文](quickstart.zh.md)
 
-> Get to your first query in ≈ 30 minutes on a clean Win or macOS box.
-> Linux users follow [deployment/docker-compose.md](deployment/docker-compose.md).
+Three tiers, pick the one that matches how deep you want to go on the
+first day. The thirty-second tier needs nothing but Python; the
+five-minute tier adds an LLM API key; the thirty-minute tier is the
+full self-hosted production deployment.
 
-## 0. Prerequisites
+| Tier | Time | What you do | What you need |
+|---|---|---|---|
+| **Tier 0** | 30 seconds | See what the project does on synthetic data | Python 3.10+ |
+| **Tier 1** | 5 minutes | Ingest one of your own sources and run real queries | Python 3.10+, LLM API key |
+| **Tier 2** | 30 minutes | Full production deployment with cron + dashboard + all six sources | Python 3.10+, Docker Desktop, LLM API key, ~8 GB free RAM |
 
-- Python **3.10+**
-- Docker (for the Hindsight memory backend) **or** a local PostgreSQL
-  16+ with pgvector installed.
-- An OpenAI-compatible chat-completions endpoint (vLLM / Ollama /
-  LiteLLM proxy / DeepSeek API / 通义 / Moonshot / OpenRouter / etc).
-- ~8 GB free RAM during ingestion (LLM extractor lives in a separate
-  process; this is for BGE-M3 + your code).
+---
 
-## 1. Install
+## Tier 0 — thirty-second walkthrough
+
+memexa is designed for two audiences: **humans** running queries in
+a terminal, and **AI agents** (Claude Code, Cursor, Cline) invoking
+memexa as a subprocess. Tier 0 has a path for each.
+
+### For humans
+
+```bash
+pip install --pre memexa
+memexa demo
+```
+
+What you should see:
+
+```
+memexa demo  —  thirty-second onboarding
+────────────────────────────────────────────
+[1/3] Ingesting the bundled synthetic dataset (stub extractor) ...
+      ✓ Ingested 26 cards across 6 sources
+        (wechat=8, qq=4, email=4, browser=4, claude=3, audio=3).
+
+[2/3] Running five sample queries against the in-memory set ...
+  ▸ memexa quick 'Alice'
+     [wechat  2024-01-08] Alice 把组会改到周三下午三点
+     [qq      2024-01-05] Alice 推荐 DDIA 第 5 章
+     ...
+  ▸ memexa arc 'Alice ↔ Bob'
+     ...
+  ▸ memexa timeline '2024-01'
+     ...
+  ▸ memexa pending '(commitment cards)'
+     ...
+  ▸ memexa topic 'DDIA'
+     ...
+
+[3/3] Done. Next steps:
+      • memexa init       — scaffold ~/.memexa/ config
+      • memexa doctor     — self-diagnostic against your backend
+      • docs/quickstart.md — Tier 1 (5 min) or Tier 2 (30 min)
+```
+
+No Docker. No LLM API key. No configuration. This is the honest first
+look at what the project does.
+
+If `memexa demo` fails, see
+[`docs/troubleshooting.md#tier-0`](troubleshooting.md#tier-0).
+
+### For AI agents
+
+```bash
+pip install --pre memexa
+# Agent invokes via its shell tool with --json for structured output:
+memexa quick "<question>" --json
+memexa arc "<person>" --json
+memexa timeline --start 2024-01-01 --end 2024-02-01 --json
+```
+
+All fourteen query subcommands support `--json` starting in v0.1.x.
+The agent contract — seven hard rules, decision table, composition
+patterns — lives in [`docs/for_agents.md`](for_agents.md). Native
+MCP integration (`memexa-mcp` server + `.mcp.json`) ships in v0.5;
+until then the shell-subprocess path above is the first-class agent
+integration and it works in any agent runtime with a shell tool.
+
+---
+
+## Tier 1 — five-minute walkthrough with your own data
+
+Use Tier 1 when Tier 0 satisfied you and you want to point the
+pipeline at one of your own sources. Claude Code session history is
+the easiest source to start with because no export tool or app
+configuration is required.
+
+### 1. Scaffold config
+
+```bash
+memexa init
+# → creates ~/.memexa/{aliases.yaml, identity.yaml, .env}
+```
+
+Open `~/.memexa/.env` and fill in your LLM provider. The recommended
+default for Chinese workloads is DeepSeek (see
+[`docs/cost.md`](cost.md) for full price comparison):
+
+```
+MEMEXA_REMOTE_LLM_BASE_URL=https://api.deepseek.com
+MEMEXA_REMOTE_LLM_API_KEY=sk-...
+MEMEXA_REMOTE_LLM_GATE_MODEL=deepseek-v4-flash
+MEMEXA_REMOTE_LLM_EXTRACT_MODEL=deepseek-v4-pro
+```
+
+Typical first-run cost: about ¥0.30 per 1 000 messages with the above
+combination. Tier 1 against your own Claude Code projects directory
+will consume on the order of ¥0.10–¥1 depending on volume.
+
+### 2. Ingest one source
+
+```bash
+memexa ingest claude-code --from ~/.claude/projects/
+```
+
+The ingest command runs the same two-LLM extraction pipeline that
+Tier 2 uses but skips the cron-driven scheduling and the full six-
+source orchestrator. Expected runtime: 1–5 minutes for a few hundred
+sessions.
+
+### 3. Query
+
+```bash
+memexa quick "what did I work on last week"
+memexa topic "<a project name you actually have>"
+memexa pending
+```
+
+You should see real cards with real Chinese narrative (assuming your
+sessions are in Chinese) and per-claim citations back to the original
+session transcripts.
+
+### 4. (Optional) Doctor
+
+```bash
+memexa doctor
+```
+
+Self-diagnostic against the backend. Useful if a query returned
+unexpected zero cards.
+
+> **Tier 1 caveat**: Tier 1 currently writes into the same Hindsight-
+> compatible backend that Tier 2 uses. v0.3 will ship `memexa backend
+> --embedded` so this step does not need Docker at all. Until then,
+> Tier 1 either reuses a running Tier 2 backend or runs in process-
+> local SQLite mode (see `MEMEXA_HINDSIGHT_URL=memory://` in
+> `docs/configuration.md`).
+
+---
+
+## Tier 2 — full production deployment (thirty minutes)
+
+Use Tier 2 when you want the project running on a schedule across all
+six sources, with a dashboard and a memory backend that survives
+reboots.
+
+### 1. Tooling
+
+Pick the deployment guide that matches your platform:
+
+- macOS — [`docs/deployment/macos.md`](deployment/macos.md)
+- Windows — [`docs/deployment/windows.md`](deployment/windows.md)
+- Linux + Docker — [`docs/deployment/docker-compose.md`](deployment/docker-compose.md)
+
+All three guides install the same five components: Python 3.10+, Git,
+Docker Desktop or `docker-compose-plugin`, a clone of the repository,
+and the `pip install -e ".[dev]"` editable install.
+
+### 2. Clone + install
 
 ```bash
 git clone https://github.com/labazhou2024/memexa.git memexa
 cd memexa
 python -m venv .venv
-. .venv/bin/activate     # PowerShell: .venv\Scripts\Activate.ps1
-pip install -e .[dev]
+. .venv/bin/activate    # PowerShell: .\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
 ```
 
-## 2. Configure
+### 3. Configure
 
 ```bash
-# environment (loaded by docker-compose + Makefile, not the Python code)
 cp .env.example .env
 $EDITOR .env
 
-# user config (read by the Python code at runtime)
 mkdir -p ~/.memexa
-cp config/aliases.example.yaml   ~/.memexa/aliases.yaml
-cp config/identity.example.yaml  ~/.memexa/identity.yaml
-$EDITOR ~/.memexa/aliases.yaml
-$EDITOR ~/.memexa/identity.yaml
+cp config/aliases.example.yaml  ~/.memexa/aliases.yaml
+cp config/identity.example.yaml ~/.memexa/identity.yaml
+$EDITOR ~/.memexa/{aliases,identity}.yaml
 ```
 
-The bare minimum to set:
+Minimum required fields in `.env`:
 
-- `~/.memexa/aliases.yaml` → list of strings the system should match
-  to "you" (your name, nicknames, email prefixes, etc.).
-- `.env` → `MEMEXA_REMOTE_LLM_BASE_URL`, `MEMEXA_REMOTE_LLM_API_KEY`,
-  `MEMEXA_REMOTE_LLM_GATE_MODEL`, `MEMEXA_REMOTE_LLM_EXTRACT_MODEL`.
+- `MEMEXA_REMOTE_LLM_BASE_URL`
+- `MEMEXA_REMOTE_LLM_API_KEY`
+- `MEMEXA_REMOTE_LLM_GATE_MODEL`
+- `MEMEXA_REMOTE_LLM_EXTRACT_MODEL`
 
-## 3. Bring up the memory backend
+### 4. Bring up the memory backend
 
 ```bash
-docker compose -f docker-compose.example.yml up -d
-# Wait ~30 s for pgvector + Hindsight to come online
-curl -sf http://127.0.0.1:8888/healthz | jq .
-# {"status":"ok"}
+make backend-up
+# or: docker compose -f docker-compose.example.yml up -d
 ```
 
-## 4. First query (demo dataset)
+Wait ~30 seconds for pgvector + Hindsight to come online. The
+Makefile target polls `:8888/healthz` and exits when ready.
+
+### 5. Ingest the demo dataset, then your own
 
 ```bash
-# Sanity-check the bundle parses without any backend running
-python -m examples.demo_dataset.ingest --dry-run
-# → prints "total = 26 cards across 6 sources"
-
-# Ingest into a real backend (requires step 3 to have succeeded)
-make demo-ingest
-
-# Confirm the install end-to-end
-memexa doctor
-# → [ok] primary /healthz returned 200
-# → [ok] bank 'memory_full_v5' has N nodes
-# → [ok] LLM/gate ... responded 200
-
-# Run a few subcommands
-python -m memexa.core.memory_query topic    "<your-keyword>"
-python -m memexa.core.memory_query arc      "<entity>"
-python -m memexa.core.memory_query timeline --start 2024-01-01 --end 2024-02-01
+make demo-ingest        # ingest synthetic dataset against the real backend
+memexa doctor           # confirm everything is wired up
+make demo-query         # run four sample queries
 ```
 
-## 5. Wire up your own data
+Then point each source builder at your own data. Detailed per-source
+onboarding lives in [`docs/integrations/`](integrations/).
 
-Each source has a builder that converts raw exports → batch JSON, plus a
-driver that runs the extraction pipeline on a 6-hour schedule.
+### 6. Schedule the cron
 
-Detailed per-source onboarding:
+Each deployment guide includes a `register-cron.sh` (macOS / Linux)
+or `register-tasks.ps1` (Windows) that installs a six-hour incremental
+job per driver plus the dashboard service.
 
-- **WeChat** — export with [`WeChatMsg`](https://github.com/LC044/WeChatMsg)
-  or [`wechatDataBackup`](https://github.com/git-jiadong/wechatDataBackup);
-  point `v5_wechat_batch_builder.py` at the JSON.
-- **QQ** — set `MEMEXA_QQ_ID`; the builder reads
-  `~/Documents/Tencent Files/<qq-id>/nt_qq/nt_db/nt_msg.db` directly.
-- **Email** — IMAP credentials in `~/.memexa/identity.yaml`.
-- **Browser** — point at your browser profile's `History` SQLite file.
-- **Claude Code** — point at `~/.claude/projects/`.
-- **Audio** — drop `.wav`/`.m4a` files into `data/audio/inbox/`; the
-  audio driver picks them up.
-
-## 6. Schedule the cron
-
-Pick a deployment guide and follow it end-to-end:
-
-- [deployment/macos.md](deployment/macos.md) — launchd plist for each driver
-- [deployment/windows.md](deployment/windows.md) — Scheduled Tasks (`schtasks`)
-- [deployment/docker-compose.md](deployment/docker-compose.md) — Linux + Docker
-
-## 7. Open the dashboard
+### 7. Open the dashboard
 
 ```bash
 python -m memexa.dashboard.sys_monitor.server
-# Open http://127.0.0.1:8765
+# → http://127.0.0.1:8765
 ```
 
-You should see seven live panels: Win/Mac/GPU CPU+memory, API usage,
-memory system, cron health, graph queries, six-source pending, audio
+Seven live panels: Win/Mac/GPU CPU+memory, API usage, memory system
+health, cron status, recent graph queries, six-source pending, audio
 pipeline.
 
-## 8. Troubleshooting
+---
 
-- *Query returns 0 cards even though data is ingested* — see
-  [usage_guide.md#troubleshooting](usage_guide.md#troubleshooting).
-- *Extractor LLM returns malformed JSON* — see
-  [lessons_learned/05_qwen3_no_think.md](lessons_learned/05_qwen3_no_think.md).
-- *PG marker drift* — see
-  [lessons_learned/03_pg_aware_pending.md](lessons_learned/03_pg_aware_pending.md).
+## Troubleshooting
 
-Open an issue at `memexa/issues/new` if none of the above fits.
+If a step fails, the first stop is
+[`docs/troubleshooting.md`](troubleshooting.md). Common Tier 0/1/2
+failure modes are covered there with the exact remediation command.
+
+For backend or LLM-provider failures, run `memexa doctor` first — it
+runs a four-step probe (backend health, bank stats, LLM round-trip,
+identity manifest) and prints a per-step pass/fail.
+
+For query-returns-zero-cards or extractor-malformed-JSON, see the
+lessons-learned series:
+
+- [`lessons_learned/03_pg_aware_pending.md`](lessons_learned/03_pg_aware_pending.md) — PG marker drift
+- [`lessons_learned/05_qwen3_no_think.md`](lessons_learned/05_qwen3_no_think.md) — Qwen3 `/no_think` directive
+
+Open an issue at <https://github.com/labazhou2024/memexa/issues/new>
+if none of the above fits.

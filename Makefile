@@ -32,13 +32,13 @@ install:
 	pre-commit install
 
 fmt:
-	ruff check --fix src tests
-	ruff format src tests
-	black src tests
+	ruff check --fix memexa tests
+	ruff format memexa tests
+	black memexa tests
 
 lint:
-	ruff check src tests
-	black --check src tests
+	ruff check memexa tests
+	black --check memexa tests
 
 test:
 	pytest -m "not integration and not e2e" -ra

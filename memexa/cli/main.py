@@ -302,6 +302,110 @@ def _cmd_query(args: argparse.Namespace, remainder: List[str]) -> int:
     return memory_query._cli(argv)
 
 
+def _cmd_demo(_args: argparse.Namespace) -> int:
+    """30-second onboarding: ingest the bundled synthetic dataset with the
+    stub extractor (no LLM key required), then run five example queries
+    against the resulting in-memory card set.
+
+    No Docker, no API key, no configuration. Designed to give a first-
+    time visitor a concrete sense of what the project does in well under
+    a minute on a clean Python install.
+    """
+    # 2026-05-16: demo output uses non-ASCII glyphs (✓, ─, ▸, en/em
+    # dashes, CJK). Windows console default is GBK which can't encode
+    # any of those. Force UTF-8 the same way memory_query._cli does.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    print("memexa demo  —  thirty-second onboarding")
+    print("─" * 60)
+    print("[1/3] Ingesting the bundled synthetic dataset (stub extractor) ...")
+
+    try:
+        from examples.demo_dataset import ingest as demo_ingest  # type: ignore
+    except Exception as e:  # pragma: no cover — defensive
+        print(f"[fail] cannot import bundled demo dataset: {e}", file=sys.stderr)
+        print("       Ensure memexa was installed from a source distribution"
+              " that includes the examples/ tree, or clone the repo.",
+              file=sys.stderr)
+        return 1
+
+    cards: list[dict] = []
+    try:
+        for source_fn in (
+            demo_ingest.ingest_wechat,
+            demo_ingest.ingest_qq,
+            demo_ingest.ingest_email,
+            demo_ingest.ingest_browser,
+            demo_ingest.ingest_claude,
+            demo_ingest.ingest_audio,
+        ):
+            cards.extend(source_fn(stub=True))
+    except AttributeError:
+        # Older demo dataset module shape: call top-level ingest_all().
+        cards = demo_ingest.ingest_all(stub=True)  # type: ignore[attr-defined]
+
+    if not cards:
+        print("[fail] demo ingestion produced zero cards — bundle malformed.",
+              file=sys.stderr)
+        return 1
+
+    by_src: dict[str, int] = {}
+    for c in cards:
+        by_src[c.get("source", "?")] = by_src.get(c.get("source", "?"), 0) + 1
+    src_summary = ", ".join(f"{s}={n}" for s, n in sorted(by_src.items()))
+    print(f"      ✓ Ingested {len(cards)} cards across {len(by_src)}"
+          f" sources ({src_summary}).")
+    print()
+
+    print("[2/3] Running five sample queries against the in-memory set ...")
+    samples = [
+        ("quick", "Alice",
+         lambda kw: [c for c in cards
+                     if kw.lower() in c.get("narrative", "").lower()
+                     or kw.lower() in " ".join(
+                         e.get("surface", "") for e in c.get("entities", [])
+                     ).lower()][:3]),
+        ("arc", "Alice ↔ Bob",
+         lambda _kw: [c for c in cards
+                      if "Alice" in c.get("narrative", "")
+                      and "Bob" in c.get("narrative", "")][:3]),
+        ("timeline", "2024-01",
+         lambda _kw: sorted(
+             [c for c in cards if c.get("when_start", "").startswith("2024-01")],
+             key=lambda x: x.get("when_start", ""),
+         )[:3]),
+        ("pending", "(commitment cards)",
+         lambda _kw: [c for c in cards
+                      if "commitment" in c.get("types_csv", "")][:3]),
+        ("topic", "DDIA",
+         lambda kw: [c for c in cards
+                     if kw.lower() in c.get("narrative", "").lower()][:3]),
+    ]
+
+    for sub, term, fn in samples:
+        try:
+            hits = fn(term)
+        except Exception:  # pragma: no cover
+            hits = []
+        print(f"  ▸ memexa {sub} {term!r}")
+        if not hits:
+            print(f"     (0 cards — synthetic dataset; expected for some samples)")
+        for h in hits:
+            narr = h.get("narrative", "")[:90]
+            when = h.get("when_start", "?")[:10]
+            src = h.get("source", "?")
+            print(f"     [{src:<7s} {when}] {narr}")
+        print()
+
+    print("[3/3] Done.  Next steps:")
+    print("      • memexa init       — scaffold ~/.memexa/ config")
+    print("      • memexa doctor     — self-diagnostic against your backend")
+    print("      • docs/quickstart.md — Tier 1 (5 min) or Tier 2 (30 min)")
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="memexa",
@@ -339,6 +443,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_doctor = sub.add_parser("doctor", help="self-diagnostic against backend")
     sp_doctor.set_defaults(func=_cmd_doctor)
+
+    sp_demo = sub.add_parser(
+        "demo",
+        help="30-second onboarding: ingest synthetic dataset + run 5 queries (no backend, no LLM key)",
+    )
+    sp_demo.set_defaults(func=_cmd_demo)
 
     # `memexa query <subcmd>` proxies to memory_query
     sp_query = sub.add_parser(
