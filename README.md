@@ -57,9 +57,12 @@ for the moment.
 
 > **v0.1 scope**: complete ingestion + extraction + query + dashboard +
 > **5 walkthroughs + 2 case studies**. The "auto-generate deliverables"
-> layer (lab reports / action cards / weekly reports / meeting briefs) is
-> on [ROADMAP.md](ROADMAP.md) for v0.2 — for now, compose the 14 query
-> commands manually for the same effect.
+> layer ships in [ROADMAP.md](ROADMAP.md) v0.2 as **three universal
+> templates** — `weekly` / `brief` / `retro` — covering all five user
+> scenarios (knowledge worker / researcher / creator / small-business /
+> self-quantified). v0.7 opens up user-authored templates so the
+> deliverable layer becomes an ecosystem. For v0.1, compose the 14
+> query commands manually for the same effect.
 >
 > 🚀 **First time here?** Jump to [Example walkthroughs ↓](#-example-walkthroughs--5-reproducible-scenarios)
 > to see 5 real scenarios end-to-end.
@@ -72,15 +75,21 @@ for the moment.
 > composition patterns, common pitfalls). If you're shipping an
 > agent that needs a Chinese-data memory layer, start there.
 
-## Two audiences (design intent)
+## Five user scenarios (broad Chinese-market design intent)
 
-| Audience | Trigger | Available now (v0.1) | Roadmap (v0.2+) |
+memexa targets the broader Chinese-speaking market — not a single
+demographic. All five scenarios share the same backbone (ingestion +
+two-LLM extract + graph + query); the deliverable templates on top
+differ. We ship three universal templates in v0.2 (`weekly` / `brief` /
+`retro`) and user-authored templates in v0.7.
+
+| Scenario | Trigger | Available now (v0.1) | v0.2 deliverable |
 |---|---|---|---|
-| **Researchers / students** | Experiment done → write report; meet advisor → prep | 14 queries by hand + LaTeX template | `memexa lab-report X` / `memexa brief <person>` |
-| **Knowledge workers / ops folks** | Missed a deadline → recover; heading out → don't forget | `memexa pending` + `memexa quick` | `memexa action-card X` / `memexa dashboard` |
-
-Both share the same backbone (ingestion + two-LLM extract + graph + query);
-the deliverable templates on top differ.
+| **Knowledge worker / PM / consultant** | Weekly status due; meeting tomorrow | 14 queries by hand | `memexa weekly` / `memexa brief <person>` |
+| **Researcher / student / academic** | Experiment done → write report; defense prep | `arc` + `quick` + `topic` | `memexa brief <topic>` / `memexa retro <window>` |
+| **Content creator / 自媒体** | Idea recovery; weekly material round-up | `topic` + `timeline` | `memexa retro <window>` (+ v0.7 community templates) |
+| **Small business / 个体户** | Client meeting prep; deal recap | `arc` + `project` | `memexa brief <person>` / `memexa retro <window>` |
+| **Self-quantified / GTD / privacy power user** | Daily / weekly review | `memexa pending` | `memexa retro <window>` |
 
 ## Six data sources
 
@@ -114,6 +123,34 @@ memexa quick "<your keyword>"
 ```
 
 Full walkthrough: [docs/quickstart.md](docs/quickstart.md)
+
+## Why memexa instead of OpenHuman or MemPalace?
+
+The Chinese-language data memexa ingests (WeChat / QQ / 飞书 / 钉钉
+multi-party group chats, Chinese audio, Chinese email threads) demands
+something the adjacent OSS memory projects don't provide:
+
+| Capability | OpenHuman (Memory Tree) | MemPalace (Verbatim) | **memexa (V2 envelope)** |
+|---|---|---|---|
+| Storage model | 3k-token markdown hierarchical summaries | Verbatim text + Zettelkasten literal index | **Verbatim raw + LLM-extracted narrative + entities + evidence_quotes + relations + time_resolutions** |
+| Multi-party group-chat role resolution (谁对谁说) | Summary collapses roles | No role concept, literal index only | ✅ V2 envelope `roles[]` + `identity_assertions` |
+| Per-claim source citation back to original text | Summary already folded | ✅ verbatim returns raw | ✅ `evidence_quotes` binds every claim to its source sentence + `chunk_id` + raw batch path |
+| Cross-alias entity canonicalization (`@张三` / `张老师` / `zhangsan@...` → one id) | Names only, no aliases | No entity concept | ✅ `identity_manifest` + `canonical_id` (4-phase, zero-LLM) |
+| Chinese relative-time resolution ("上周三", "前天下午") | Doc-time only, no parsing | None | ✅ `time_resolutions` (ISO 8601 + relative-anchor) |
+| Hallucination control on extraction | None — single-pass summarize | None — no extract | ✅ **Two-LLM gate + extract + DeepSeek arbiter** quorum, schema-validated |
+
+**The thesis**: hierarchical summaries (OpenHuman) lose information for
+high-accuracy tasks; literal-text Zettelkasten (MemPalace) cannot
+disambiguate "who said what to whom when" in a 10-person WeChat
+group-chat history. memexa's V2 envelope keeps both — verbatim raw
+plus an LLM-extracted structured layer with per-claim citation. When a
+deliverable template ([ROADMAP](ROADMAP.md) v0.2) cites a fact, the
+user can drill back to the exact original quote in seconds, with the
+group-chat speaker correctly identified across all aliases.
+
+This is the lane memexa actually owns. The Chinese-IM data sources
+([ROADMAP](ROADMAP.md) v0.3) are how that lane reaches users; the
+deliverable templates ([ROADMAP](ROADMAP.md) v0.2) are how it pays off.
 
 ## Two-LLM gate-extract architecture
 

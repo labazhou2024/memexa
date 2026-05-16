@@ -52,8 +52,11 @@ repository-topics:
 ```
 
 > **v0.1 范围**: 完整 ingestion + 抽取 + 查询 + dashboard + **5 篇 walkthrough + 2 篇 case study**。
-> 上层"按用途自动生成可交付物" (实验报告 / 行动卡 / 周报 / 会前简报) 在
-> [ROADMAP.md](ROADMAP.md) v0.2 — 现在可以用 14 个查询命令手动组合得到大致效果。
+> 上层"按用途自动生成可交付物"在 [ROADMAP.md](ROADMAP.md) v0.2，
+> 以**三个通用模板** ship — `weekly` / `brief` / `retro` —
+> 覆盖 5 类用户场景（知识工作者 / 研究者 / 创作者 / 中小企业主 / GTD）。
+> v0.7 开放用户自定义模板, 交付层升级为生态。
+> v0.1 阶段先用 14 个查询命令手动组合得到大致效果。
 >
 > 🚀 **第一次看？** 直接跳 [Example walkthroughs ↓](#-example-walkthroughs--5-个-reproducible-实例) 看 5 个真实场景怎么用。
 
@@ -63,14 +66,20 @@ repository-topics:
 > [docs/for_agents.zh.md](docs/for_agents.zh.md) (硬规则 / 决策表 /
 > 组合模式 / 常见坑)。如果你在做需要中文数据记忆层的 agent, 从那开始。
 
-## 服务两类用户 (设计意图)
+## 5 类用户场景 (面向中文整个市场的设计)
 
-| 人群 | 触发场景 | 当下可用 (v0.1) | 路线图 (v0.2+) |
+memexa 面向**整个中文市场**，不局限于某个单一群体。5 类场景共用同一套
+底层（ingestion + 双 LLM 抽取 + 图谱 + 查询）；上层交付物模板按场景出
+不同输出。v0.2 ship 3 个最通用的模板（`weekly` / `brief` / `retro`），
+v0.7 开放用户自定义模板。
+
+| 用户场景 | 触发情境 | 当下可用 (v0.1) | v0.2 交付物 |
 |---|---|---|---|
-| **科研 / 学生** | 实验做完 → 写报告；导师约谈 → 准备 | 14 个 query 手动 + LaTeX 模板 | `memexa lab-report X` / `memexa brief <人>` |
-| **办事人 / 打工人** | 错过 ddl → 补做；出门办事 → 怕漏 | `memexa pending` + `memexa quick` | `memexa action-card X` / `memexa dashboard` |
-
-两类人共用同一套底层（ingestion + 双 LLM 抽取 + 图谱 + 查询），上层模板包不同。
+| **知识工作者 / PM / 咨询** | 周报到期；明天有会 | 14 个 query 手动组合 | `memexa weekly` / `memexa brief <人>` |
+| **研究者 / 学生 / 学者** | 实验做完 → 写报告；答辩准备 | `arc` + `quick` + `topic` | `memexa brief <主题>` / `memexa retro <时段>` |
+| **内容创作者 / 自媒体** | 灵感回收；周素材整理 | `topic` + `timeline` | `memexa retro <时段>` (+ v0.7 社区模板) |
+| **中小企业主 / 个体户** | 客户见面准备；交易复盘 | `arc` + `project` | `memexa brief <人>` / `memexa retro <时段>` |
+| **自我量化 / GTD / 隐私用户** | 每日 / 每周回顾 | `memexa pending` | `memexa retro <时段>` |
 
 ## 6 个数据源
 
@@ -104,6 +113,30 @@ memexa quick "<你的关键词>"
 ```
 
 完整步骤: [docs/quickstart.zh.md](docs/quickstart.zh.md)
+
+## 为什么不直接用 OpenHuman 或 MemPalace？
+
+memexa 摄入的中文数据（微信 / QQ / 飞书 / 钉钉 多人群聊、中文音频、
+中文邮件长链）要求一种相邻 OSS memory 项目不提供的能力：
+
+| 能力 | OpenHuman (Memory Tree) | MemPalace (Verbatim) | **memexa (V2 envelope)** |
+|---|---|---|---|
+| 存储模式 | 3k-token markdown 层级摘要 | Verbatim 全文 + Zettelkasten 字面索引 | **Verbatim 原始 + LLM 抽取的 narrative + entities + evidence_quotes + relations + time_resolutions** |
+| 多人群聊角色解析（谁对谁说） | summary 折叠掉角色 | 无 role 概念, 只字面索引 | ✅ V2 envelope `roles[]` + `identity_assertions` |
+| 每条断言可回溯到原文一句话 | summary 已折叠 | ✅ verbatim 直接回 | ✅ `evidence_quotes` 把每条 claim 绑回原句 + `chunk_id` + 原始 batch 路径 |
+| 跨别名实体收敛（`@张三` / `张老师` / `zhangsan@...` → 一个 id） | 只到人名, 不抽别名 | 无 entity 概念 | ✅ `identity_manifest` + `canonical_id` (4 阶段 0-LLM 算法) |
+| 中文相对时间解析（"上周三"、"前天下午"） | 只看文档时间, 不解析 | 无 | ✅ `time_resolutions` (ISO 8601 + 相对锚点) |
+| 抽取幻觉控制 | 无 — 单次摘要 | 无 — 不抽取 | ✅ **双 LLM gate + extract + DeepSeek arbiter** 仲裁, schema 校验 |
+
+**论点**: 层级摘要（OpenHuman）必然丢信息, 对高准确度任务不够;
+字面 Zettelkasten（MemPalace）无法在 10 人微信群聊里区分"谁
+在什么时候对谁说了什么"。memexa 的 V2 envelope 两者兼得 — 既存
+verbatim 原始, 又保留 LLM 抽取的结构化层 + 每条断言的原文引用。
+当 v0.2 交付模板引用一个事实时, 用户能秒级回到原句, 群聊说话者
+在所有别名间被正确识别。
+
+这是 memexa 真正占据的赛道。中文 IM 数据源（v0.3）是这条赛道
+触达用户的方式; 交付模板（v0.2）是这条赛道兑现价值的方式。
 
 ## 双 LLM gate-extract 架构
 
