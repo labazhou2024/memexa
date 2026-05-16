@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memexa"
-version = "0.1.0rc3"
+version = "0.1.0rc4"
 description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -99,8 +99,19 @@ package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["memexa*"]
-exclude = ["tests*", "examples*", ".audit*"]
+# 2026-05-16 rc4: include examples.demo_dataset* so `memexa demo`
+# subcommand can `from examples.demo_dataset import ingest` after a
+# fresh PyPI install. rc3 wheel excluded examples and `memexa demo`
+# failed with ModuleNotFoundError. The other examples/ subtrees
+# (walkthroughs, agent_integrations, etc.) remain excluded because
+# they are docs/scripts not import targets.
+include = ["memexa*", "examples", "examples.demo_dataset", "examples.demo_dataset.*"]
+exclude = ["tests*", "examples.community_templates*", ".audit*"]
+
+[tool.setuptools.package-data]
+# Ship the bundled synthetic dataset's JSON / JSONL data files inside
+# the wheel so `memexa demo` works without a source checkout.
+"examples.demo_dataset" = ["*.json", "*.jsonl", "*.md"]
 
 [tool.ruff]
 line-length = 100
