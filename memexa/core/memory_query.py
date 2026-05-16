@@ -1526,11 +1526,19 @@ def _cli(argv: List[str]) -> int:
     # Cursor, Cline) parse memexa output via json.loads() instead of
     # text. Subprocess CLI is the current first-class agent path;
     # native MCP server lands in v0.5.
+    #
+    # rc5 (2026-05-16): --json now lives on a common parent parser so it
+    # is accepted both before AND after the subcommand. Both work:
+    #   memexa --json query quick "X"     (top-level)
+    #   memexa quick "X" --json           (subcmd-level, matches README)
     p.add_argument("--json", action="store_true",
                    help="emit raw result as JSON array/object for agent parsing")
+    _common = argparse.ArgumentParser(add_help=False)
+    _common.add_argument("--json", action="store_true",
+                         help="emit raw result as JSON array/object for agent parsing")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    pq = sub.add_parser("quick")
+    pq = sub.add_parser("quick", parents=[_common])
     pq.add_argument("query")
     pq.add_argument("--source")
     pq.add_argument("--types", nargs="*")
@@ -1544,26 +1552,26 @@ def _cli(argv: List[str]) -> int:
     pq.add_argument("--raw-max", type=int, default=5,
                     help="--show-raw 时最多 attach 几张 cards 的原文 (默认 5)")
 
-    pr = sub.add_parser("reflect")
+    pr = sub.add_parser("reflect", parents=[_common])
     pr.add_argument("query")
     pr.add_argument("--budget", default="mid")
     pr.add_argument("--no-articles", action="store_true")
 
-    pt = sub.add_parser("timeline")
+    pt = sub.add_parser("timeline", parents=[_common])
     pt.add_argument("--start", required=True)
     pt.add_argument("--end", required=True)
     pt.add_argument("--room")
     pt.add_argument("--source")
 
-    pp = sub.add_parser("person")
+    pp = sub.add_parser("person", parents=[_common])
     pp.add_argument("name")
 
-    ppr = sub.add_parser("project")
+    ppr = sub.add_parser("project", parents=[_common])
     ppr.add_argument("topic")
 
-    psu = sub.add_parser("pending")
+    psu = sub.add_parser("pending", parents=[_common])
 
-    pss = sub.add_parser("session-context")
+    pss = sub.add_parser("session-context", parents=[_common])
 
     # 2026-05-08: 'topic' subcommand — multi-variant fan-out for "tell me
     # about X" questions. Empirically beats single-variant quick() by ~20×
@@ -1571,6 +1579,7 @@ def _cli(argv: List[str]) -> int:
     # vs 1 from quick).
     pt2 = sub.add_parser(
         "topic",
+        parents=[_common],
         help="topic-style multi-variant fan-out (replaces ad-hoc N-query scripts)",
     )
     pt2.add_argument("topic", help="主题关键词 (e.g. 'Mac Studio' / 'PRL 投稿')")
@@ -1592,6 +1601,7 @@ def _cli(argv: List[str]) -> int:
     # "tell me how X evolved over time".
     pa = sub.add_parser(
         "arc",
+        parents=[_common],
         help="relationship/topic chronological arc (multi-query union)",
     )
     pa.add_argument("entity", help="canonical name or surface form (e.g. Bob)")
@@ -1606,6 +1616,7 @@ def _cli(argv: List[str]) -> int:
     # 2026-05-13 product-grade: advanced query layer
     ptypes = sub.add_parser(
         "types",
+        parents=[_common],
         help="filter by types_csv (commitment/question/announcement/decision/state)",
     )
     ptypes.add_argument("--filter", required=True, nargs="+",
@@ -1620,6 +1631,7 @@ def _cli(argv: List[str]) -> int:
 
     pgw = sub.add_parser(
         "graph-walk",
+        parents=[_common],
         help="multi-hop 关系网络 (X → 关联人/物/事 → 再关联)",
     )
     pgw.add_argument("entity")
@@ -1629,6 +1641,7 @@ def _cli(argv: List[str]) -> int:
 
     psum = sub.add_parser(
         "summary",
+        parents=[_common],
         help="LLM 综合时段总结 (本周做了什么 / 上月学了什么)",
     )
     psum.add_argument("--window-days", type=int, default=7)
@@ -1640,6 +1653,7 @@ def _cli(argv: List[str]) -> int:
 
     ptr = sub.add_parser(
         "trends",
+        parents=[_common],
         help="按 sender/source/room/types 聚合统计 (本月谁找我最多)",
     )
     ptr.add_argument("--by", default="source",
@@ -1653,6 +1667,7 @@ def _cli(argv: List[str]) -> int:
 
     pcs = sub.add_parser(
         "cross-source",
+        parents=[_common],
         help="同一 query 在 6 source 的覆盖度 (X 是真做还是只说)",
     )
     pcs.add_argument("query")
