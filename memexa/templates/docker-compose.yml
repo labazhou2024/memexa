@@ -1,13 +1,23 @@
-# Example docker-compose setup for the memory backend.
+# memexa backend stack — minimal pg + Hindsight only.
 #
-# Copy to docker-compose.yml and edit if you need to:
-# - change the host port
-# - persist data outside the default named volume
-# - point at a pre-existing PostgreSQL instance instead of the bundled one
+# Started/managed by `memexa backend up/down/status`. Seeded into
+# `~/.memexa/docker-compose.yml` on first run from the packaged
+# template (this file).
 #
-# Start: docker compose -f docker-compose.example.yml up -d
-# Stop:  docker compose -f docker-compose.example.yml down
-# Wipe:  docker compose -f docker-compose.example.yml down -v
+# To customize (e.g. expose different host ports, swap in an existing
+# PostgreSQL instance), copy this file or edit the seeded copy at
+# ~/.memexa/docker-compose.yml.
+#
+# Manual control:
+#   docker compose -f ~/.memexa/docker-compose.yml up -d
+#   docker compose -f ~/.memexa/docker-compose.yml down
+#   docker compose -f ~/.memexa/docker-compose.yml down -v   # also wipes pg-data
+#
+# Note: this file does NOT include the optional `dashboard` UI service,
+# because that one requires a build context (docker/dashboard.Dockerfile)
+# that is not packaged inside the wheel. Run the dashboard manually
+# (`python -m memexa.dashboard.sys_monitor.server`) if you want it; it
+# only needs the same backend that's started here.
 
 services:
   postgres:
@@ -47,20 +57,6 @@ services:
       interval: 15s
       timeout: 5s
       retries: 8
-
-  dashboard:
-    build:
-      context: .
-      dockerfile: docker/dashboard.Dockerfile
-    container_name: memexa-dashboard
-    restart: unless-stopped
-    depends_on:
-      hindsight:
-        condition: service_healthy
-    environment:
-      MEMEXA_HINDSIGHT_URL: http://hindsight:8888
-    ports:
-      - "8765:8765"
 
 volumes:
   pg-data:
