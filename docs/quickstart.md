@@ -247,6 +247,65 @@ pipeline.
 
 ---
 
+## Tier 3 — connecting your real data sources
+
+Tier 0 / 1 / 2 prove the **plumbing** works: the package installs, the
+backend boots, a synthetic dataset ingests, queries return cards. To
+get value out of memexa on **your own messages**, you also need to
+get those messages into the JSON envelope the builders read. memexa
+does not export data from any closed platform itself — it consumes
+exports produced by upstream tools, then normalises / extracts /
+indexes them.
+
+The table below is the honest per-source status as of `0.1.0`. ✅
+means an OSS-only path works end-to-end; ⚠ means it works but
+requires a third-party export tool or manual file move; ❌ means
+there is no recommended OSS path today and you must wait for the
+listed milestone.
+
+| Source         | OS path that works     | Today (v0.1.0)                                                                                       | When better                              |
+|----------------|------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------|
+| **Email**      | Win / macOS / Linux    | ✅ IMAP — `~/.memexa/identity.yaml` + app-specific password, 10 min                                  | —                                        |
+| **Audio**      | Win / macOS / Linux    | ✅ recorder export → Whisper / SenseVoice → JSON → builder                                            | v0.4 (cross-device merge, ECAPA enroll)  |
+| **Browser**    | Win / macOS / Linux    | ✅ read Chrome / Firefox SQLite history → builder                                                     | —                                        |
+| **Claude Code**| Win / macOS / Linux    | ✅ read `~/.claude/projects/*/conversations.jsonl` → builder                                          | —                                        |
+| **WeChat**     | **Windows only**       | ⚠ no OSS exporter — install [WeChatMsg](https://github.com/LC044/WeChatMsg) (or [wechatDataBackup](https://github.com/git-jiadong/wechatDataBackup) / [PyWxDump](https://github.com/xaoyaoo/PyWxDump)), get the decrypt key, export per-chat JSON, then point the builder at the export folder. macOS / Linux users currently have no path to extract WeChat history. See [`integrations/wechat.md`](integrations/wechat.md). | v0.3 (WeChat PC backup ingestion) |
+| **QQ**         | Win / macOS / Linux    | ⚠ **db-only adapter not yet in OSS**. NapCat / OneBot path is **disabled by default** (Tencent fingerprint-bans accounts that ever ran NapCat — see [`integrations/qq.md`](integrations/qq.md)). To use the db-only path today, manually copy `jarvis/qq_db.py` from the upstream JARVIS repo (762 lines, stdlib only) into `memexa/extraction/qq/`. Clipboard fallback also lives upstream and has not been migrated. | v0.2 (db-only adapter + clipboard fallback migrated; NapCat path removed) |
+
+### Recommended first-day order
+
+1. **Email** (smallest configuration surface, 10 min) — proves the
+   backend, the LLM key, and the query layer end-to-end on real data.
+2. **Browser** + **Claude Code** (both read local files, 5 min each)
+   — adds two more sources without any third-party tool.
+3. **Audio** if you have a recorder workflow already, or skip until
+   v0.4 lands the cross-device merge.
+4. **WeChat** — only if you are on Windows; budget 30-60 min for the
+   first export run, less for incremental.
+5. **QQ** — only if you are willing to wire in the upstream
+   `qq_db.py` manually. Otherwise wait for v0.2.
+
+### Known limitations of v0.1.0
+
+- **QQ db-only adapter** is not yet in the OSS package; the reference
+  implementation lives in upstream JARVIS as a single 762-line
+  stdlib-only file. v0.2 migrates it.
+- **WeChat export is Windows-only** because all three recommended
+  exporters (WeChatMsg, wechatDataBackup, PyWxDump) are
+  Windows-only. macOS / Linux users have a deployment guide but no
+  WeChat-history path. Tracked in v0.3 (WeChat PC backup ingestion)
+  but ultimately bounded by upstream tool availability.
+- **No 飞书 / 钉钉 adapter** — v0.3.
+- **No local-document source** (`.md` / `.pdf` / `.docx` / `.txt`) —
+  v0.3.
+- **No `--embedded` backend mode** — Tier 1 / Tier 2 still need
+  Docker; sqlite-vss alternative ships in v0.3.
+
+These are real, documented gaps — not "stable means perfect", but
+"stable means honest about exactly what works today."
+
+---
+
 ## Troubleshooting
 
 If a step fails, the first stop is

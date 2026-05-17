@@ -47,6 +47,22 @@ Shipped:
   Python 3.10 / 3.11 / 3.12 (CI matrix; macOS-py3.10 cell intentionally
   excluded due to a transitive wheel gap, see ci.yml).
 
+Known limitations in v0.1.0 (documented gaps; honest baseline rather
+than silent surprises — see [`docs/quickstart.md#tier-3`](docs/quickstart.md)
+for the full per-source status table):
+
+- **QQ db-only adapter not yet in OSS.** The recommended QQ read
+  path lives in upstream JARVIS as `jarvis/qq_db.py` (single file,
+  762 lines, stdlib only). OSS v0.1.0 users wire it in manually;
+  v0.2 migrates it. NapCat / OneBot path is **disabled by default**
+  due to Tencent's 2025-09-05 fingerprint-ban wave; only
+  research-disposable accounts should override with
+  `MEMEXA_QQ_NAPCAT_FORCE=1`.
+- **WeChat export is Windows-only**, bounded by upstream tool
+  availability (WeChatMsg, wechatDataBackup, PyWxDump are all
+  Windows-only). macOS / Linux users can deploy memexa but cannot
+  ingest WeChat history today.
+
 Not yet shipped:
 
 - One-line onboarding (no Docker, no LLM API key, no configuration).

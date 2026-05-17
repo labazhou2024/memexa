@@ -39,6 +39,18 @@ memexa 服务的 5 类用户场景, 见 [docs/why.zh.md](docs/why.zh.md)。
 - Fresh-clone smoke test 在 Win + macOS + Linux × Python 3.10 / 3.11 / 3.12 通过
   (CI matrix; macOS-py3.10 单元因传递依赖 wheel 缺失主动排除, 见 ci.yml)
 
+v0.1.0 已知 limitation (文档化的 gap; 诚实 baseline 而非沉默惊喜 —
+完整逐源状态表见 [`docs/quickstart.zh.md#tier-3`](docs/quickstart.zh.md)):
+
+- **QQ db-only adapter 还没进 OSS**。推荐 QQ 读路径在上游 JARVIS
+  `jarvis/qq_db.py` (单文件 762 行, 仅标准库)。OSS v0.1.0 用户手工
+  接入; v0.2 移植。NapCat / OneBot 路径**默认关**, 因为腾讯
+  2025-09-05 指纹封号潮; 只有研究 disposable 账号才能用
+  `MEMEXA_QQ_NAPCAT_FORCE=1` override。
+- **微信导出仅 Windows**, 受上游工具生态约束 (WeChatMsg /
+  wechatDataBackup / PyWxDump 都只在 Windows)。macOS / Linux
+  用户能部署 memexa, 但今天不能 ingest 微信历史。
+
 未 ship:
 
 - 一行命令 onboarding（无需 Docker, 无需 LLM API key, 无需配置）
