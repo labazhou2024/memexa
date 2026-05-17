@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
@@ -346,6 +347,14 @@ def _exclude_invalidated(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+# 2026-05-17 rc5: surface backend-unreachable failures to the CLI layer
+# so `memexa quick "X"` can exit non-zero instead of silently returning
+# N=0. quick() / reflect() / ... cannot return an error field without
+# breaking their `List[Dict]` / `str` return contracts; instead the CLI
+# checks this flag after the call and emits an English stderr hint.
+_LAST_RECALL_ERROR: Optional[str] = None
+
+
 def _recall_raw(
     query: str,
     *,
@@ -363,7 +372,13 @@ def _recall_raw(
       3. Both fail → empty result + warn
 
     Used by quick/reflect/timeline/person/project/pending internally.
+
+    rc5 (2026-05-17): when every route fails, sets module-level
+    ``_LAST_RECALL_ERROR`` so the CLI layer can exit 1 and print an
+    English hint to stderr (replacing the previous silent N=0 + exit 0).
     """
+    global _LAST_RECALL_ERROR
+    _LAST_RECALL_ERROR = None
     import os as _os
     bank_id = bank or DEFAULT_BANK
     # 2026-05-08: legacy `memory_full` cards have NO kind:event/schema tag
@@ -418,6 +433,7 @@ def _recall_raw(
                                  "body": (r.text or "")[:200]})
                     logger.warning("memory_query recall %s 4xx: %s %s",
                                    label, r.status_code, (r.text or "")[:120])
+                    _LAST_RECALL_ERROR = last_err  # rc5: surface to CLI
                     return {"results": [], "error": last_err}
                 r.raise_for_status()
                 result = r.json()
@@ -427,14 +443,21 @@ def _recall_raw(
                     logger.warning("recall served by fallback %s", url)
                 return result
         except Exception as e:
-            last_err = f"{label}={url}: {str(e)[:120]}"
+            # rc5: keep the structured error in last_err for the CLI
+            # layer to surface; demote the noisy logger.warning to
+            # logger.debug so the user-facing console only sees the
+            # clean English hint (the previous warning could leak
+            # localized OS error strings, e.g. Win11 GBK garbage).
+            last_err = f"{label}={url}: {type(e).__name__}"
             _emit_trace("memory_query_recall_fail",
                         {"query": query[:80], "route": label,
                          "url": url, "error": str(e)[:200]})
-            logger.warning("memory_query recall %s fail: %s", label, e)
+            logger.debug("memory_query recall %s fail: %r", label, e)
             continue
 
-    return {"results": [], "error": last_err or "all routes failed"}
+    # rc5: surface to CLI for non-zero exit + English hint
+    _LAST_RECALL_ERROR = last_err or "all routes failed"
+    return {"results": [], "error": _LAST_RECALL_ERROR}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -1754,6 +1777,16 @@ def _cli(argv: List[str]) -> int:
                     or (1 if _res.get("text") else 0)
                 )
             print(json.dumps(_res, ensure_ascii=False, default=str))
+            # rc5: --json must also exit non-zero on backend
+            # unreachable so agent subprocess callers can distinguish
+            # "empty result" from "your invocation produced nothing
+            # usable because the backend was down."
+            if _LAST_RECALL_ERROR is not None:
+                sys.stderr.write(
+                    "[memexa] backend unreachable: "
+                    f"{_LAST_RECALL_ERROR} (run `memexa doctor`)\n")
+                sys.stderr.flush()
+                return 1
             return 0
         # Below: original text-rendering path, unchanged when --json
         # is not set.
@@ -2005,6 +2038,29 @@ def _cli(argv: List[str]) -> int:
                         except Exception:
                             pass
                     print(f"      [{ws}] {txt}")
+        # rc5 (2026-05-17): surface backend-unreachable failures as
+        # non-zero exit + English stderr hint, replacing the previous
+        # silent N=0 + exit 0 behavior. Agents subprocess-invoking
+        # memexa rely on exit codes to distinguish "no results" from
+        # "backend is down — your invocation produced nothing usable".
+        if _LAST_RECALL_ERROR is not None:
+            primary_url = os.environ.get(
+                "MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+            # ASCII-only message: some Windows consoles fall back to
+            # GBK and would render em-dash/arrow as garbage. Hint must
+            # be readable on every shell.
+            sys.stderr.write(
+                "\n[memexa] backend unreachable: "
+                f"{_LAST_RECALL_ERROR}\n"
+                f"  primary: {primary_url}\n"
+                "  Hints:\n"
+                "    - Start the backend:  make backend-up\n"
+                "    - Or set the URL:     "
+                "MEMEXA_HINDSIGHT_URL=http://your-host:8888\n"
+                "    - Self-diagnostic:    memexa doctor\n"
+            )
+            sys.stderr.flush()
+            return 1
         return 0
     except Exception as e:
         _ok = False
