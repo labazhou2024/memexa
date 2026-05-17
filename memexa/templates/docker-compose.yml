@@ -1,0 +1,92 @@
+# memexa backend stack -- pg + Hindsight.
+#
+# Started/managed by `memexa backend up/down/status`. Seeded into
+# `~/.memexa/docker-compose.yml` on first run from this packaged
+# template.
+#
+# Environment passthrough:
+#   `docker compose` auto-loads ~/.memexa/.env (same directory as the
+#   seeded compose file). Run `memexa init llm` first to write your
+#   MEMEXA_REMOTE_LLM_* values into that .env file; the variables
+#   below pick them up so the Hindsight container can call your LLM.
+#
+# Manual control:
+#   docker compose -f ~/.memexa/docker-compose.yml up -d
+#   docker compose -f ~/.memexa/docker-compose.yml down
+#   docker compose -f ~/.memexa/docker-compose.yml down -v   # also wipes pg-data
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: memexa-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: memexa
+      POSTGRES_PASSWORD: memexa_dev
+      POSTGRES_DB: memexa
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memexa -d memexa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight-api:latest
+    container_name: memexa-hindsight
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HINDSIGHT_DATABASE_URL: postgresql://memexa:memexa_dev@postgres:5432/memexa
+      HINDSIGHT_HOST: 0.0.0.0
+      HINDSIGHT_PORT: 8888
+      HINDSIGHT_LOG_LEVEL: info
+      # Pass through the user's LLM provider (see `memexa init llm`).
+      # Hindsight reranks / summarises with this; without it the API
+      # container refuses to start.
+      HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-openai}
+      # 2026-05-17 v0.1.1 (§C.-42 LIVE Win 11 finding): default to the GATE
+      # model rather than the EXTRACT model. Hindsight's internal fact-
+      # extraction prompts produce empty `content` on reasoning-class models
+      # (deepseek-v4-flash-ascend, qwen-reasoner -- they emit everything into
+      # `reasoning_content` instead). The GATE model is a non-reasoning chat
+      # model and survives Hindsight's strict-JSON prompt structure. Users
+      # can still override with HINDSIGHT_API_LLM_MODEL if they really want
+      # to send Hindsight's prompts through a reasoning model.
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-${MEMEXA_REMOTE_LLM_GATE_MODEL:-${MEMEXA_REMOTE_LLM_EXTRACT_MODEL:-gpt-4o-mini}}}
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:-${MEMEXA_REMOTE_LLM_API_KEY:-}}
+      HINDSIGHT_API_LLM_BASE_URL: ${HINDSIGHT_API_LLM_BASE_URL:-${MEMEXA_REMOTE_LLM_BASE_URL:-}}
+      # 2026-05-17 v0.1.1 (§C.-42b LIVE Win 11 finding): Hindsight reads
+      # HF_ENDPOINT / HTTP_PROXY etc with `os.environ.get`, which treats
+      # *empty string* as a real value and tries to use it as a URL ->
+      # `httpx.UnsupportedProtocol: Request URL is missing an 'http://'
+      # or 'https://' protocol`, container exits before /health binds.
+      #
+      # Fix: load the values via `env_file` instead of substituting
+      # them into `environment:`. env_file is a pass-through: vars
+      # absent from the file are absent in the container env (so
+      # huggingface_hub falls back to its built-in default
+      # https://huggingface.co), vars present in the file are passed
+      # through verbatim. Users opt in by adding to ~/.memexa/.env:
+      #   HF_ENDPOINT=https://hf-mirror.com
+      #   HF_HOME=/root/.cache/huggingface
+      #   HTTP_PROXY=http://host.docker.internal:7890
+      #   HTTPS_PROXY=http://host.docker.internal:7890
+      #   NO_PROXY=postgres,127.0.0.1,localhost
+    env_file:
+      - .env
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8888/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+
+volumes:
+  pg-data:

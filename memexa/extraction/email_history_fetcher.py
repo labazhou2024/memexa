@@ -160,31 +160,120 @@ def _parse_imap_date(s: str) -> Optional[datetime]:
         return None
 
 
+def _decode_mime_header(raw: Any) -> str:
+    """RFC2047 -> Unicode string. Handles email.header.Header objects too.
+
+    v0.1.1: stdlib-only replacement for the deleted ``memexa.qq_email``
+    helpers. Servers like Tencent Exmail wrap non-ASCII headers in
+    ``=?utf-8?B?...?=`` or ``=?gb18030?Q?...?=`` MIME encodings;
+    decode_header returns ``[(bytes_or_str, charset), ...]`` chunks
+    which we reassemble.
+    """
+    from email.header import decode_header, Header
+    if raw is None:
+        return ""
+    if isinstance(raw, Header):
+        raw = str(raw)
+    if not isinstance(raw, str):
+        raw = str(raw)
+    out = []
+    for chunk, charset in decode_header(raw):
+        if isinstance(chunk, bytes):
+            try:
+                out.append(chunk.decode(charset or "utf-8", errors="replace"))
+            except (LookupError, TypeError):
+                out.append(chunk.decode("utf-8", errors="replace"))
+        else:
+            out.append(chunk)
+    return "".join(out)
+
+
+def _extract_email_body(msg) -> tuple:
+    """Walk a parsed email.Message; return (text_body, html_body) as str."""
+    text_parts, html_parts = [], []
+    if msg.is_multipart():
+        for part in msg.walk():
+            ctype = (part.get_content_type() or "").lower()
+            cdisp = str(part.get("Content-Disposition", "")).lower()
+            if "attachment" in cdisp:
+                continue
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                continue
+            charset = part.get_content_charset() or "utf-8"
+            try:
+                text = payload.decode(charset, errors="replace")
+            except (LookupError, TypeError):
+                text = payload.decode("utf-8", errors="replace")
+            if ctype == "text/plain":
+                text_parts.append(text)
+            elif ctype == "text/html":
+                html_parts.append(text)
+    else:
+        payload = msg.get_payload(decode=True)
+        if payload is not None:
+            charset = msg.get_content_charset() or "utf-8"
+            try:
+                body = payload.decode(charset, errors="replace")
+            except (LookupError, TypeError):
+                body = payload.decode("utf-8", errors="replace")
+            if "html" in (msg.get_content_type() or "").lower():
+                html_parts.append(body)
+            else:
+                text_parts.append(body)
+    return ("\n".join(text_parts), "\n".join(html_parts))
+
+
+def _extract_email_attachments(msg) -> List[str]:
+    """Return list of attachment filenames (no payload data)."""
+    names = []
+    if not msg.is_multipart():
+        return names
+    for part in msg.walk():
+        cdisp = str(part.get("Content-Disposition", "")).lower()
+        if "attachment" not in cdisp:
+            continue
+        fname = part.get_filename()
+        if fname:
+            names.append(_decode_mime_header(fname))
+    return names
+
+
+def _parse_rfc822_date(raw: str) -> Optional[datetime]:
+    """Parse 'Tue, 17 May 2026 08:32:11 +0800' -> datetime, or None."""
+    if not raw:
+        return None
+    try:
+        from email.utils import parsedate_to_datetime
+        return parsedate_to_datetime(raw)
+    except Exception:
+        return None
+
+
 def _safe_email_parse(raw_bytes: bytes) -> Dict[str, Any]:
-    """Parse RFC822 → JSON-friendly dict."""
+    """Parse RFC822 -> JSON-friendly dict.
+
+    v0.1.1: stdlib-only implementation. The v0.1.0 version imported
+    ``_decode_header``, ``_extract_body``, ``_extract_attachments``,
+    and ``_parse_date`` from ``memexa.qq_email`` -- a module that
+    does not exist in OSS, so every email parse crashed with
+    ``ModuleNotFoundError`` after the IMAP fetch succeeded. Now uses
+    only Python's stdlib ``email`` package.
+    """
     import email as email_lib
-    from memexa.qq_email import (
-        _decode_header, _extract_body, _extract_attachments, _parse_date,
-    )
     msg = email_lib.message_from_bytes(raw_bytes)
 
     def _hdr(name: str) -> str:
-        """Get header as decoded string. Handles QQ's Header objects."""
-        v = msg.get(name, "")
-        if v is None:
-            return ""
-        # Some servers (QQ) return email.header.Header objects directly
-        # for non-ASCII headers. Force str() and decode again.
-        return _decode_header(str(v))
+        return _decode_mime_header(msg.get(name, ""))
 
     subject = _hdr("Subject")
     from_raw = _hdr("From")
     to_raw = _hdr("To")
     cc_raw = _hdr("Cc")
     date_raw = _hdr("Date")
-    parsed_dt = _parse_date(date_raw)
-    text_body, html_body = _extract_body(msg)
-    attachments = _extract_attachments(msg)
+    parsed_dt = _parse_rfc822_date(date_raw)
+    text_body, html_body = _extract_email_body(msg)
+    attachments = _extract_email_attachments(msg)
     return {
         "subject": str(subject),
         "from_raw": str(from_raw),
@@ -199,35 +288,128 @@ def _safe_email_parse(raw_bytes: bytes) -> Dict[str, Any]:
     }
 
 
+class EmailConfigMissing(Exception):
+    """Raised when an email account config is incomplete (missing host /
+    user / password env var, or env var is empty)."""
+
+
+def _load_accounts_from_identity(identity_path: Optional[Path] = None) -> Dict[str, Dict[str, Any]]:
+    """Load ``email.accounts`` from ``~/.memexa/identity.yaml``.
+
+    v0.1.1 generic-IMAP rewrite: replaces the hard-coded
+    ``qq_email``/``ustc_email`` clients that v0.1.0 shipped (those
+    referenced ``memexa.qq_email`` / ``memexa.ustc_email`` modules
+    that do not exist in OSS — the path was broken at runtime).
+
+    Schema::
+
+        email:
+          accounts:
+            primary:                    # arbitrary account name
+              host: imap.example.com
+              port: 993
+              user: alice@example.com
+              password_env: MEMEXA_IMAP_PASSWORD
+              folders: [INBOX, Sent]    # optional, defaults to [INBOX, Sent]
+              since_days: 90            # optional, defaults to 90
+    """
+    if identity_path is None:
+        identity_path = Path(
+            os.environ.get("MEMEXA_CONFIG_DIR", str(Path.home() / ".memexa"))
+        ).expanduser() / "identity.yaml"
+    if not identity_path.exists():
+        raise EmailConfigMissing(
+            f"identity.yaml not found at {identity_path} -- "
+            "run `memexa init email` to scaffold one"
+        )
+    try:
+        import yaml  # type: ignore
+    except ImportError:
+        raise EmailConfigMissing(
+            "PyYAML required to read identity.yaml -- pip install memexa "
+            "should have installed it; check your environment"
+        )
+    with identity_path.open("r", encoding="utf-8") as fp:
+        data = yaml.safe_load(fp) or {}
+    accounts = (data.get("email") or {}).get("accounts") or {}
+    if not isinstance(accounts, dict) or not accounts:
+        raise EmailConfigMissing(
+            f"identity.yaml has no email.accounts block, or it is empty "
+            f"(at {identity_path}) -- run `memexa init email`"
+        )
+    return accounts
+
+
+def _generic_imap_connect(account_config: Dict[str, Any]) -> imaplib.IMAP4_SSL:
+    """Open an IMAP4-SSL connection using a generic config dict.
+
+    v0.1.1: replaces ``client._imap_connect()`` on the now-deleted
+    hard-coded ``QQEmailClient`` / ``RemoteEmailClient`` objects.
+    """
+    host = account_config.get("host", "").strip()
+    port = int(account_config.get("port", 993))
+    user = account_config.get("user", "").strip()
+    pw_env = account_config.get("password_env", "MEMEXA_IMAP_PASSWORD")
+    password = os.environ.get(pw_env, "").strip()
+    if not host or not user:
+        raise EmailConfigMissing(
+            f"account config missing host or user (got host={host!r} user={user!r})"
+        )
+    if not password:
+        raise EmailConfigMissing(
+            f"env var {pw_env} is empty or unset -- "
+            f"export {pw_env}='<your-IMAP-app-specific-password>' first"
+        )
+    conn = imaplib.IMAP4_SSL(host, port)
+    try:
+        conn.login(user, password)
+    except imaplib.IMAP4.error as e:
+        raise EmailConfigMissing(
+            f"IMAP login failed for {user}@{host}:{port} -- "
+            f"check {pw_env} value and provider's IMAP enablement: {e}"
+        )
+    return conn
+
+
 def fetch_account(
-    account: str,
-    since_iso: str = "2026-01-01",
+    account_name: str,
+    account_config: Optional[Dict[str, Any]] = None,
+    since_iso: Optional[str] = None,
     folders: Optional[List[str]] = None,
     max_per_folder: int = 99999,
 ) -> Dict[str, int]:
-    """Fetch all emails for `account` since `since_iso`.
+    """Fetch all emails for ``account_name`` since ``since_iso``.
 
     Args:
-        account: 'qq_email' or 'ustc_email'.
-        since_iso: ISO date '2026-01-01' or '2026-01-01T00:00:00+08:00'.
-        folders: list of IMAP folder names. None = ['INBOX', 'Sent Messages'].
+        account_name: label, used for cursor file + raw_dir partitioning
+                      (e.g. ``"primary"``, ``"ustc"``).
+        account_config: dict with ``host`` / ``port`` / ``user`` /
+                        ``password_env`` / ``folders`` / ``since_days``.
+                        If None, looked up from identity.yaml by name.
+        since_iso: ISO date string. None = use ``account_config['since_days']``
+                   relative to today.
+        folders: explicit folder list. None = use ``account_config['folders']``.
         max_per_folder: cap to avoid runaway downloads.
 
     Returns:
-        {'fetched': N, 'skipped': N, 'errors': N, 'folders': [...]}
+        ``{'fetched': N, 'skipped': N, 'errors': N, 'folders_ok': N}``
     """
-    if account == "qq_email":
-        from memexa.qq_email import QQEmailClient
-        client = QQEmailClient()
-    elif account == "ustc_email":
-        from memexa.ustc_email import RemoteEmailClient
-        client = RemoteEmailClient()
-    else:
-        raise ValueError(f"unknown account: {account!r}")
+    if account_config is None:
+        accounts = _load_accounts_from_identity()
+        if account_name not in accounts:
+            raise EmailConfigMissing(
+                f"account {account_name!r} not found in identity.yaml; "
+                f"available: {sorted(accounts.keys())}"
+            )
+        account_config = accounts[account_name]
 
     if folders is None:
-        # your-org and QQ use slightly different folder names; try common ones.
-        folders = ["INBOX", "Sent Messages", "Sent", "&XfJSIJZk-"]  # last is QQ "已发送"
+        folders = account_config.get("folders") or ["INBOX", "Sent"]
+
+    if since_iso is None:
+        since_days = int(account_config.get("since_days", 90))
+        since_dt = datetime.now(timezone.utc) - timedelta(days=since_days)
+        since_iso = since_dt.strftime("%Y-%m-%d")
 
     # Convert since_iso → IMAP date format (DD-Mon-YYYY)
     if "T" in since_iso:
@@ -238,7 +420,7 @@ def fetch_account(
         )
     imap_since = since_dt.strftime("%d-%b-%Y")
 
-    cursor = load_cursor(account)
+    cursor = load_cursor(account_name)
     # Resume: if last_internal_date_iso later than since_iso, advance start
     if cursor["last_internal_date_iso"]:
         try:
@@ -251,7 +433,10 @@ def fetch_account(
     counters = {"fetched": 0, "skipped": 0, "errors": 0, "folders_ok": 0}
     folders_actually_scanned: List[str] = []
 
-    conn = client._imap_connect()
+    # v0.1.1: generic IMAP client (replaces removed memexa.qq_email /
+    # memexa.ustc_email lookup)
+    conn = _generic_imap_connect(account_config)
+    account = account_name  # back-compat alias for the rest of this function
     try:
         for folder in folders:
             try:
@@ -363,31 +548,85 @@ def fetch_account(
 
 
 def _cli(argv: List[str]) -> int:
+    """v0.1.1 generic IMAP CLI.
+
+    Reads accounts from ``~/.memexa/identity.yaml`` (email.accounts block)
+    or honors ``MEMEXA_CONFIG_DIR``. Run ``memexa init email`` first if
+    no accounts are configured.
+    """
     import argparse
-    p = argparse.ArgumentParser(prog="email_history_fetcher")
-    p.add_argument("--account", choices=["qq_email", "ustc_email", "all"],
-                    default="all")
-    p.add_argument("--since", default="2026-01-01")
-    p.add_argument("--folders", nargs="*", default=None)
+    p = argparse.ArgumentParser(
+        prog="email_history_fetcher",
+        description="IMAP fetch — pulls raw email payloads to "
+                    "data/raw_inputs/email/<account>/<date>/<folder>/<uid>.json "
+                    "for downstream extraction.",
+    )
+    p.add_argument(
+        "--account",
+        default="all",
+        help="account name from identity.yaml (e.g. 'primary'), or 'all' "
+             "for every configured account",
+    )
+    p.add_argument(
+        "--since",
+        default=None,
+        help="ISO date 'YYYY-MM-DD'; if omitted, uses each account's "
+             "configured since_days relative to today",
+    )
+    p.add_argument(
+        "--folders", nargs="*", default=None,
+        help="explicit folder list; overrides identity.yaml config",
+    )
     p.add_argument("--max-per-folder", type=int, default=99999)
+    p.add_argument(
+        "--identity", type=Path, default=None,
+        help="path to identity.yaml (default: ~/.memexa/identity.yaml)",
+    )
     args = p.parse_args(argv[1:])
 
-    accounts = ["qq_email", "ustc_email"] if args.account == "all" else [args.account]
+    try:
+        all_accounts = _load_accounts_from_identity(args.identity)
+    except EmailConfigMissing as e:
+        print(f"[fail] {e}", file=sys.stderr)
+        print("\nHint: run `memexa init email` to scaffold an account.",
+              file=sys.stderr)
+        return 1
+
+    if args.account == "all":
+        account_names = sorted(all_accounts.keys())
+    else:
+        if args.account not in all_accounts:
+            print(f"[fail] account {args.account!r} not in identity.yaml; "
+                  f"available: {sorted(all_accounts.keys())}", file=sys.stderr)
+            return 1
+        account_names = [args.account]
+
     overall = {"fetched": 0, "skipped": 0, "errors": 0}
-    for acc in accounts:
-        print(f"=== fetching {acc} since {args.since} ===")
+    rc = 0
+    for acc in account_names:
+        cfg = all_accounts[acc]
+        host = cfg.get("host", "(no host)")
+        user = cfg.get("user", "(no user)")
+        print(f"=== fetching {acc} ({user}@{host}) ===")
         try:
-            r = fetch_account(acc, since_iso=args.since,
-                               folders=args.folders,
-                               max_per_folder=args.max_per_folder)
+            r = fetch_account(
+                acc, account_config=cfg,
+                since_iso=args.since, folders=args.folders,
+                max_per_folder=args.max_per_folder,
+            )
             print(f"  {acc}: {r}")
             for k in ("fetched", "skipped", "errors"):
                 overall[k] += r.get(k, 0)
-        except Exception as e:
-            print(f"  {acc} FAIL: {type(e).__name__}: {e}")
+        except EmailConfigMissing as e:
+            print(f"  {acc} CONFIG FAIL: {e}", file=sys.stderr)
             overall["errors"] += 1
+            rc = 1
+        except Exception as e:
+            print(f"  {acc} FAIL: {type(e).__name__}: {e}", file=sys.stderr)
+            overall["errors"] += 1
+            rc = 1
     print(f"=== overall: {overall} ===")
-    return 0
+    return rc
 
 
 if __name__ == "__main__":

@@ -9,7 +9,183 @@
 
 ## [Unreleased]
 
-(暂无 — `0.1.0` 是最新一切。)
+(暂无 — `0.1.1` 是最新一切。)
+
+## [0.1.1] — 2026-05-17
+
+Onboarding 重写 + 修复 v0.1.0 意外 ship 的 email broken path。
+
+### 关键修复
+
+- **邮箱 IMAP 路径 v0.1.0 是 broken**。
+  `memexa/extraction/email_history_fetcher.py` hard-coded 到 2 个
+  maintainer-specific account 名 (`qq_email`, `ustc_email`),
+  调用时 import `memexa.qq_email` / `memexa.ustc_email` -- 这 2
+  个 module **OSS 包里不存在**。用户跟着
+  `docs/integrations/email.md` 走到 ingest email 这一步必撞
+  `ModuleNotFoundError`。v0.1.0 切 stable 前的 rc5 audit 漏了这条
+  (只跑 `memexa demo` + 查询层, 没跑 ingestion)。被发现时 v0.1.0
+  PyPI 下载量基本为 0, 无用户受影响。v0.1.1 真修。不 yank v0.1.0,
+  这里 + ROADMAP 透明 disclose。
+- `email_history_fetcher` 重写为 generic IMAP client: 读
+  `~/.memexa/identity.yaml` 的 `email.accounts.<name>` 块,
+  支持多账号, env var 未设 / identity.yaml 缺失时给友好错误。
+
+### Added (新增)
+
+- **`memexa init email`**: 交互式 IMAP 引导 wizard。从邮箱后缀
+  自动识别 12+ provider (gmail / googlemail / outlook / hotmail /
+  live / icloud / qq / foxmail / 163 / 126 / yeah / sina /
+  mail.ustc.edu.cn)。依次问账号 label, 密码 env-var 名, folders,
+  抓多少天, 写到 identity.yaml。打印 bash + PowerShell 双 shell
+  下一步命令。
+- **`memexa init wechat`**: 微信导出引导 wizard (仅 Windows)。
+  检测 WeChatMsg 在 4 个常见安装路径; 没装就打印 release URL +
+  预期 export 目录。写 `wechat.export_dir` 到 identity.yaml。
+  **不** auto-download EXE (安全考虑: 用户自己拿第三方二进制)。
+- **`memexa ingest email`**: 顶级 wrapper 封装
+  `email_history_fetcher`, 用户不用打
+  `python -m memexa.extraction.email_history_fetcher`。
+  forward `--account`, `--since`, `--max-per-folder`。`--account`
+  省略时跑所有配置账号。
+- **`memexa ingest wechat`**: 顶级 wrapper 读 WeChatMsg export 目录
+  (`--from` flag 或 identity.yaml 的 `wechat.export_dir`), 驱动
+  `v5_wechat_batch_builder`。
+- `memexa/cli/wizards.py` -- 新 module 装 wizard + ingest dispatch
+  逻辑。未来 source (飞书, 钉钉, 本地文档) 会进这里。
+
+### Changed (变更)
+
+- `docs/quickstart.zh.md` Tier 1 围绕新
+  `memexa init <source>` + `memexa ingest <source>` 流程重写。4
+  source 内联文档化: Claude Code (5 min, 无第三方), 邮箱 (10 min,
+  IMAP), 微信 (仅 Windows, ~30-60 min), QQ (调试中, v0.2)。每节
+  给出用户该打哪些命令 + 凭据 / export 工具去哪找。
+- `docs/quickstart.zh.md` Tier 3 状态表更新: 邮件行 ✅ 引用
+  `memexa init email`; 微信行 ⚠→✅ 反映新 wizard wrap WeChatMsg。
+- `ROADMAP.zh.md` Known limitations 段更新: v0.1.0 邮箱 broken 项
+  移到新 "v0.1.1 闭合" 子节, 微信 limitation 改写为 wizard 存在
+  但上游 exporter 约束仍在。
+
+### 新公开 CLI
+
+```
+memexa init email          # 交互式 IMAP wizard
+memexa init wechat         # WeChatMsg 导出 wizard
+memexa ingest email        # 抓 IMAP for all configured accounts
+memexa ingest wechat       # 读 WeChatMsg export -> builder
+```
+
+### 修复（re-verify 复盘中浮出的 13 个 fresh-user blocker）
+
+初版 onboarding 重写落地后，按"全新用户"视角在 Win 11 + Mac Studio +
+USTC Linux 三平台复测，并接真实 IMAP（QQ + USTC Exmail-reverse-proxy）
+和真 WeChatMsg-schema JSON，又揪出 13 个会让新用户走不通的 bug，全部
+修掉，列在下面。
+
+**Onboarding (`memexa init` / `init llm` / `init email`)**
+
+- `memexa init` 没把 `aliases.example.yaml`/`identity.example.yaml`/
+  `.env.example` 三个模板打进 wheel。新用户跑完看见 3 个
+  `[warn] template missing` + 空的 `~/.memexa/`。修：模板搬到
+  `memexa/templates/`，editable 安装时回退到 repo 根的
+  `config/`。`Next steps` 提示从 `make backend-up` 改为
+  `memexa backend up`（pip 用户没 Makefile）。
+- `memexa init llm` 在中文-locale Windows 控制台直接崩
+  `UnicodeEncodeError: 'gbk' codec can't encode character '\xa5'`
+  （DeepSeek provider note 里的 `¥` 符号）。修：CLI 入口加
+  `_force_utf8_stdio()`，把 `sys.stdout`/`sys.stderr` 切到
+  UTF-8 + `errors="replace"`。
+- `memexa init email` 给 USTC 邮箱的提示写反了 — 显示
+  `imap.exmail.qq.com`，但 LIVE 验证那个 endpoint 会 rate-limit
+  / 锁号。真实可用的是 `mail.ustc.edu.cn:993`，用同一个 16 位
+  授权码即可。提示反过来。
+
+**Backend (`memexa backend up` / `memexa doctor`)**
+
+- `memexa doctor` 探的是 `/healthz`，但 Hindsight 实际服务于
+  `/health`（vectorize-io spec 改了）。修：先试 `/health`，404
+  再 fallback `/healthz`，兼容老 fork。
+- `memexa doctor` LLM probe 双前缀 `/v1` — 用户的 base URL
+  已含 `/v1`，结果 hit `/v1/v1/chat/completions` → 404，永远
+  报红。改成 `base.endswith("/v1")` 时不再加前缀。
+- `memexa doctor` 读了不存在的 `nodes` 字段，结果"bank has 0
+  nodes" 即使 bank 里真有几十个 nodes。真字段是 `total_nodes`，
+  顺手把 `total_documents` 和 `total_links` 一起打印。
+- `memexa backend up` 健康 poll 60s 太短，覆盖不了 BGE-M3 冷
+  load。改成 helper 默认的 180s。
+- `docker-compose.yml` 把 `HINDSIGHT_API_LLM_MODEL` 默认指向
+  EXTRACT 模型。Reasoning 模型（deepseek-v4-flash-ascend /
+  qwen-reasoner）在 Hindsight 的严格 JSON prompt 下只在
+  `reasoning_content` 出内容、`content` 字段空着，Hindsight 内
+  部 fact extraction 全部失败，`total_nodes` 永远是 0。改成
+  默认走 GATE 模型（chat-class 非 reasoning）。
+- `docker-compose.yml` 用 `${HF_ENDPOINT:-}` / `${HTTP_PROXY:-}`
+  做替换，**未设变量替换出空字符串**喂进容器，huggingface_hub
+  把空字符串当成 URL，直接抛
+  `httpx.UnsupportedProtocol: Request URL is missing a protocol`，
+  Hindsight 容器第一次起就 crash-loop。改成 service-level
+  `env_file: .env` — 不设的变量在容器里就是不设，
+  huggingface_hub 走自己内置默认 `https://huggingface.co`。
+  China 用户在 `~/.memexa/.env` 加 `HF_ENDPOINT=https://hf-mirror.com`
+  即可走国内镜像。
+- `memexa backend up` 调 docker compose 时没清理 shell 里残留的
+  `HINDSIGHT_API_LLM_*`（老 JARVIS 用户 `~/.zshrc` 里通常有），
+  导致 `~/.memexa/.env` 被默默覆盖。现在调 compose 前先 strip
+  这几个变量，让 `.env` 成为单一真值源。
+
+**Ingestion (`memexa ingest email` / `memexa ingest wechat`)**
+
+- `_normalize_llm_card` 对 LLM 自由发挥的 `confidence` 值不做
+  enum 强制 — 数字（`0.85`）、英文（`"high"`）、中文（`"确定"`）
+  统统不在 enum 内，`TimeResolution` /
+  `Entity.resolution_confidence` / `IdentityAssertion` /
+  `RelationAssertion` 验证器全部 reject，相当部分卡片被
+  dead-letter。新加 `_normalize_confidence(val, allow_unresolved)`
+  helper 把任何输入 map 到合法 enum，并按字段类型分别走 4 值
+  （`TimeResolution`/`Entity`）和 3 值（`IdentityAssertion`/
+  `RelationAssertion` 不允许 `"unresolved"`）语义。
+- `_normalize_llm_card` 对 `anchor_message_ts` 不做 ISO 强制，
+  LLM 偶尔吐 bare date `"2026-05-13"`（真实 QQ 邮件
+  thread），`TimeResolution` 直接 reject
+  `anchor_message_ts must be ISO 8601`。现在和
+  `resolved_start`/`resolved_end` 共用一个 `_normalize_iso`
+  路径；`when_start_default` 也在 ISO 标准化之后才捕获，避免
+  把 bare date 继承给 anchor。
+- `_build_wechat_prompt_from_messages` 把 `StrContent` 为空的
+  消息直接 silently drop — 而**真实 WeChatMsg 导出里这是所有
+  非文本消息类型**（`Type=3` 图片、`Type=43` 视频、`Type=47`
+  贴纸、`Type=34` 语音、`Type=48` 位置、`Type=49` appmsg
+  卡片、`Type=50` 语音/视频通话、`Type=10000` 系统消息）。
+  真实聊天 30-60% 的消息被吃掉。新加 `_wechatmsg_content`
+  helper：图片 → `"[图片]"`、贴纸 → `"[表情]"`、视频 →
+  `"[视频]"`、appmsg → 从 XML 抽 `<title>` 出
+  `"[分享: 标题]"`、系统消息原样穿透。
+- `_build_wechat_prompt_from_messages` 不传 `IsSender=1` 给
+  下游，每条消息也不带 `is_self_message` 标记，batch 级也没
+  `n_self_msgs`/`n_other_msgs`/`is_solo_self`/`is_self_chat`
+  四个字段，导致 `pass2_prompt.py` 里的 §SELF_NOTE_MODE 完全
+  不触发，CEO 自己说的话 LLM 当成"他人语录"。现在 4 字段全
+  emit + per-msg `is_self_message` hint。
+
+**验证**
+
+- 新加 25 个 unit test (`tests/unit/test_confidence_sanitizer.py`
+  57 参数化 case 覆盖数字/英文/中文/bool/None/4-value/3-value
+  enum；`tests/unit/test_wechat_msg_adapter.py` 25 case 覆盖
+  10 个 msg type、IsSender 语义、字段别名)。pytest 全过
+  (140 passed, 2 skipped pre-existing prompt-drift)。
+- Win 11 + Mac Studio LIVE 复测：pip install → demo →
+  init wizards → backend up → `memexa ingest wechat`
+  (demo + 真实 schema WeChatMsg-style JSON) → `memexa quick`
+  返回 N>0 真卡片。
+- Win 11 真 IMAP LIVE：QQ (`imap.qq.com:993` 16 位授权码) +
+  USTC Exmail-reverse-proxy (`mail.ustc.edu.cn:993` 同型授权
+  码)。两个 provider 真邮件 fetch → extract → POST → 索引 →
+  可查。
+- USTC Ubuntu 22.04 (docker-compose standalone): pip install
+  + demo + init wizards + doctor 全过。`backend up` 被校园网
+  防火墙挡 docker.io（环境问题非 code）。
 
 ## [0.1.0] — 2026-05-17
 
@@ -262,7 +438,8 @@ rc1 之上的安装 bug 修复。
      个推迟到 v0.1.x post-release 文档化诚实)。 -->
 
 
-[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.1
 [0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
 [0.1.0-rc4]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc4
 [0.1.0-rc3]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc3

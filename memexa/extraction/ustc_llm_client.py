@@ -1,4 +1,4 @@
-"""your-org LLM platform OpenAI-compatible client — rate-paced + retry-backed.
+"""OpenAI-compatible LLM platform OpenAI-compatible client — rate-paced + retry-backed.
 
 Initial benchmark (BENCHMARK_REPORT.md 2026-05-12):
   - true concurrent = 1 (c>=2 triggers ~3 min cool-down where ALL reqs fail)
@@ -7,13 +7,13 @@ Initial benchmark (BENCHMARK_REPORT.md 2026-05-12):
 2026-05-13 LIVE re-verify (data/ustc_llm_verify/live_2026_05_13/c{1,2,3,4}.json):
   - c=1..4 all 4/4 ok, wall ~0.7-0.9s — platform concurrency limit RELAXED
   - default min_gap_sec lowered 10s → 2s (more headroom but conservative vs c=4
-    LIVE 0s gap result). Override via MEMEXA_your-org_MIN_GAP_SEC env to revert.
+    LIVE 0s gap result). Override via MEMEXA_REMOTE_LLM_MIN_GAP_SEC env to revert.
   - server has response caching → idempotent retry is free
   - max input ~30-50k tokens, max output ~4k (default) works
   - 100M token/day quota = effectively unlimited for cron flow
 
 Public API:
-    client = UstcLLMClient()  # reads MEMEXA_your-org_LLM_KEY from env
+    client = UstcLLMClient()  # reads MEMEXA_REMOTE_LLM_API_KEY from env
     out = client.chat(model, system, user, max_tokens, temperature)
     # → {"ok": bool, "content": str, "usage": {...}, "latency_s": float, ...}
 
@@ -40,7 +40,7 @@ def _load_dotenv():
     Lets cron / interactive shells / agents share one source of truth without
     setting env explicitly every time. Existing env vars take precedence.
     """
-    if os.environ.get("MEMEXA_your-org_LLM_KEY"):
+    if os.environ.get("MEMEXA_REMOTE_LLM_API_KEY"):
         return
     # repo root: this file lives at memexa/dispatch/ustc_llm_client.py
     repo = Path(__file__).resolve().parents[2]
@@ -64,18 +64,18 @@ def _load_dotenv():
 _load_dotenv()
 
 
-_BASE_URL = os.environ.get("MEMEXA_your-org_LLM_BASE_URL",
-                            "https://api.llm.ustc.edu.cn/v1")
-_GATEKEEPER_MODEL = os.environ.get("MEMEXA_your-org_GATEKEEPER_MODEL", "qwen3.6-chat")
-_EXTRACTOR_MODEL = os.environ.get("MEMEXA_your-org_EXTRACTOR_MODEL",
+_BASE_URL = os.environ.get("MEMEXA_REMOTE_LLM_BASE_URL",
+                            "https://api.your-llm-provider/v1")
+_GATEKEEPER_MODEL = os.environ.get("MEMEXA_REMOTE_LLM_GATE_MODEL", "qwen3.6-chat")
+_EXTRACTOR_MODEL = os.environ.get("MEMEXA_REMOTE_LLM_EXTRACT_MODEL",
                                    "deepseek-v4-flash-ascend")
-_MIN_GAP_SEC = float(os.environ.get("MEMEXA_your-org_MIN_GAP_SEC", "2"))
-_DEFAULT_TIMEOUT = float(os.environ.get("MEMEXA_your-org_TIMEOUT_SEC", "120"))
+_MIN_GAP_SEC = float(os.environ.get("MEMEXA_REMOTE_LLM_MIN_GAP_SEC", "2"))
+_DEFAULT_TIMEOUT = float(os.environ.get("MEMEXA_REMOTE_LLM_TIMEOUT_SEC", "120"))
 _RETRY_BACKOFF = [30, 90, 300]  # seconds; 3-retry pattern from benchmark
 
 
 class UstcLLMClient:
-    """Single-instance pacer for the your-org API.
+    """Single-instance pacer for the OpenAI-compatible API.
 
     Shares a process-wide call-time lock to enforce 10s gap between any
     requests, even when multiple worker threads call concurrently. The
@@ -91,11 +91,11 @@ class UstcLLMClient:
         self.base_url = base_url
         self.min_gap_sec = min_gap_sec
         self.default_timeout = default_timeout
-        api_key = os.environ.get("MEMEXA_your-org_LLM_KEY")
+        api_key = os.environ.get("MEMEXA_REMOTE_LLM_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "MEMEXA_your-org_LLM_KEY env var not set. "
-                "Get key from https://llm.ustc.edu.cn"
+                "MEMEXA_REMOTE_LLM_API_KEY env var not set. "
+                "Get key from https://your-llm-provider"
             )
         self._api_key = api_key
         self._http = httpx.Client(timeout=default_timeout)

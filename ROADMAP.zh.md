@@ -19,7 +19,7 @@ memexa 占据相邻 OSS 项目未覆盖的赛道: 中文原生数据源、高准
 关于与相邻项目（OpenHuman、MemPalace、ReMe）的逐项能力对比, 以及
 memexa 服务的 5 类用户场景, 见 [docs/why.zh.md](docs/why.zh.md)。
 
-## 当前状态 (v0.1.0 已在 PyPI, 2026-05-17)
+## 当前状态 (v0.1.1 已在 PyPI, 2026-05-17)
 
 已 ship:
 
@@ -39,17 +39,28 @@ memexa 服务的 5 类用户场景, 见 [docs/why.zh.md](docs/why.zh.md)。
 - Fresh-clone smoke test 在 Win + macOS + Linux × Python 3.10 / 3.11 / 3.12 通过
   (CI matrix; macOS-py3.10 单元因传递依赖 wheel 缺失主动排除, 见 ci.yml)
 
-v0.1.0 已知 limitation (文档化的 gap; 诚实 baseline 而非沉默惊喜 —
+v0.1.1 已知 limitation (文档化的 gap; 诚实 baseline 而非沉默惊喜 --
 完整逐源状态表见 [`docs/quickstart.zh.md#tier-3`](docs/quickstart.zh.md)):
 
 - **QQ db-only adapter 还没进 OSS**。推荐 QQ 读路径在上游 JARVIS
-  `jarvis/qq_db.py` (单文件 762 行, 仅标准库)。OSS v0.1.0 用户手工
-  接入; v0.2 移植。NapCat / OneBot 路径**默认关**, 因为腾讯
-  2025-09-05 指纹封号潮; 只有研究 disposable 账号才能用
+  `jarvis/qq_db.py` (单文件 762 行, 仅标准库)。OSS 用户手工接入,
+  v0.2 移植。NapCat / OneBot 路径**默认关**, 因为腾讯 2025-09-05
+  指纹封号潮; 只有研究 disposable 账号才能用
   `MEMEXA_QQ_NAPCAT_FORCE=1` override。
-- **微信导出仅 Windows**, 受上游工具生态约束 (WeChatMsg /
-  wechatDataBackup / PyWxDump 都只在 Windows)。macOS / Linux
-  用户能部署 memexa, 但今天不能 ingest 微信历史。
+- **微信 ingestion 仅 Windows**, 受上游工具生态约束 (WeChatMsg /
+  wechatDataBackup / PyWxDump 都只在 Windows)。v0.1.1 加了
+  `memexa init wechat` wizard 检测已装的 WeChatMsg 或指向 release
+  页, 但 macOS / Linux 用户仍不能 ingest 微信历史 -- 瓶颈在第三方
+  exporter 生态, 不是 memexa。
+
+v0.1.1 闭合 (原 v0.1.0 limitation):
+
+- **邮箱 IMAP 路径 v0.1.0 是 broken** (hard-coded
+  `qq_email` / `ustc_email` choices 引用 OSS 不存在的 module)。
+  v0.1.1 重写 `email_history_fetcher` 为 generic IMAP client,
+  读 `~/.memexa/identity.yaml` 的 `email.accounts.<name>` 块, 加
+  `memexa init email` wizard 从邮箱后缀自动识别 12+ provider。
+  首次配置不再需要手编 YAML。
 
 未 ship:
 

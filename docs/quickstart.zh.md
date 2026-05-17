@@ -110,14 +110,60 @@ MEMEXA_REMOTE_LLM_EXTRACT_MODEL=deepseek-v4-pro
 典型首跑成本: 上面组合每 1000 条消息约 **¥0.30**。Tier 1 跑你自己的
 Claude Code projects 目录, 按消息量约 ¥0.10-¥1。
 
-### 2. 接 1 个 source
+### 2. 接 1 个 source (v0.1.1: 交互式 wizard)
+
+按你手头数据挑一个源。Wizard 把对应配置块写到
+`~/.memexa/identity.yaml`, 你不用手编 YAML。
+
+#### 邮箱 (10 分钟, 任意 IMAP provider)
+
+```bash
+memexa init email
+```
+
+输入邮箱地址后, 6 个 provider 自动识别 (gmail / outlook / icloud /
+qq / 163 / foxmail / ustc 等), wizard 顺序问: 账号 label, 密码 env-var
+名, folders, 抓多少天。然后到 provider 网站拿应用专用密码 (wizard
+打印 URL), export + ingest:
+
+```bash
+export MEMEXA_IMAP_ALICE_PASSWORD='<贴-应用专用密码>'
+memexa ingest email
+```
+
+#### Claude Code (5 分钟, 无第三方工具)
 
 ```bash
 memexa ingest claude-code --from ~/.claude/projects/
 ```
 
-`ingest` 命令跑的是 Tier 2 同一套双 LLM 抽取流程, 只跳过 cron 调度和 6
-source orchestrator。预期耗时: 1-5 分钟 (几百个 session)。
+最简单的源 — 直接读 JSONL session 文件。无凭据, 无 wizard。
+
+#### 微信 (仅 Windows, 首次 30-60 分钟)
+
+```bash
+memexa init wechat
+```
+
+Wizard wrap [WeChatMsg](https://github.com/LC044/WeChatMsg) (第三方,
+GPL 许可)。Wizard 检测已装的, 没装就指 release 页。装好 WeChatMsg,
+登微信, 导出 chat 为 JSON, 然后:
+
+```bash
+memexa ingest wechat
+```
+
+memexa 读 export JSON 目录, 规范化, 走双 LLM 抽取流程。
+
+**macOS / Linux 用户**: 微信历史抽取**仅 Windows**, 因为推荐的 3 个
+exporter (WeChatMsg, wechatDataBackup, PyWxDump) 都只在 Windows 上有。
+这是上游生态约束, 不是 memexa 限制。
+
+#### QQ (调试中, 留 v0.2)
+
+QQ db-only adapter 从上游 JARVIS 移植在 v0.2。v0.1.x 有 NapCat 路径
+在 `MEMEXA_QQ_NAPCAT_FORCE=1` 后面, 但不推荐 (腾讯 2025-09-05 指纹
+封号潮, 仅 disposable 研究账号可用)。
 
 ### 3. 查询
 
@@ -244,11 +290,11 @@ Tier 0 / 1 / 2 验证的是**管线**: package 装上、backend 起来、合成
 
 | 源             | 可用平台              | 今天 (v0.1.0)                                                                                          | 何时更好                                |
 |----------------|----------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------|
-| **邮件**       | Win / macOS / Linux  | ✅ IMAP — `~/.memexa/identity.yaml` + 应用专用密码, 10 min                                              | —                                        |
+| **邮件**       | Win / macOS / Linux  | ✅ `memexa init email` wizard (v0.1.1) — 6 provider 自动识别 (gmail/outlook/icloud/qq/163/foxmail/ustc), 10 min 全程 | —                                        |
 | **音频**       | Win / macOS / Linux  | ✅ 录音笔导出 → Whisper / SenseVoice → JSON → builder                                                  | v0.4 (跨设备 merge, ECAPA 声纹注册)      |
 | **浏览**       | Win / macOS / Linux  | ✅ 读 Chrome / Firefox SQLite history → builder                                                         | —                                        |
 | **Claude Code**| Win / macOS / Linux  | ✅ 读 `~/.claude/projects/*/conversations.jsonl` → builder                                              | —                                        |
-| **微信**       | **仅 Windows**       | ⚠ 无 OSS exporter — 装 [WeChatMsg](https://github.com/LC044/WeChatMsg) (或 [wechatDataBackup](https://github.com/git-jiadong/wechatDataBackup) / [PyWxDump](https://github.com/xaoyaoo/PyWxDump)), 拿微信解密 key, 导出 per-chat JSON, 然后让 builder 指向那个目录。**macOS / Linux 用户当前没有抽取微信历史的路径**。见 [`integrations/wechat.zh.md`](integrations/wechat.zh.md)。 | v0.3 (微信 PC 备份 ingestion) |
+| **微信**       | **仅 Windows**       | ✅ `memexa init wechat` wizard (v0.1.1) wrap [WeChatMsg](https://github.com/LC044/WeChatMsg) — 检测已装 / 没装就指 release 页; 在 WeChatMsg 内导出后 `memexa ingest wechat`。macOS / Linux 用户仍无路径 (上游工具仅 Win)。 | v0.2+ (auto-download + GUI hand-off) |
 | **QQ**         | Win / macOS / Linux  | ⚠ **db-only adapter 还没进 OSS**。NapCat / OneBot 路径**默认关** (腾讯对所有用过 NapCat 的账号指纹封号 — 见 [`integrations/qq.zh.md`](integrations/qq.zh.md))。今天想用 db-only 路径, 手工把上游 JARVIS 的 `jarvis/qq_db.py` 单文件 (762 行, 仅标准库) 拷到 `memexa/extraction/qq/`。剪贴板 fallback 也在上游, 没移植。 | v0.2 (db-only + 剪贴板 fallback 移植; NapCat 路径删除) |
 
 ### 推荐的接入顺序

@@ -316,7 +316,8 @@ _BASE_RULES = """你是 MemoryCard 抽取员。
 5. **salience [0,1]** — 0.3 一般, 0.5 中等, 0.7+ 重要 (含承诺/购买/结果/约定/重大决定). reason ≤60 字。
 6. **evidence_quotes ≤5 条 ≤200 字** 直接抄原文; 每张卡至少 1 条。
 7. **不知道 → 留空, 绝不编造** — canonical_id=null, resolved_start=null, confidence="unresolved"。
-8. **JSON 输出, 最后一行必须 END_OF_OUTPUT** (没有 worker 会 retry)。
+8. **confidence 枚举严格 — 必须是这 4 个字符串之一**: `"certain" | "inferred" | "ambiguous" | "unresolved"`. **不允许**数字 (0.85)、`"high"/"low"`、中文 ("确定"). 适用于 `time_resolutions[i].confidence` / `entities[i].resolution_confidence` / `identity_assertions[i].confidence` / `relation_assertions[i].confidence`. **注意**: `identity_assertions` 和 `relation_assertions` 不接受 `"unresolved"` (只能 certain/inferred/ambiguous).
+9. **JSON 输出, 最后一行必须 END_OF_OUTPUT** (没有 worker 会 retry)。
 
 【消解优先级 (从高到低)】
 manifest_slice > sender_list (本 batch 发送者+sender_name+alias) > 拼音首字母+共现 > anaphora window (5 句) > unresolved

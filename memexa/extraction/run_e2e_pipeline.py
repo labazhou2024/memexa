@@ -187,23 +187,100 @@ def step6_pass2(args, selected_dir: Path) -> Dict[str, Any]:
             "cards_dir": str(cards_dir)}
 
 
+_CONF_ENUM_4 = frozenset({"certain", "inferred", "ambiguous", "unresolved"})
+_CONF_ENUM_3 = frozenset({"certain", "inferred", "ambiguous"})
+_CONF_WORD_MAP = {
+    "high": "certain", "very_high": "certain", "definite": "certain",
+    "definitely": "certain", "sure": "certain", "yes": "certain",
+    "确定": "certain", "明确": "certain", "确信": "certain",
+    "medium": "inferred", "moderate": "inferred", "probable": "inferred",
+    "推断": "inferred", "推测": "inferred", "可能": "inferred",
+    "low": "ambiguous", "unclear": "ambiguous", "tentative": "ambiguous",
+    "weak": "ambiguous", "uncertain": "ambiguous",
+    "模糊": "ambiguous", "不确定": "ambiguous",
+    "unknown": "unresolved", "none": "unresolved", "null": "unresolved",
+    "n/a": "unresolved", "na": "unresolved",
+}
+
+
+def _normalize_confidence(val, allow_unresolved: bool = True) -> str:
+    """Coerce any LLM-emitted confidence value to a canonical enum.
+
+    Used by all 4 confidence fields:
+      * TimeResolution.confidence       (allow_unresolved=True)
+      * Entity.resolution_confidence    (allow_unresolved=True)
+      * IdentityAssertion.confidence    (allow_unresolved=False → maps to "ambiguous")
+      * RelationAssertion.confidence    (allow_unresolved=False → maps to "ambiguous")
+
+    Robust to LLM emitting: numeric (0.85), English variants ("high"/"low"/...),
+    Chinese ("确定"/"推断"), bool, None, or canonical-with-typo.
+    """
+    if val is None:
+        return "inferred"
+    if isinstance(val, bool):
+        return "certain" if val else "ambiguous"
+    if isinstance(val, (int, float)) and not isinstance(val, bool):
+        f = float(val)
+        if f >= 0.9:
+            return "certain"
+        if f >= 0.6:
+            return "inferred"
+        if f >= 0.3:
+            return "ambiguous"
+        return "unresolved" if allow_unresolved else "ambiguous"
+    s = str(val).strip().lower()
+    enum_ok = _CONF_ENUM_4 if allow_unresolved else _CONF_ENUM_3
+    if s in enum_ok:
+        return s
+    if s == "unresolved" and not allow_unresolved:
+        return "ambiguous"
+    if s in _CONF_WORD_MAP:
+        mapped = _CONF_WORD_MAP[s]
+        if mapped == "unresolved" and not allow_unresolved:
+            return "ambiguous"
+        return mapped
+    if "certain" in s or "high" in s or "confirm" in s:
+        return "certain"
+    if "ambig" in s or "low" in s or "unclear" in s:
+        return "ambiguous"
+    if "unresolv" in s and allow_unresolved:
+        return "unresolved"
+    return "inferred"
+
+
 def _normalize_llm_card(card_dict: dict) -> dict:
     """Normalize LLM-emitted card dict to schema v2 required keys.
 
     LLMs often improvise field names. We tolerate common variants:
     - TimeResolution: original_text → surface_form; missing anchor_message_ts/resolution_method
     - Entity: missing surface_form (default to canonical_name)
+    - confidence: numeric/free-text → canonical enum via _normalize_confidence
     """
     # TimeResolution variants
     # 2026-05-10: also strip unknown keys (e.g. LLM-emitted "time_resolution",
     # "time_expression") before passing to TimeResolution(**t) which is strict.
     _TR_ALLOWED = {"surface_form", "resolved_start", "resolved_end",
                    "anchor_message_ts", "confidence", "resolution_method"}
-    when_start_default = card_dict.get("when_start", "2026-01-01T00:00:00+08:00")
 
     import re as _re
     _DATE_ONLY = _re.compile(r"^\d{4}-\d{2}-\d{2}$")
     _TIME_ONLY = _re.compile(r"^\d{2}:\d{2}(:\d{2})?$")
+
+    # v0.1.1 (§C.-42b LIVE QQ email): when LLM emits ``when_start="2026-05-13"``
+    # (bare date), capturing it before the bottom-of-function ISO normalize
+    # propagated the bare date into ``anchor_message_ts`` fallbacks, which
+    # then violated TimeResolution.anchor_message_ts ISO check. Normalize
+    # the captured default up-front.
+    _raw_when_start = card_dict.get("when_start") or "2026-01-01T00:00:00+08:00"
+    if isinstance(_raw_when_start, str) and _DATE_ONLY.match(_raw_when_start):
+        when_start_default = f"{_raw_when_start}T00:00:00+08:00"
+    elif (isinstance(_raw_when_start, str) and "T" in _raw_when_start
+          and "+" not in _raw_when_start and "Z" not in _raw_when_start):
+        when_start_default = f"{_raw_when_start}+08:00"
+    elif isinstance(_raw_when_start, str):
+        when_start_default = _raw_when_start
+    else:
+        when_start_default = "2026-01-01T00:00:00+08:00"
 
     def _normalize_iso(v):
         """Coerce LLM date/time strings to full ISO 8601 with T+tz, or None.
@@ -230,7 +307,8 @@ def _normalize_llm_card(card_dict: dict) -> dict:
 
     fixed_trs = []
     for t in card_dict.get("time_resolutions", []):
-        # 2026-05-13: LLM occasionally emits bare string instead of dict
+        # 2026-05-13: LLM occasionally emits bare string instead of dict.
+        # confidence handled by _normalize_confidence below (no special-case).
         if isinstance(t, str):
             t = {"surface_form": t, "confidence": "unresolved"}
         if not isinstance(t, dict):
@@ -243,14 +321,21 @@ def _normalize_llm_card(card_dict: dict) -> dict:
             t["surface_form"] = t.pop("time_expression")
         if "anchor_message_ts" not in t:
             t["anchor_message_ts"] = when_start_default
+        else:
+            # 2026-05-17 v0.1.1: LLM occasionally emits a bare date / non-ISO
+            # for anchor_message_ts. TimeResolution validator rejects → 422.
+            anchor_norm = _normalize_iso(t.get("anchor_message_ts"))
+            t["anchor_message_ts"] = anchor_norm or when_start_default
         if "resolution_method" not in t and "time_resolution" in t:
             t["resolution_method"] = t.pop("time_resolution")
         if "resolution_method" not in t:
             t["resolution_method"] = "llm_inferred"
         if "surface_form" not in t:
             t["surface_form"] = "?"  # fallback; required field
-        if "confidence" not in t:
-            t["confidence"] = "inferred"
+        # 2026-05-17 v0.1.1: enum-coerce any LLM-emitted confidence value
+        t["confidence"] = _normalize_confidence(
+            t.get("confidence"), allow_unresolved=True
+        )
         # 2026-05-13: normalize ISO format on resolved_start/end
         rs = _normalize_iso(t.get("resolved_start"))
         re_ = _normalize_iso(t.get("resolved_end"))
@@ -309,8 +394,11 @@ def _normalize_llm_card(card_dict: dict) -> dict:
                 "other": "mentioned", "narrator": "mentioned",
             }
             e["role_in_card"] = _ROLE_MAP.get(role, "mentioned")
-        if "resolution_confidence" not in e:
-            e["resolution_confidence"] = "inferred"
+        # 2026-05-17 v0.1.1: enum-coerce resolution_confidence (was: only set
+        # default when missing; now also sanitize unknown LLM-emitted values).
+        e["resolution_confidence"] = _normalize_confidence(
+            e.get("resolution_confidence"), allow_unresolved=True
+        )
         # accept None/empty canonical_name → fix
         if not e.get("canonical_name"):
             e["canonical_name"] = e.get("surface_form", "?unknown")
@@ -419,8 +507,10 @@ def _normalize_llm_card(card_dict: dict) -> dict:
             continue
         if "asserted_value" not in a:
             continue
-        if "confidence" not in a:
-            a["confidence"] = "inferred"
+        # 2026-05-17 v0.1.1: enum-coerce (IdentityAssertion rejects "unresolved")
+        a["confidence"] = _normalize_confidence(
+            a.get("confidence"), allow_unresolved=False
+        )
         fixed_ias.append(a)
     card_dict["identity_assertions"] = fixed_ias
 
@@ -433,8 +523,10 @@ def _normalize_llm_card(card_dict: dict) -> dict:
             continue
         if "person_a" not in r or "person_b" not in r:
             continue
-        if "confidence" not in r:
-            r["confidence"] = "inferred"
+        # 2026-05-17 v0.1.1: enum-coerce (RelationAssertion rejects "unresolved")
+        r["confidence"] = _normalize_confidence(
+            r.get("confidence"), allow_unresolved=False
+        )
         fixed_ras.append(r)
     card_dict["relation_assertions"] = fixed_ras
 

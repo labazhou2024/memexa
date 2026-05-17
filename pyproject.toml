@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memexa"
-version = "0.1.0"
+version = "0.1.1"
 description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -112,6 +112,19 @@ exclude = ["tests*", "examples.community_templates*", ".audit*"]
 # Ship the bundled synthetic dataset's JSON / JSONL data files inside
 # the wheel so `memexa demo` works without a source checkout.
 "examples.demo_dataset" = ["*.json", "*.jsonl", "*.md"]
+# v0.1.1: ship the docker-compose template inside the wheel so
+# `memexa backend up` can seed ~/.memexa/docker-compose.yml from
+# packaged resources (no source checkout required).
+# v0.1.1 (post §C.-41): ship full template set so `memexa init` works
+# from a clean pip install (no source checkout). Without this, a fresh
+# user runs `memexa init` and the wheel-internal lookup falls through
+# to "template missing" warnings and an empty ~/.memexa/.
+"memexa.templates" = [
+    "docker-compose.yml",
+    "aliases.example.yaml",
+    "identity.example.yaml",
+    "env.example",
+]
 
 [tool.ruff]
 line-length = 100

@@ -97,7 +97,7 @@ pipeline at one of your own sources. Claude Code session history is
 the easiest source to start with because no export tool or app
 configuration is required.
 
-### 1. Scaffold config
+### 1. Scaffold base config (LLM provider)
 
 ```bash
 memexa init
@@ -116,19 +116,69 @@ MEMEXA_REMOTE_LLM_EXTRACT_MODEL=deepseek-v4-pro
 ```
 
 Typical first-run cost: about ¥0.30 per 1 000 messages with the above
-combination. Tier 1 against your own Claude Code projects directory
-will consume on the order of ¥0.10–¥1 depending on volume.
+combination.
 
-### 2. Ingest one source
+### 2. Onboard a source (v0.1.1: interactive wizards)
+
+Pick whichever source you have data in. The wizard writes the
+appropriate block into `~/.memexa/identity.yaml`; you do not have to
+hand-edit YAML.
+
+#### Email (10 min, any IMAP provider)
+
+```bash
+memexa init email
+```
+
+Six providers are auto-detected from the email domain you enter
+(gmail / outlook / icloud / qq / 163 / foxmail / ustc + more). The
+wizard then prompts for: account label, password env-var name,
+folders, since-days. Get an app-specific password from your provider
+(the wizard prints the URL), export it, and ingest:
+
+```bash
+export MEMEXA_IMAP_ALICE_PASSWORD='<paste-app-password>'
+memexa ingest email
+```
+
+#### Claude Code (5 min, no third-party tool)
 
 ```bash
 memexa ingest claude-code --from ~/.claude/projects/
 ```
 
-The ingest command runs the same two-LLM extraction pipeline that
-Tier 2 uses but skips the cron-driven scheduling and the full six-
-source orchestrator. Expected runtime: 1–5 minutes for a few hundred
-sessions.
+The simplest source — reads JSONL session files directly. No wizard
+needed because there are no credentials.
+
+#### WeChat (Windows only, ~30-60 min first run)
+
+```bash
+memexa init wechat
+```
+
+This wizard wraps [WeChatMsg](https://github.com/LC044/WeChatMsg)
+(third-party, GPL-licensed). The wizard detects an existing install,
+or points you at the release page. You install WeChatMsg, sign in to
+your WeChat client, export chats as JSON, then run:
+
+```bash
+memexa ingest wechat
+```
+
+memexa reads the exported JSON directory, normalises into batches,
+and runs the same two-LLM extraction pipeline.
+
+**macOS / Linux users**: WeChat history extraction is currently
+Windows-only because every recommended exporter (WeChatMsg,
+wechatDataBackup, PyWxDump) is Windows-only. Not a memexa limitation;
+upstream ecosystem.
+
+#### QQ (in flight, v0.2)
+
+QQ db-only adapter migration from upstream JARVIS is tracked in v0.2.
+v0.1.x has the NapCat path behind `MEMEXA_QQ_NAPCAT_FORCE=1` for
+disposable research accounts, but it is not recommended due to
+Tencent's 2025-09-05 fingerprint-ban wave.
 
 ### 3. Query
 
@@ -139,8 +189,8 @@ memexa pending
 ```
 
 You should see real cards with real Chinese narrative (assuming your
-sessions are in Chinese) and per-claim citations back to the original
-session transcripts.
+sources are in Chinese) and per-claim citations back to the original
+sentences.
 
 ### 4. (Optional) Doctor
 
@@ -265,11 +315,11 @@ listed milestone.
 
 | Source         | OS path that works     | Today (v0.1.0)                                                                                       | When better                              |
 |----------------|------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------|
-| **Email**      | Win / macOS / Linux    | ✅ IMAP — `~/.memexa/identity.yaml` + app-specific password, 10 min                                  | —                                        |
+| **Email**      | Win / macOS / Linux    | ✅ `memexa init email` wizard (v0.1.1) — 6 providers auto-detected (gmail/outlook/icloud/qq/163/foxmail/ustc), 10 min total | —                                        |
 | **Audio**      | Win / macOS / Linux    | ✅ recorder export → Whisper / SenseVoice → JSON → builder                                            | v0.4 (cross-device merge, ECAPA enroll)  |
 | **Browser**    | Win / macOS / Linux    | ✅ read Chrome / Firefox SQLite history → builder                                                     | —                                        |
 | **Claude Code**| Win / macOS / Linux    | ✅ read `~/.claude/projects/*/conversations.jsonl` → builder                                          | —                                        |
-| **WeChat**     | **Windows only**       | ⚠ no OSS exporter — install [WeChatMsg](https://github.com/LC044/WeChatMsg) (or [wechatDataBackup](https://github.com/git-jiadong/wechatDataBackup) / [PyWxDump](https://github.com/xaoyaoo/PyWxDump)), get the decrypt key, export per-chat JSON, then point the builder at the export folder. macOS / Linux users currently have no path to extract WeChat history. See [`integrations/wechat.md`](integrations/wechat.md). | v0.3 (WeChat PC backup ingestion) |
+| **WeChat**     | **Windows only**       | ✅ `memexa init wechat` wizard (v0.1.1) wraps [WeChatMsg](https://github.com/LC044/WeChatMsg) — detects existing install or points at release page; you export in WeChatMsg, then `memexa ingest wechat`. macOS / Linux users still have no path (upstream tooling Windows-only). | v0.2+ (auto-download + GUI hand-off) |
 | **QQ**         | Win / macOS / Linux    | ⚠ **db-only adapter not yet in OSS**. NapCat / OneBot path is **disabled by default** (Tencent fingerprint-bans accounts that ever ran NapCat — see [`integrations/qq.md`](integrations/qq.md)). To use the db-only path today, manually copy `jarvis/qq_db.py` from the upstream JARVIS repo (762 lines, stdlib only) into `memexa/extraction/qq/`. Clipboard fallback also lives upstream and has not been migrated. | v0.2 (db-only adapter + clipboard fallback migrated; NapCat path removed) |
 
 ### Recommended first-day order

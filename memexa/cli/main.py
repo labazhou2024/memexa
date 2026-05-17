@@ -73,13 +73,30 @@ def _cmd_version(_args: argparse.Namespace) -> int:
 
 
 def _cmd_init(args: argparse.Namespace) -> int:
-    """Create ``~/.memexa/`` with example config files.
+    """Create ``~/.memexa/`` with example config files, or onboard a source.
 
-    Resolution order matches ``memexa.core._path_resolver``:
-      1. ``--target`` flag
-      2. ``MEMEXA_CONFIG_DIR`` env var
-      3. ``~/.memexa``
+    v0.1.1: ``memexa init <source>`` dispatches to interactive wizards
+    so first-time users do not have to hand-edit ``identity.yaml``:
+      - ``memexa init email``   -> IMAP wizard with 6-provider auto-detect
+      - ``memexa init wechat``  -> WeChatMsg-export onboarding (Win-only)
+      - ``memexa init`` (no arg) -> legacy scaffold (write example yaml files)
     """
+    source = getattr(args, "source", None)
+    if source == "email":
+        from memexa.cli.wizards import init_email_wizard
+        return init_email_wizard(args)
+    if source == "wechat":
+        from memexa.cli.wizards import init_wechat_wizard
+        return init_wechat_wizard(args)
+    if source == "llm":
+        from memexa.cli.wizards import init_llm_wizard
+        return init_llm_wizard(args)
+    if source is not None:
+        print(f"[fail] unknown init source: {source!r}", file=sys.stderr)
+        print( "       valid: email, wechat, llm (or no arg for legacy scaffold)",
+               file=sys.stderr)
+        return 2
+
     target = (
         Path(args.target).expanduser()
         if args.target
@@ -87,18 +104,33 @@ def _cmd_init(args: argparse.Namespace) -> int:
     )
     target.mkdir(parents=True, exist_ok=True)
 
+    # v0.1.1 (post §C.-41): templates ship under memexa/templates/ inside
+    # the wheel. Repo-checkout layout (config/*.yaml + .env.example) is the
+    # fallback for editable installs. Try packaged first, fall back to repo.
     here = Path(__file__).resolve().parents[2]
+    pkg_templates = Path(__file__).resolve().parent.parent / "templates"
     examples = {
-        here / "config" / "aliases.example.yaml": target / "aliases.yaml",
-        here / "config" / "identity.example.yaml": target / "identity.yaml",
-        here / ".env.example": target / ".env",
+        target / "aliases.yaml": [
+            pkg_templates / "aliases.example.yaml",
+            here / "config" / "aliases.example.yaml",
+        ],
+        target / "identity.yaml": [
+            pkg_templates / "identity.example.yaml",
+            here / "config" / "identity.example.yaml",
+        ],
+        target / ".env": [
+            pkg_templates / "env.example",
+            here / ".env.example",
+        ],
     }
 
     created = []
     skipped = []
-    for src, dst in examples.items():
-        if not src.exists():
-            print(f"  [warn] template missing: {src}", file=sys.stderr)
+    for dst, src_candidates in examples.items():
+        src = next((s for s in src_candidates if s.exists()), None)
+        if src is None:
+            print(f"  [warn] template missing for {dst.name}; tried: "
+                  f"{[str(s) for s in src_candidates]}", file=sys.stderr)
             continue
         if dst.exists() and not args.force:
             skipped.append(dst)
@@ -114,12 +146,16 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
     print()
     print("Next steps:")
-    print(f"  1. Edit {target / 'aliases.yaml'} — list your self-aliases")
-    print(f"  2. Edit {target / 'identity.yaml'} — set qq_id / primary_email")
-    print(f"  3. Edit {target / '.env'}         — point at your backend")
-    print("  4. Start backend:   make backend-up")
-    print("  5. Ingest demo:     make demo-ingest")
-    print("  6. Query:           memexa quick \"test\"")
+    print( "  1. Onboard an LLM provider:   memexa init llm")
+    print( "  2. Onboard a source:          memexa init email   "
+           "(or wechat)")
+    print( "  3. Start backend:             memexa backend up")
+    print( "  4. Ingest:                    memexa ingest email "
+           "(or wechat)")
+    print( "  5. Query:                     memexa quick \"test\"")
+    print()
+    print(f"Edit-by-hand alternative: open {target} and tweak")
+    print(f"  aliases.yaml / identity.yaml / .env directly.")
     return 0
 
 
@@ -205,17 +241,23 @@ def _cmd_doctor(_args: argparse.Namespace) -> int:
         if rc != 0:
             print()
             print("Hints:")
-            print("  - Run `make backend-up` to start the local backend")
+            print("  - Run `memexa backend up` to start the local backend "
+                  "(or `make backend-up` from a source checkout)")
             print("  - Set MEMEXA_HINDSIGHT_URL=http://your-host:8888 in ~/.memexa/.env")
             return rc
 
-    # 2) Bank stats
+    # 2) Bank stats. v0.1.1: Hindsight reports the canonical count as
+    # ``total_nodes`` (we previously read a non-existent ``nodes`` field,
+    # so this always printed 0 even on a populated bank).
     try:
         r = httpx.get(f"{url}/v1/default/banks/{bank}/stats", timeout=5.0)
         if r.status_code == 200:
             data = r.json()
-            n = data.get("nodes", 0)
-            print(f"[ok]   bank '{bank}' has {n} nodes")
+            n_nodes = data.get("total_nodes", data.get("nodes", 0))
+            n_docs = data.get("total_documents", 0)
+            n_links = data.get("total_links", 0)
+            print(f"[ok]   bank '{bank}' has {n_nodes} nodes "
+                  f"({n_docs} documents, {n_links} links)")
         else:
             print(f"[warn] bank stats returned {r.status_code} — bank may not exist yet")
     except Exception as e:
@@ -240,16 +282,29 @@ def _cmd_doctor(_args: argparse.Namespace) -> int:
 
 
 def _probe_health(httpx_module, url: str, *, label: str) -> bool:
-    try:
-        r = httpx_module.get(f"{url}/healthz", timeout=3.0)
-        if r.status_code == 200:
-            print(f"[ok]   {label} /healthz returned 200")
-            return True
-        print(f"[warn] {label} /healthz returned {r.status_code}")
-        return False
-    except Exception as e:
-        print(f"[fail] {label} cannot reach {url}: {type(e).__name__}: {e}")
-        return False
+    """Probe backend health.
+
+    v0.1.1: Hindsight's healthcheck path is ``/health`` (vectorize-io
+    spec), not the legacy ``/healthz``. Try the modern path first, fall
+    back to ``/healthz`` so this also works against any older Hindsight
+    fork still in the wild.
+    """
+    for path in ("/health", "/healthz"):
+        try:
+            r = httpx_module.get(f"{url}{path}", timeout=3.0)
+            if r.status_code == 200:
+                print(f"[ok]   {label} {path} returned 200")
+                return True
+            if r.status_code == 404 and path == "/health":
+                # try /healthz fallback once
+                continue
+            print(f"[warn] {label} {path} returned {r.status_code}")
+            return False
+        except Exception as e:
+            print(f"[fail] {label} cannot reach {url}: {type(e).__name__}: {e}")
+            return False
+    print(f"[warn] {label} neither /health nor /healthz reachable")
+    return False
 
 
 def _probe_llm(httpx_module, *, role: str) -> int:
@@ -268,9 +323,17 @@ def _probe_llm(httpx_module, *, role: str) -> int:
     if not (base and model):
         print(f"[skip] LLM/{role}: MEMEXA_REMOTE_LLM_BASE_URL or model not set")
         return 0
+    # 2026-05-17 v0.1.1: previous code prefixed an extra ``/v1`` even when
+    # the user already wrote ``.../v1`` into ``MEMEXA_REMOTE_LLM_BASE_URL``
+    # (the convention used by USTC LiteLLM, DeepSeek, OpenAI, and most
+    # OpenAI-compatible endpoints). Result: ``/v1/v1/chat/completions``
+    # → 404 even when the model was reachable. Detect-and-skip.
+    endpoint = f"{base}/v1/chat/completions"
+    if base.endswith("/v1") or "/v1/" in base:
+        endpoint = f"{base}/chat/completions"
     try:
         r = httpx_module.post(
-            f"{base}/v1/chat/completions",
+            endpoint,
             json={
                 "model": model,
                 "messages": [{"role": "user", "content": "ping"}],
@@ -300,6 +363,35 @@ def _cmd_query(args: argparse.Namespace, remainder: List[str]) -> int:
     # Forward as if invoked via ``python -m memexa.core.memory_query <subcmd> ...``
     argv = ["memexa.core.memory_query"] + remainder
     return memory_query._cli(argv)
+
+
+def _cmd_ingest(args: argparse.Namespace) -> int:
+    """Dispatch ``memexa ingest <source>`` to the per-source wrapper."""
+    source = args.source
+    if source == "email":
+        from memexa.cli.wizards import ingest_email
+        return ingest_email(args)
+    if source == "wechat":
+        from memexa.cli.wizards import ingest_wechat
+        return ingest_wechat(args)
+    print(f"[fail] unknown ingest source: {source!r}", file=sys.stderr)
+    return 2
+
+
+def _cmd_backend(args: argparse.Namespace) -> int:
+    """Dispatch ``memexa backend <up|down|status>``."""
+    action = args.action
+    if action == "up":
+        from memexa.cli.wizards import backend_up
+        return backend_up(args)
+    if action == "down":
+        from memexa.cli.wizards import backend_down
+        return backend_down(args)
+    if action == "status":
+        from memexa.cli.wizards import backend_status
+        return backend_status(args)
+    print(f"[fail] unknown backend action: {action!r}", file=sys.stderr)
+    return 2
 
 
 def _cmd_demo(_args: argparse.Namespace) -> int:
@@ -423,7 +515,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_init = sub.add_parser(
         "init",
-        help="scaffold ~/.memexa/ config directory",
+        help="scaffold ~/.memexa/ config (no arg) or onboard a source (email/wechat)",
+    )
+    sp_init.add_argument(
+        "source",
+        nargs="?",
+        default=None,
+        choices=["email", "wechat", "llm"],
+        help="source to onboard (email/wechat) or component to set up (llm); "
+             "omit for legacy yaml scaffold",
     )
     sp_init.add_argument(
         "--target",
@@ -437,6 +537,50 @@ def _build_parser() -> argparse.ArgumentParser:
         help="overwrite existing files",
     )
     sp_init.set_defaults(func=_cmd_init)
+
+    # v0.1.1: top-level `ingest <source>` -- wraps the per-source builders
+    # so users do not have to call `python -m memexa.extraction.<...>` by hand.
+    sp_ingest = sub.add_parser(
+        "ingest",
+        help="ingest a configured source (email/wechat)",
+    )
+    sp_ingest.add_argument(
+        "source",
+        choices=["email", "wechat"],
+        help="which source to ingest",
+    )
+    sp_ingest.add_argument(
+        "--account", default=None,
+        help="(email only) account name from identity.yaml; default: all",
+    )
+    sp_ingest.add_argument(
+        "--since", default=None,
+        help="(email only) ISO date YYYY-MM-DD; default: use account's since_days",
+    )
+    sp_ingest.add_argument(
+        "--max-per-folder", type=int, default=None,
+        help="(email only) cap per IMAP folder, default unlimited",
+    )
+    sp_ingest.add_argument(
+        "--from", dest="from_dir", default=None,
+        help="(wechat only) WeChatMsg export directory; "
+             "default: wechat.export_dir from identity.yaml",
+    )
+    sp_ingest.set_defaults(func=_cmd_ingest)
+
+    # v0.1.1: top-level `backend` -- docker-compose wrapper for the
+    # bundled pg+Hindsight stack. Users get a one-liner instead of
+    # having to memorise the compose file path.
+    sp_backend = sub.add_parser(
+        "backend",
+        help="bring up / tear down / check the Docker backend (pg + Hindsight)",
+    )
+    sp_backend.add_argument(
+        "action",
+        choices=["up", "down", "status"],
+        help="up = start; down = stop; status = container state + healthz",
+    )
+    sp_backend.set_defaults(func=_cmd_backend)
 
     sp_config = sub.add_parser("config", help="print resolved configuration")
     sp_config.set_defaults(func=_cmd_config)
@@ -461,11 +605,39 @@ def _build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _force_utf8_stdio() -> None:
+    """Force UTF-8 stdout/stderr.
+
+    Windows default code page is often GBK (cp936 on Chinese locales),
+    cp437/cp1252 elsewhere. memexa prints Chinese characters, the ¥
+    symbol, em-dashes, etc. throughout the wizards and demo output,
+    and the wizards take user input that may contain Chinese names.
+    Without this we crash on a vanilla Win 11 console
+    (UnicodeEncodeError: 'gbk' codec can't encode character '\\xa5').
+
+    Python 3.7+ exposes ``sys.stdout.reconfigure`` on TextIO wrappers
+    that are real ``TextIOWrapper`` instances (not subprocess pipes or
+    test capture streams). Best-effort: if reconfigure isn't available
+    or fails, leave stdio alone — the original error path still shows
+    a useful traceback.
+    """
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     """Entry point installed as ``memexa`` and ``memexa-query``.
 
     Returns an exit code (0 = success). Friendly fallbacks for common errors.
     """
+    _force_utf8_stdio()
     raw = list(argv if argv is not None else sys.argv[1:])
 
     # Top-level --version shortcut
