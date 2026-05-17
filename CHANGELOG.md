@@ -87,6 +87,127 @@ memexa ingest email        # fetch IMAP for all configured accounts
 memexa ingest wechat       # read WeChatMsg export dir → builder
 ```
 
+### Fixed (fresh-user blockers caught by re-verify pass)
+
+After the initial onboarding rewrite landed, a second pass replayed
+the whole flow as a brand-new user on Win 11 + Mac Studio + USTC
+Linux + against real IMAP (QQ + USTC Exmail-reverse-proxy) + against
+a real WeChatMsg-schema JSON. Thirteen more blockers surfaced — all
+fixed below.
+
+**Onboarding (`memexa init` / `init llm` / `init email`)**
+
+- `memexa init` shipped without the `aliases.example.yaml` /
+  `identity.example.yaml` / `.env.example` templates inside the
+  wheel. A fresh user got three `[warn] template missing` warnings
+  and an empty `~/.memexa/`. Fixed: templates moved into
+  `memexa/templates/`, with editable-checkout fallback. The
+  "Next steps" hint was rewritten to use `memexa backend up`
+  (`make backend-up` only works from a source checkout).
+- `memexa init llm` crashed with `UnicodeEncodeError: 'gbk' codec
+  can't encode character '\xa5'` on Chinese-locale Windows
+  consoles (the `¥` symbol in the DeepSeek provider note).
+  Fixed: `_force_utf8_stdio()` at CLI entry reconfigures
+  `sys.stdout` / `sys.stderr` to UTF-8 with `errors="replace"`.
+- `memexa init email` for USTC mail printed the wrong host hint
+  (`imap.exmail.qq.com`) — that endpoint rate-limits / locks new
+  logins. The `mail.ustc.edu.cn:993` host terminates IMAP TLS
+  directly and accepts the same 16-char auth code, LIVE-verified.
+  Hint inverted.
+
+**Backend (`memexa backend up` / `memexa doctor`)**
+
+- `memexa doctor` probed `/healthz` but Hindsight serves `/health`
+  (vectorize-io spec change). Fixed: try `/health` first, fall back
+  to `/healthz` for any older fork.
+- `memexa doctor` LLM probe double-prefixed `/v1`, hitting
+  `/v1/v1/chat/completions` → 404. Detect `base.endswith("/v1")`
+  and skip the prefix.
+- `memexa doctor` read a non-existent `nodes` field from the bank
+  stats endpoint and always reported "0 nodes". The real field is
+  `total_nodes`; doctor now reports nodes + documents + links.
+- `memexa backend up` polled for backend health with a 60-second
+  timeout — shorter than a cold BGE-M3 load. Bumped to 180s
+  (the helper default).
+- `docker-compose.yml` routed `HINDSIGHT_API_LLM_MODEL` to the
+  EXTRACT model. Reasoning models (deepseek-v4-flash-ascend,
+  qwen-reasoner) emit content in `reasoning_content` and leave
+  the `content` field empty on Hindsight's strict-JSON prompts,
+  so internal fact extraction failed silently and `total_nodes`
+  stayed at zero. Default switched to the GATE model (chat-class).
+- `docker-compose.yml` substituted `${HF_ENDPOINT:-}` / `HTTP_PROXY`
+  etc into the container env. Empty-string substitution made
+  huggingface_hub raise `httpx.UnsupportedProtocol: Request URL
+  is missing a protocol` on first run. Fixed: load these via
+  `env_file:` instead of substitution; unset stays unset; users
+  opt into `HF_ENDPOINT=https://hf-mirror.com` (etc.) by adding to
+  `~/.memexa/.env`.
+- `memexa backend up` did not strip stale `HINDSIGHT_API_LLM_*`
+  shell exports (long-time JARVIS users tend to have these in
+  `~/.zshrc`), which silently overrode `~/.memexa/.env`. Now
+  removed from the env passed to compose so `.env` is the single
+  source of truth.
+
+**Ingestion (`memexa ingest email` / `memexa ingest wechat`)**
+
+- `_normalize_llm_card` did not enum-coerce `confidence` values
+  emitted as numeric (`0.85`) or free-text (`"high"` / `"确定"`).
+  `TimeResolution`, `Entity.resolution_confidence`,
+  `IdentityAssertion`, and `RelationAssertion` validators all
+  reject anything outside their enum, so a sizeable fraction of
+  cards dead-lettered with `confidence must be in
+  ['ambiguous','certain','inferred','unresolved']`. New
+  `_normalize_confidence(val, allow_unresolved)` helper maps any
+  emission to a canonical enum, with 4-value semantics for
+  `TimeResolution` / `Entity` and 3-value semantics for
+  `IdentityAssertion` / `RelationAssertion` (which reject
+  `"unresolved"`).
+- `_normalize_llm_card` did not coerce `anchor_message_ts` when
+  the LLM emitted a bare date `"2026-05-13"` (real QQ-email
+  thread), so `TimeResolution` rejected with
+  `anchor_message_ts must be ISO 8601`. Now normalized through
+  the same `_normalize_iso` path that already handled
+  `resolved_start` / `resolved_end`. The `when_start_default`
+  capture also runs after ISO coercion so the fallback no longer
+  inherits a bare date.
+- `_build_wechat_prompt_from_messages` silently dropped any
+  message with empty `StrContent` — which is **every non-text
+  message type** in a real WeChatMsg export (`Type=3` image,
+  `Type=43` video, `Type=47` sticker, `Type=34` voice,
+  `Type=48` location, `Type=49` appmsg, `Type=50` voice/video
+  call, `Type=10000` system message). 30-60% of a real chat
+  was being lost. New `_wechatmsg_content` helper emits
+  `"[图片]"` / `"[表情]"` / `"[视频]"` placeholders, extracts
+  `<title>` from `Type=49` appmsg XML, and passes Type=10000
+  sysmsg text through unchanged.
+- `_build_wechat_prompt_from_messages` did not propagate
+  `IsSender=1` into a `is_self_message` hint on each message,
+  nor populate `n_self_msgs` / `n_other_msgs` / `is_solo_self`
+  / `is_self_chat` at the batch level. Downstream
+  §SELF_NOTE_MODE in `pass2_prompt.py` then could not anchor
+  commitments to the CEO's own utterances. Now wired through.
+
+**Verification**
+
+- 25 new unit tests in `tests/unit/test_confidence_sanitizer.py`
+  (57 cases parametrised across numeric / English / Chinese / bool
+  / None / canonical-4 / canonical-3) and
+  `tests/unit/test_wechat_msg_adapter.py` (25 cases across 10 msg
+  types, IsSender semantics, field aliases). All pytest suites
+  pass (140 passed, 2 skipped pre-existing prompt-drift).
+- LIVE re-verified on Win 11 + Mac Studio: pip install → demo →
+  init wizards → backend up → `memexa ingest wechat`
+  (demo + real-schema WeChatMsg-style JSON) → `memexa quick`
+  returns N>0 cards.
+- LIVE re-verified on Win 11 against real IMAP: QQ
+  (`imap.qq.com:993` with a 16-char authorization code) and USTC
+  Exmail-reverse-proxy (`mail.ustc.edu.cn:993` with the same kind
+  of code). Cards from both providers extracted, POSTed, indexed,
+  and queryable.
+- USTC Ubuntu 22.04 with docker-compose-standalone: pip install +
+  demo + init wizards + doctor all pass. Backend up blocked by
+  campus-firewalled docker.io pull (environment, not memexa code).
+
 ## [0.1.0] — 2026-05-17
 
 First stable release. Aggregates the rc5 say-do gap closure surfaced
