@@ -579,8 +579,13 @@ def _run_docker(cmd: list, **kwargs) -> int:
     return subprocess.call([docker_bin] + cmd, **kwargs)
 
 
-def _poll_hindsight(timeout_s: int = 60) -> bool:
-    """Poll http://127.0.0.1:8888/healthz until ready or timeout."""
+def _poll_hindsight(timeout_s: int = 180) -> bool:
+    """Poll http://127.0.0.1:8888/healthz until ready or timeout.
+
+    Default 180s because the Hindsight FastAPI container loads BGE-M3
+    embedding model on startup (~30-90s on first run); a 60s timeout
+    races that. Progress dots so the user knows it's still trying.
+    """
     import time
     try:
         import httpx  # type: ignore
@@ -591,17 +596,25 @@ def _poll_hindsight(timeout_s: int = 60) -> bool:
     deadline = time.time() + timeout_s
     url = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
     last_err = ""
+    elapsed = 0
     while time.time() < deadline:
         try:
-            r = httpx.get(f"{url}/healthz", timeout=2.0)
+            r = httpx.get(f"{url}/healthz", timeout=3.0)
             if r.status_code < 400:
+                if elapsed > 0:
+                    print()  # finish progress line
                 return True
             last_err = f"HTTP {r.status_code}"
         except Exception as e:
             last_err = type(e).__name__
-        time.sleep(2)
+        time.sleep(3)
+        elapsed += 3
+        if elapsed % 15 == 0:
+            print(f"  ... still waiting ({elapsed}s, last={last_err})",
+                  flush=True)
     print(f"[warn] backend not ready after {timeout_s}s "
-          f"(last: {last_err}); check `memexa backend status`",
+          f"(last: {last_err}); check `memexa backend status` and "
+          f"`docker logs memexa-hindsight`",
           file=sys.stderr)
     return False
 
