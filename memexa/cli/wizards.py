@@ -514,16 +514,69 @@ def _resolve_compose_file() -> Path:
     )
 
 
+_DOCKER_BIN_CACHE: Optional[str] = None
+
+
+def _find_docker_bin() -> Optional[str]:
+    """Locate the docker binary even when not on PATH.
+
+    Order:
+      1. ``MEMEXA_DOCKER_BIN`` env (override)
+      2. ``shutil.which("docker")`` (PATH)
+      3. Platform-specific common install locations:
+         - macOS:   OrbStack xbin, Docker Desktop
+         - Windows: Docker Desktop
+         - Linux:   /usr/bin, /usr/local/bin (usually on PATH but
+                    SSH non-login shells sometimes drop)
+    Cached per-process.
+    """
+    global _DOCKER_BIN_CACHE
+    if _DOCKER_BIN_CACHE:
+        return _DOCKER_BIN_CACHE
+    import shutil
+    override = os.environ.get("MEMEXA_DOCKER_BIN", "").strip()
+    if override and Path(override).is_file():
+        _DOCKER_BIN_CACHE = override
+        return override
+    found = shutil.which("docker")
+    if found:
+        _DOCKER_BIN_CACHE = found
+        return found
+    candidates = []
+    if sys.platform == "darwin":
+        candidates += [
+            "/Applications/OrbStack.app/Contents/MacOS/xbin/docker",
+            "/usr/local/bin/docker",
+            "/opt/homebrew/bin/docker",
+            "/Applications/Docker.app/Contents/Resources/bin/docker",
+        ]
+    elif sys.platform == "win32":
+        candidates += [
+            r"C:\Program Files\Docker\Docker\resources\bin\docker.exe",
+            r"C:\Program Files\Docker\Docker\Resources\bin\docker.exe",
+        ]
+    else:
+        candidates += [
+            "/usr/bin/docker", "/usr/local/bin/docker",
+        ]
+    for c in candidates:
+        if Path(c).is_file():
+            _DOCKER_BIN_CACHE = c
+            return c
+    return None
+
+
 def _run_docker(cmd: list, **kwargs) -> int:
     """Run a `docker` subcommand and stream output to stdout/stderr."""
     import subprocess
-    try:
-        return subprocess.call(["docker"] + cmd, **kwargs)
-    except FileNotFoundError:
-        print("[fail] docker not found in PATH. Install Docker Desktop "
-              "(Windows/macOS) or docker-compose-plugin (Linux) first.",
+    docker_bin = _find_docker_bin()
+    if docker_bin is None:
+        print("[fail] docker not found. Install Docker Desktop "
+              "(Windows/macOS) / OrbStack (macOS) / docker-compose-plugin "
+              "(Linux). Or set MEMEXA_DOCKER_BIN=/path/to/docker.",
               file=sys.stderr)
         return 127
+    return subprocess.call([docker_bin] + cmd, **kwargs)
 
 
 def _poll_hindsight(timeout_s: int = 60) -> bool:
