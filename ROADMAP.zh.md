@@ -19,7 +19,7 @@ memexa 占据相邻 OSS 项目未覆盖的赛道: 中文原生数据源、高准
 关于与相邻项目（OpenHuman、MemPalace、ReMe）的逐项能力对比, 以及
 memexa 服务的 5 类用户场景, 见 [docs/why.zh.md](docs/why.zh.md)。
 
-## 当前状态 (v0.1.0-rc4 已在 PyPI, 2026-05-17)
+## 当前状态 (v0.1.0 已在 PyPI, 2026-05-17)
 
 已 ship:
 

@@ -24,7 +24,7 @@ memexa as a subprocess. Tier 0 has a path for each.
 ### For humans
 
 ```bash
-pip install --pre memexa
+pip install memexa
 memexa demo
 ```
 
@@ -32,7 +32,7 @@ memexa demo
 > minimum. Install Python 3.11 first:
 > `brew install python@3.11` (Homebrew) or download from python.org.
 > Then run the two commands above in a fresh `python3.11 -m venv` so
-> `pip install --pre memexa` actually finds a compatible wheel.
+> `pip install memexa` actually finds a compatible wheel.
 >
 > **Windows users**: a `py` launcher version ≥ 3.10 works out of the
 > box. If `python --version` reports 3.9, install Python 3.11 from
@@ -74,7 +74,7 @@ If `memexa demo` fails, see
 ### For AI agents
 
 ```bash
-pip install --pre memexa
+pip install memexa
 # Agent invokes via its shell tool with --json for structured output:
 memexa quick "<question>" --json
 memexa arc "<person>" --json

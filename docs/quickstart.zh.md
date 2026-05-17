@@ -22,14 +22,14 @@ memexa 服务两类用户: **人类** 在终端跑查询, 和 **AI agent**
 ### 人类用户路径
 
 ```bash
-pip install --pre memexa
+pip install memexa
 memexa demo
 ```
 
 > **macOS 用户**: 系统自带 Python 是 3.9, 低于 3.10 最低要求。先装
 > Python 3.11: `brew install python@3.11` (Homebrew) 或从 python.org
 > 下载安装包。然后在 `python3.11 -m venv` 新建的 venv 里跑上面两条
-> 命令, `pip install --pre memexa` 才能找到兼容 wheel。
+> 命令, `pip install memexa` 才能找到兼容 wheel。
 >
 > **Windows 用户**: `py` launcher 自带 3.10+ 即可。如果
 > `python --version` 报 3.9, 从 Microsoft Store 或 python.org 装
@@ -69,7 +69,7 @@ memexa demo  —  thirty-second onboarding
 ### AI agent 路径
 
 ```bash
-pip install --pre memexa
+pip install memexa
 # Agent 通过 shell 工具调, 加 --json 拿结构化输出:
 memexa quick "<问题>" --json
 memexa arc "<人名>" --json

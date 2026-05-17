@@ -23,7 +23,7 @@ For the per-capability comparison against neighbouring projects
 (OpenHuman, MemPalace, ReMe) and the five user scenarios memexa is
 designed for, see [docs/why.md](docs/why.md).
 
-## Current state (v0.1.0-rc4 on PyPI, 2026-05-17)
+## Current state (v0.1.0 on PyPI, 2026-05-17)
 
 Shipped:
 

@@ -45,7 +45,7 @@ repository-topics:
 ### 人类用户 — 30 秒看见
 
 ```bash
-pip install --pre memexa
+pip install memexa
 memexa demo
 ```
 
@@ -58,7 +58,7 @@ memexa demo
 
 ```bash
 # Agent 今天通过 subprocess 已经能用:
-pip install --pre memexa
+pip install memexa
 memexa quick "<你的问题>" --json   # 结构化输出方便 agent parse
 memexa arc "<人名>" --json
 # ... 共 14 个子命令, 全部 v0.1.x 起支持 --json mode

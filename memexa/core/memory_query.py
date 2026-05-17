@@ -1700,6 +1700,12 @@ def _cli(argv: List[str]) -> int:
                       help="子集 (default all 6)")
 
     args = p.parse_args(argv[1:])
+    # rc5: argparse parent-vs-subparser conflict — subparser
+    # parents=[_common] resets `args.json` to its default (False) even
+    # when `--json` appeared BEFORE the subcommand. Use the raw argv as
+    # ground truth so all three positions work:
+    #   `--json pending` / `pending --json` / `query pending --json`
+    json_mode = "--json" in argv[1:]
     _t_start = time.time()
     _n_results = 0
     _ok = True
@@ -1708,7 +1714,7 @@ def _cli(argv: List[str]) -> int:
         # 2026-05-16 v0.1.x: --json mode short-circuits text rendering.
         # Same call surface, raw return value as JSON to stdout. Agents
         # invoking memexa via subprocess CLI should pass --json.
-        if args.json:
+        if json_mode:
             if args.cmd == "quick":
                 _res = quick(args.query, source=args.source, types=args.types,
                              tier_in=args.tier, salience_min=args.salience,

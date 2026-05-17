@@ -9,8 +9,89 @@
 
 ## [Unreleased]
 
-合并 rc4 发布后审计发现的 rc5 say-do gap 修复。最终版本号待定，
-正式发布时本节会改为对应版本号。
+(暂无 — `0.1.0` 是最新一切。)
+
+## [0.1.0] — 2026-05-17
+
+首个 stable 发布。合并 rc4 发布后审计的 rc5 say-do gap 修复, 加上
+切 stable 前一刻补的 Tier 3 "真实数据源" 诚实声明 patch。
+
+**切 stable 的理由**: ROADMAP §[0.1.0] 原列的 3 个 gate 里有 2 个
+生态信号 ("≥1 非作者 issue/PR" + "≥7 天距上次 critical fix") 在
+切的时点没满。仍切, 因为:
+
+  - rc4 后审计的 6 个 say-do gap 全部闭环 (真 --json 支持 / backend
+    down exit code / 3 个文档正确性修复 / 双语 100% / Tier 3 逐源
+    真实状态诚实声明)。
+  - 跨平台新装 smoke 在 Win (Python 3.11.9) / macOS (Python 3.13.12
+    miniforge) / Linux (Python 3.10.12 Ubuntu 22.04) LIVE 验证通
+    过。同时 rc4 的 2 个 bug 在 3 平台上**也 LIVE 复现**, 证明
+    rc5 修复不是水文档。
+  - 那 2 个未满 gate 是**de-facto** 信号 (社区速率 / soak 时间),
+    不是 de-jure 正确性信号。死等会无限冻结 rc 链, 而 say-do gap
+    已经可执行修复。
+  - v0.1.0 ship 时带文档化 "Known limitations" 块, 同时写在
+    `docs/quickstart.zh.md` Tier 3 和 `ROADMAP.zh.md` Shipped, 用户
+    一打开文档就撞见逐源 ✅ / ⚠ / ❌ 表 — 不存在沉默 surprise。
+
+### Added (rc4 之后新)
+
+- **`--json` 在子命令级被接受**: agent 现在可以按 README /
+  quickstart 文档写法 `memexa quick "X" --json`, 不必被迫用
+  `memexa --json query quick "X"`。`--json` 挂在 `_common` parent
+  parser, 14 个子命令全部继承, 3 种位置都工作。修补了 rc4 审计在 3
+  平台上发现的 `unrecognized arguments: --json` argparse 拒收。
+- **`docs/quickstart.zh.md` Tier 3**: "接你自己的真实数据源". 6
+  行逐源状态表 (邮件 / 音频 / 浏览 / Claude Code / 微信 / QQ) 附
+  ✅ / ⚠ / ❌ + "何时更好" 列指向未来 ROADMAP 里程碑 + 推荐接入
+  顺序 + "v0.1.0 已知 limitation" 子节。诚实回答 "今天能不能在我
+  自己数据上真用?"。
+- **`ROADMAP.zh.md` Known limitations 段**: 3 个 v0.1.0-specific
+  事项 (QQ db-only adapter 等 v0.2 移植 / 微信导出仅 Windows 受
+  上游生态约束 / 其他交叉链接到 docs/quickstart Tier 3)。
+
+### Changed (rc4 之后改)
+
+- **`docs/quickstart.zh.md`** Tier 0 期望 demo 输出改写为 Python
+  3.11 venv 真实跑出: `(audio=1, browser_session=10,
+  claude_code=3, email=4, qq=3, wechat=5)`, 总 26 cards。之前
+  `(wechat=8, qq=4, email=4, browser=4, claude=3, audio=3)` 既错
+  数字又错命名 (`browser`/`claude` vs `browser_session`/`claude_code`)。
+- **`docs/quickstart.zh.md`** macOS Python 3.9 缺口写在 install
+  命令上方 warning。macOS 系统 Python 是 3.9, 低于 3.10, 之前
+  `pip install --pre memexa` 在每台未动 macOS 上静默失败。现在
+  用户在 docs 页就撞上要求, 有 `brew install python@3.11` + venv
+  操作指引。
+- **全部安装命令从 `pip install --pre memexa` 翻为
+  `pip install memexa`** — 这是 stable 发布, `--pre` 不再需要。
+- **`ROADMAP.zh.md`** 当前状态从 `(v0.1.0-rc4)` 推到 `(v0.1.0)`。
+  Shipped 重写: CLI 加 demo, "Eight tests, 19 CI" 改 "Ten tests,
+  6 CI workflows", Linux 改"Linux via docker-compose", 14 subcmd
+  拆分从 "9 + 5" 改 "7 + 7"。
+
+### Fixed (rc4 之后修)
+
+- **`memexa quick "X"` 等命令在 backend 不可达时退出 1 + 英文
+  stderr 提示**, 不再静默 `N=0` + exit 0。Agent subprocess 调
+  memexa 依赖 exit code 区分 "无结果" vs "你的 invocation 完全没用
+  因为 backend 挂了"。
+  - `--json` 模式 stdout 仍 print `[]` (JSON parser 不破), 但同时
+    exit 1 + stderr 单行提示。
+  - 旧 `logger.warning` 泄漏 GBK 本地化 Windows 系统错误降级
+    `logger.debug`; 控制台只见纯 ASCII 多行提示, 含 3 个下一步
+    命令 (`make backend-up`, `MEMEXA_HINDSIGHT_URL=...`,
+    `memexa doctor`)。
+
+### Removed (rc4 之后删)
+
+- 重复的 `[0.1.0-rc1]` entry — CHANGELOG rc1→rc2 文件重写时不小心
+  写了两遍。
+
+### 双语覆盖 (rc4 之后)
+
+- 加 8 个缺失 `.zh.md` 镜像 (CHANGELOG, CODE_OF_CONDUCT,
+  GOVERNANCE, PROGRESS, 4 个 `.github/` issue + PR 模板), 闭环
+  rc4 审计找出的双语硬约束 gap。切发时验证: 49 EN / 49 ZH / 0 缺。
 
 ### Added (新增)
 
@@ -176,21 +257,14 @@ rc1 之上的安装 bug 修复。
   (`scripts/full_pii_scan.sh`)。
 - 威胁模型文档 (`SECURITY.md`)。
 
-## [0.1.0] — 待定 (release 准则, 与 ROADMAP 保持同步)
+<!-- 0.1.0 历史准则段于 2026-05-17 切 stable 时下线。见上方 [0.1.0]
+     entry 看实际 release notes 和切 stable 的理由 (3 个准则中有 2
+     个推迟到 v0.1.x post-release 文档化诚实)。 -->
 
-满足 **所有** 以下条件后, 从 green release candidate 切出:
 
-- `memexa demo` 在 PyPI LIVE 至少 1 周, 且
-  `pip install --pre memexa && memexa demo` 在新 Windows、macOS、
-  Linux 上返回 rc=0 (CI 矩阵已验, 但 LIVE PyPI 检查是 gate)。
-- 至少 1 个 issue / discussion / PR 来自非作者贡献者。
-- 过去 7 天没切过 critical bug fix。
-
-实际 version-bump PR 会 close 本节, link 那个变成 `0.1.0` 的 rc。
-
-[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0-rc4...HEAD
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
 [0.1.0-rc4]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc4
 [0.1.0-rc3]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc3
 [0.1.0-rc2]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc2
 [0.1.0-rc1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc1
-[0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0

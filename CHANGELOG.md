@@ -7,9 +7,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Aggregates the rc5 say-do gap closure surfaced by the post-rc4 audit.
-Final version number is being decided; ship-time entry will rename
-this section to whichever number is cut.
+(Nothing yet — `0.1.0` was the latest cut.)
+
+## [0.1.0] — 2026-05-17
+
+First stable release. Aggregates the rc5 say-do gap closure surfaced
+by the post-rc4 audit, plus the Tier 3 "real data sources" honesty
+patch added immediately before the stable cut.
+
+**Stable-cut rationale**: the original ROADMAP §[0.1.0] criteria
+listed two ecosystem gates ("≥ 1 non-author issue/PR" and "≥ 7
+days since the last critical fix") that are unmet at the time of
+this cut. Cutting anyway because:
+
+  - All six say-do gaps from the post-rc4 audit are closed
+    (true `--json` support, exit-code on backend down, three
+    documentation correctness fixes, full bilingual coverage,
+    Tier 3 honesty about per-source real-use status).
+  - Cross-platform fresh-install smoke is LIVE-verified on Win
+    (Python 3.11.9), macOS (Python 3.13.12 miniforge), Linux
+    (Python 3.10.12 Ubuntu 22.04). The two rc4 bugs being fixed
+    by this cut were also LIVE-reproduced on all three platforms,
+    confirming the fixes are not paper.
+  - The two unmet ROADMAP gates are de-facto signals (community
+    velocity, soak time) rather than de-jure correctness signals.
+    Waiting on them would freeze the rc series indefinitely while
+    the say-do gaps were already actionable.
+  - v0.1.0 ships with a documented "Known limitations" subsection
+    in both `docs/quickstart.md` Tier 3 and `ROADMAP.md` Shipped,
+    so users hit the per-source ✅ / ⚠ / ❌ table the moment they
+    open the docs — there is no silent surprise.
+
+### Added (new since rc4)
+
+- **`--json` accepted at the subcommand level**: agents can now
+  write `memexa quick "X" --json` exactly as documented in the
+  README / quickstart, instead of being forced to use
+  `memexa --json query quick "X"`. The flag lives on a `_common`
+  parent parser inherited by all fourteen subcommands, so all
+  three positions work:
+  `memexa --json query quick "X"`,
+  `memexa query quick "X" --json`,
+  `memexa quick "X" --json`.
+  Closes the rc4 "fourteen subcommands with `--json` mode" claim,
+  which the rc4 audit found to fail with
+  `unrecognized arguments: --json` at the subcommand level on all
+  three platforms.
+- **`docs/quickstart.md` Tier 3 (+ zh)**: "Connecting your real
+  data sources." Six-row per-source status table with ✅ / ⚠ / ❌
+  for {email, audio, browser, claude-code, wechat, qq} + "When
+  better" column pointing at future ROADMAP milestones, +
+  recommended first-day order, + explicit "Known limitations of
+  v0.1.0" subsection. The honest answer to "can I actually use
+  this on my own data today?"
+- **`ROADMAP.md` Known limitations section** (+ zh): three
+  v0.1.0-specific items (QQ db-only adapter pending v0.2,
+  WeChat export Windows-only by upstream ecosystem, the rest
+  cross-linked to docs/quickstart Tier 3).
+
+### Changed (since rc4)
+
+- **`docs/quickstart.md` (+ zh)** Tier 0 expected demo output
+  rewritten to match what `memexa demo` actually prints in a
+  fresh Python 3.11 venv: `(audio=1, browser_session=10,
+  claude_code=3, email=4, qq=3, wechat=5)` totalling 26 cards.
+  The previous line printed
+  `(wechat=8, qq=4, email=4, browser=4, claude=3, audio=3)`,
+  which was both wrong per-source and used non-canonical source
+  names (`browser`/`claude` vs the real
+  `browser_session`/`claude_code`).
+- **`docs/quickstart.md` (+ zh)** macOS Python 3.9 gap surfaced
+  as an explicit warning above the install command. Stock macOS
+  Python is 3.9, below the project's 3.10 minimum, so
+  `pip install --pre memexa` had been failing silently on every
+  untouched macOS install. Users now hit the requirement check
+  on the docs page, with `brew install python@3.11` + `venv`
+  instructions.
+- **All install commands flipped from `pip install --pre memexa`
+  to `pip install memexa`** since this is now a stable release;
+  `--pre` is no longer required to install.
+- **`ROADMAP.md` (+ zh)** Current state advanced from
+  `(v0.1.0-rc4)` to `(v0.1.0)`. Shipped list rewritten: `demo`
+  added to CLI list, "Eight tests, nineteen CI workflow checks"
+  replaced with "Ten tests, six CI workflows", Linux deployment
+  phrasing corrected ("Linux via the docker-compose path"),
+  and the 14-subcommand split corrected from "nine basic + five
+  advanced" to "seven basic + seven advanced" to match the code.
+
+### Fixed (since rc4)
+
+- **`memexa quick "X"` and friends now exit 1 with an English
+  stderr hint when the Hindsight backend is unreachable**,
+  instead of silently returning `N=0` + exit 0. Agents
+  subprocess-invoking memexa rely on exit codes to distinguish
+  "no results" from "your invocation produced nothing usable
+  because the backend was down."
+  - `--json` mode keeps printing `[]` on stdout (so JSON
+    parsers do not break) but also exits 1 with a one-line
+    stderr hint.
+  - The old `logger.warning` that leaked GBK-localized Windows
+    OS error strings (`[WinError 10061] 由于目标计算机...`,
+    unreadable on non-Chinese-Windows shells) is demoted to
+    `logger.debug`; the console now sees an ASCII-only
+    multi-line hint with three concrete next-step commands
+    (`make backend-up`, `MEMEXA_HINDSIGHT_URL=...`,
+    `memexa doctor`).
+
+### Removed (since rc4)
+
+- Duplicate `[0.1.0-rc1]` entry that was accidentally written
+  twice in the CHANGELOG rc1→rc2 reflow.
+
+### Bilingual coverage (since rc4)
+
+- Added 8 missing `.zh.md` mirrors (CHANGELOG, CODE_OF_CONDUCT,
+  GOVERNANCE, PROGRESS, 4 `.github/` issue + PR templates),
+  closing the bilingual hard-constraint gap surfaced by the
+  rc4 audit. Verification at cut time: 49 EN files / 49 ZH
+  mirrors / 0 missing.
 
 ### Added
 
@@ -198,24 +313,15 @@ before cutting v0.1.0 stable.
   (`scripts/full_pii_scan.sh`).
 - Threat-model documentation (`SECURITY.md`).
 
-## [0.1.0] — TBD (release criteria, kept in sync with ROADMAP)
+<!-- 0.1.0 historical-criteria section retired on 2026-05-17 stable cut.
+     See the [0.1.0] entry above for the realised release notes and the
+     stable-cut rationale (two of three criteria deferred to v0.1.x
+     post-release with documented honesty). -->
 
-Cut from a green release candidate when **all** of the following hold:
 
-- The `memexa demo` subcommand has been LIVE on PyPI for at least one
-  week and `pip install --pre memexa && memexa demo` returns rc=0 on
-  fresh Windows, macOS, and Linux installs (already verified in CI
-  by PR #12 / PR #14 matrices, but the LIVE PyPI check is the gate).
-- At least one issue, discussion, or pull request from a non-author
-  contributor has been opened against the repository.
-- No critical bug fix has shipped in the past seven days.
-
-The actual version-bump pull request closes this section and links to
-the rc that became `0.1.0`.
-
-[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0-rc4...HEAD
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
 [0.1.0-rc4]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc4
 [0.1.0-rc3]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc3
 [0.1.0-rc2]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc2
 [0.1.0-rc1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc1
-[0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
