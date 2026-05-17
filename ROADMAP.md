@@ -23,21 +23,29 @@ For the per-capability comparison against neighbouring projects
 (OpenHuman, MemPalace, ReMe) and the five user scenarios memexa is
 designed for, see [docs/why.md](docs/why.md).
 
-## Current state (v0.1.0-rc2 on PyPI, 2026-05-16)
+## Current state (v0.1.0-rc4 on PyPI, 2026-05-17)
 
 Shipped:
 
-- CLI: `init` / `version` / `config` / `doctor` / `query`.
-- Fourteen query subcommands (nine basic + five advanced).
+- CLI: `init` / `version` / `config` / `doctor` / `demo` / `query`.
+- Fourteen query subcommands (seven basic + seven advanced) with
+  `--json` mode accepted both at the top level (`memexa --json query
+  quick "X"`) and at the subcommand level (`memexa quick "X" --json`).
+- `memexa demo`: thirty-second onboarding on the bundled synthetic
+  dataset (no Docker, no LLM key, no configuration).
 - Six ingestion sources: WeChat, QQ, email, browser, Claude Code, audio.
 - Two-LLM gate-extract pipeline with DeepSeek arbiter quorum.
 - PostgreSQL + pgvector backend (Hindsight FastAPI in docker compose).
 - Live dashboard on port 8765 with seven panels.
-- Deployment guides for macOS, Windows, and Linux + Docker.
-- Eight tests, nineteen CI workflow checks, CodeQL clean.
+- Deployment guides for macOS and Windows; Linux via the
+  docker-compose path.
+- Ten tests across unit + integration, six CI workflows
+  (lint / test / codeql / security / release-drafter / dependabot),
+  CodeQL clean.
 - Dependabot security alerts and automated security fixes enabled.
 - Fresh-clone smoke test passes on Win + macOS + Linux ×
-  Python 3.10 / 3.11 / 3.12.
+  Python 3.10 / 3.11 / 3.12 (CI matrix; macOS-py3.10 cell intentionally
+  excluded due to a transitive wheel gap, see ci.yml).
 
 Not yet shipped:
 
