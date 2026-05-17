@@ -245,12 +245,23 @@ def init_email_wizard(args: argparse.Namespace) -> int:
     _email_domain = email_addr.split("@", 1)[-1].lower() if "@" in email_addr else ""
     _is_ustc = _email_domain == "mail.ustc.edu.cn"
     _is_exmail_host = host.lower().endswith(".exmail.qq.com") or host.lower() == "imap.exmail.qq.com"
-    if _is_ustc or _is_exmail_host:
-        print("NOTE: USTC mail and other Tencent Exmail accounts use")
-        print("      imap.exmail.qq.com (NOT mail.ustc.edu.cn). The IMAP")
-        print("      credential is a 16-char client auth code generated in")
-        print("      the Exmail web console -- NOT your web login password.")
-        print("      EAS / ActiveSync rejects the same code; only IMAP works.")
+    if _is_ustc:
+        # v0.1.1 (§C.-42b LIVE): USTC's Tencent-Exmail reverse-proxy on
+        # imap.exmail.qq.com rate-limits / locks new logins. The
+        # mail.ustc.edu.cn host itself terminates IMAP TLS and accepts
+        # the SAME 16-char auth code -- LIVE-verified 2026-05-17 on a
+        # USTC account that imap.exmail.qq.com rejected.
+        print("NOTE: USTC mail uses mail.ustc.edu.cn:993 directly (NOT")
+        print("      imap.exmail.qq.com -- that host rate-limits / locks).")
+        print("      The IMAP credential is a 16-char auth code generated")
+        print("      in mail.ustc.edu.cn web UI (Settings -> Client -> IMAP).")
+        print("      It is NOT your web login password.")
+        print()
+    elif _is_exmail_host:
+        print("NOTE: Generic Tencent Exmail (non-USTC) uses imap.exmail.qq.com.")
+        print("      Credential is a 16-char auth code from the Exmail web")
+        print("      console (NOT web login password). EAS/ActiveSync rejects")
+        print("      the same code; only IMAP works.")
         print()
     return 0
 
@@ -938,6 +949,68 @@ def _run_streaming_post(cards_dir: Path) -> int:
         sys.argv = old_argv
 
 
+_WECHAT_TYPE_PLACEHOLDER = {
+    1: None,         # text -- use StrContent as-is
+    3: "[图片]",      # image
+    34: "[语音]",      # voice
+    42: "[名片]",      # contact card
+    43: "[视频]",      # video
+    47: "[表情]",      # animated sticker
+    48: "[位置]",      # location share
+    49: None,         # appmsg/share -- try XML title extraction below
+    50: "[语音通话]",   # voice/video call
+    62: "[小视频]",    # short video
+    10000: None,     # system message -- use StrContent as-is ("X 撤回了...")
+}
+
+
+def _extract_appmsg_title(str_content: str) -> Optional[str]:
+    """Best-effort extract <title> from appmsg XML. Returns None if no title."""
+    if not str_content or "<msg" not in str_content:
+        return None
+    import re as _re
+    m = _re.search(r"<title>([^<]+)</title>", str_content)
+    if m:
+        return m.group(1).strip()
+    return None
+
+
+def _wechatmsg_content(m: Dict[str, Any]) -> str:
+    """Resolve user-visible content from a raw WeChatMsg-style message.
+
+    Handles WeChat Type codes so non-text messages do not silently drop:
+      Type=1   -> StrContent text (default)
+      Type=3   -> "[图片]"
+      Type=43  -> "[视频]"
+      Type=47  -> "[表情]"
+      Type=49  -> "[分享: <title>]" or raw XML if title can't parse
+      Type=10000 -> StrContent (sysmsg, "X 撤回了一条消息")
+      ...
+    """
+    body = (m.get("content") or m.get("StrContent")
+            or m.get("DisplayContent") or "")
+    msg_type = m.get("Type")
+    try:
+        msg_type = int(msg_type) if msg_type is not None else None
+    except (TypeError, ValueError):
+        msg_type = None
+
+    if msg_type is None or msg_type == 1:
+        return str(body) if body else ""
+
+    placeholder = _WECHAT_TYPE_PLACEHOLDER.get(msg_type)
+    if placeholder:
+        # Pure non-text: emit placeholder so the message survives extraction
+        return placeholder
+    if msg_type == 49:
+        title = _extract_appmsg_title(body)
+        return f"[分享: {title}]" if title else (str(body) if body else "[分享]")
+    if msg_type == 10000:
+        return str(body) if body else "[系统消息]"
+    # Unknown Type: fall back to whatever StrContent says, else generic tag
+    return str(body) if body else f"[消息类型 {msg_type}]"
+
+
 def _build_wechat_prompt_from_messages(
     batch_id: str, chat_room: str, messages: list,
 ) -> Dict[str, Any]:
@@ -948,23 +1021,25 @@ def _build_wechat_prompt_from_messages(
     from WeChatMsg JSON):
         [{room, sender, send_time, content}, ...]
         OR with field aliases:
-        [{chat_room, sender_name|sender|NickName, ts|send_time|CreateTime, content|StrContent}, ...]
+        [{chat_room, sender_name|sender|NickName, ts|send_time|CreateTime, content|StrContent, Type, IsSender}, ...]
 
     v0.1.1: writes a minimal V5 envelope sufficient for l0_worker_api
-    to extract cards. Full WeChat features (group meta, reply chains,
-    image stickers) deferred to v0.3 official adapter.
+    to extract cards. v0.1.1 (post §C.-42b) adds basic Type-code awareness
+    so non-text messages (image/sticker/video/appmsg) survive as
+    placeholder strings instead of being silently dropped, and IsSender=1
+    sets is_self_message hint for §SELF_NOTE_MODE.
     """
     import hashlib
     msgs = []
     senders = set()
     timestamps = []
+    n_self = 0
     for m in messages:
         sender = (m.get("sender") or m.get("sender_name") or
                   m.get("NickName") or m.get("Remark") or "unknown")
         ts_str = (m.get("send_time") or m.get("ts") or m.get("CreateTime")
                   or "")
-        content = (m.get("content") or m.get("StrContent")
-                   or m.get("DisplayContent") or "")
+        content = _wechatmsg_content(m)
         if not content:
             continue
         if isinstance(ts_str, (int, float)):
@@ -982,12 +1057,19 @@ def _build_wechat_prompt_from_messages(
         except Exception:
             pass
         wxid_hash = hashlib.sha1(sender.encode("utf-8")).hexdigest()[:12]
-        msgs.append({
+        # v0.1.1 (§C.-42b): pass IsSender hint so downstream extraction can
+        # apply §SELF_NOTE_MODE (CEO's own messages anchor commitments).
+        is_self = bool(m.get("IsSender")) if "IsSender" in m else False
+        msg_entry = {
             "ts": ts_iso,
             "wxid_hash": wxid_hash,
             "sender": sender,
             "content": str(content),
-        })
+        }
+        if is_self:
+            msg_entry["is_self_message"] = True
+            n_self += 1
+        msgs.append(msg_entry)
         senders.add(sender)
 
     if timestamps:
@@ -1000,6 +1082,7 @@ def _build_wechat_prompt_from_messages(
         win_start = win_end = ""
 
     room_hash = hashlib.sha1(chat_room.encode("utf-8")).hexdigest()[:12]
+    n_other = len(msgs) - n_self
     return {
         "batch_id": batch_id,
         "chat_room": chat_room,
@@ -1017,6 +1100,11 @@ def _build_wechat_prompt_from_messages(
         "n_msgs": len(msgs),
         "n_unique_senders": len(senders),
         "is_group_chat": len(senders) > 2,
+        # §SELF_NOTE_MODE triggers for solo-self / 1-on-1 self chats
+        "n_self_msgs": n_self,
+        "n_other_msgs": n_other,
+        "is_solo_self": (not (len(senders) > 2)) and n_self > 0 and n_other == 0,
+        "is_self_chat": (not (len(senders) > 2)) and n_self > 0,
     }
 
 

@@ -261,11 +261,26 @@ def _normalize_llm_card(card_dict: dict) -> dict:
     # "time_expression") before passing to TimeResolution(**t) which is strict.
     _TR_ALLOWED = {"surface_form", "resolved_start", "resolved_end",
                    "anchor_message_ts", "confidence", "resolution_method"}
-    when_start_default = card_dict.get("when_start", "2026-01-01T00:00:00+08:00")
 
     import re as _re
     _DATE_ONLY = _re.compile(r"^\d{4}-\d{2}-\d{2}$")
     _TIME_ONLY = _re.compile(r"^\d{2}:\d{2}(:\d{2})?$")
+
+    # v0.1.1 (§C.-42b LIVE QQ email): when LLM emits ``when_start="2026-05-13"``
+    # (bare date), capturing it before the bottom-of-function ISO normalize
+    # propagated the bare date into ``anchor_message_ts`` fallbacks, which
+    # then violated TimeResolution.anchor_message_ts ISO check. Normalize
+    # the captured default up-front.
+    _raw_when_start = card_dict.get("when_start") or "2026-01-01T00:00:00+08:00"
+    if isinstance(_raw_when_start, str) and _DATE_ONLY.match(_raw_when_start):
+        when_start_default = f"{_raw_when_start}T00:00:00+08:00"
+    elif (isinstance(_raw_when_start, str) and "T" in _raw_when_start
+          and "+" not in _raw_when_start and "Z" not in _raw_when_start):
+        when_start_default = f"{_raw_when_start}+08:00"
+    elif isinstance(_raw_when_start, str):
+        when_start_default = _raw_when_start
+    else:
+        when_start_default = "2026-01-01T00:00:00+08:00"
 
     def _normalize_iso(v):
         """Coerce LLM date/time strings to full ISO 8601 with T+tz, or None.

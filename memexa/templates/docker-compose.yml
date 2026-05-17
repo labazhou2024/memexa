@@ -61,21 +61,25 @@ services:
       HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-${MEMEXA_REMOTE_LLM_GATE_MODEL:-${MEMEXA_REMOTE_LLM_EXTRACT_MODEL:-gpt-4o-mini}}}
       HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:-${MEMEXA_REMOTE_LLM_API_KEY:-}}
       HINDSIGHT_API_LLM_BASE_URL: ${HINDSIGHT_API_LLM_BASE_URL:-${MEMEXA_REMOTE_LLM_BASE_URL:-}}
-      # 2026-05-17 v0.1.1 (§C.-42 LIVE Mac OrbStack finding): Hindsight
-      # downloads BGE-M3 from HuggingFace on first run. China users
-      # without a working container-side proxy hit "Cannot send a
-      # request, as the client has been closed" inside huggingface_hub.
-      # Three escape hatches:
-      #   (a) HF_ENDPOINT=https://hf-mirror.com   ← official PRC mirror
-      #   (b) HF_HOME=/root/.cache/huggingface   ← persist between runs
-      #   (c) HTTPS_PROXY=http://host.orb.internal:7890   ← Mac+mihomo
-      # All three are env-passthrough so users who don't need them get
-      # an empty string (huggingface_hub defaults to huggingface.co).
-      HF_ENDPOINT: ${HF_ENDPOINT:-}
-      HF_HOME: ${HF_HOME:-}
-      HTTP_PROXY: ${HTTP_PROXY:-}
-      HTTPS_PROXY: ${HTTPS_PROXY:-}
-      NO_PROXY: ${NO_PROXY:-postgres,127.0.0.1,localhost,host.docker.internal,host.orb.internal}
+      # 2026-05-17 v0.1.1 (§C.-42b LIVE Win 11 finding): Hindsight reads
+      # HF_ENDPOINT / HTTP_PROXY etc with `os.environ.get`, which treats
+      # *empty string* as a real value and tries to use it as a URL ->
+      # `httpx.UnsupportedProtocol: Request URL is missing an 'http://'
+      # or 'https://' protocol`, container exits before /health binds.
+      #
+      # Fix: load the values via `env_file` instead of substituting
+      # them into `environment:`. env_file is a pass-through: vars
+      # absent from the file are absent in the container env (so
+      # huggingface_hub falls back to its built-in default
+      # https://huggingface.co), vars present in the file are passed
+      # through verbatim. Users opt in by adding to ~/.memexa/.env:
+      #   HF_ENDPOINT=https://hf-mirror.com
+      #   HF_HOME=/root/.cache/huggingface
+      #   HTTP_PROXY=http://host.docker.internal:7890
+      #   HTTPS_PROXY=http://host.docker.internal:7890
+      #   NO_PROXY=postgres,127.0.0.1,localhost
+    env_file:
+      - .env
     ports:
       - "8888:8888"
     healthcheck:
