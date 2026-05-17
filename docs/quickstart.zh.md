@@ -26,26 +26,35 @@ pip install --pre memexa
 memexa demo
 ```
 
+> **macOS 用户**: 系统自带 Python 是 3.9, 低于 3.10 最低要求。先装
+> Python 3.11: `brew install python@3.11` (Homebrew) 或从 python.org
+> 下载安装包。然后在 `python3.11 -m venv` 新建的 venv 里跑上面两条
+> 命令, `pip install --pre memexa` 才能找到兼容 wheel。
+>
+> **Windows 用户**: `py` launcher 自带 3.10+ 即可。如果
+> `python --version` 报 3.9, 从 Microsoft Store 或 python.org 装
+> Python 3.11 即可。
+
 你应该看到:
 
 ```
 memexa demo  —  thirty-second onboarding
 ────────────────────────────────────────────
 [1/3] Ingesting the bundled synthetic dataset (stub extractor) ...
-      ✓ Ingested 26 cards across 6 sources
-        (wechat=8, qq=4, email=4, browser=4, claude=3, audio=3).
+      ✓ Ingested 26 cards across 6 sources (audio=1, browser_session=10,
+        claude_code=3, email=4, qq=3, wechat=5).
 
 [2/3] Running five sample queries against the in-memory set ...
   ▸ memexa quick 'Alice'
-     [wechat  2024-01-08] Alice 把组会改到周三下午三点
-     [qq      2024-01-05] Alice 推荐 DDIA 第 5 章
-     ...
+     [wechat  2024-01-08] Alice: 组会改到周三下午三点了。 | Bob: @Alice 收到，已记下。 ...
   ▸ memexa arc 'Alice ↔ Bob' ...
   ▸ memexa timeline '2024-01' ...
-  ▸ memexa pending '(commitment cards)' ...
-  ▸ memexa topic 'DDIA' ...
+  ▸ memexa pending '(commitment cards)'
+     (0 cards — synthetic dataset; expected for some samples)
+  ▸ memexa topic 'DDIA'
+     [qq      2024-01-05] Alice: 你上次提的那本书我看完了，还挺好的。 | demo_user: 哪本？《数据密集型应用系统设计》？ | Alice: 对，DDIA 那本。
 
-[3/3] Done. Next steps:
+[3/3] Done.  Next steps:
       • memexa init       — scaffold ~/.memexa/ config
       • memexa doctor     — self-diagnostic against your backend
       • docs/quickstart.zh.md — Tier 1 (5 min) 或 Tier 2 (30 min)
