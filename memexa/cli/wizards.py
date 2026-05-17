@@ -347,25 +347,39 @@ def init_wechat_wizard(args: argparse.Namespace) -> int:
 # Ingest dispatchers
 # -----------------------------------------------------------------------------
 
-def _glue_fetcher_to_builder_email(
-    raw_root: Path, builder_src: Path,
+def _glue_fetcher_to_l0_input_email(
+    raw_root: Path, l0_input_root: Path,
 ) -> int:
-    """Convert per-email fetcher output -> per-batch builder input.
+    """Convert per-email fetcher output -> per-batch L0 worker input.
 
     v0.1.0 had no glue between ``email_history_fetcher`` (writes one
-    JSON per email to ``data/raw_inputs/email/<account>/<date>/<folder>/<uid>.json``)
-    and ``v5_email_batch_builder`` (reads a ``raw.json`` list of emails
-    per batch directory at ``<src>/<date>/<batch_id>/raw.json``). This
-    helper bridges the two layouts so end-to-end ingest works.
+    JSON per email to ``raw_inputs/email/<account>/<date>/<folder>/<uid>.json``)
+    and ``l0_worker_api`` (reads ``<batches_dir>/<date>/<batch_id>/prompt.json``).
+    The intermediate ``v5_email_batch_builder`` assumes a hand-curated
+    src layout that no OSS pipeline ever writes; on a fresh install the
+    chain breaks silently with 'discover 0 batches'.
 
-    Returns the number of batches written.
+    This helper does the whole transform in one shot: read per-email
+    JSONs, regroup per (account, date), call ``_build_prompt`` directly,
+    write the L0-ready ``prompt.json`` + ``meta.json`` into the layout
+    ``l0_worker_api --batches-dir`` expects. Skips ``v5_email_batch_builder``
+    main() entirely.
+
+    Returns the number of L0 batch dirs written (excluding ones already
+    present and non-empty).
     """
     import json
     if not raw_root.exists():
         return 0
-    builder_src.mkdir(parents=True, exist_ok=True)
+    l0_input_root.mkdir(parents=True, exist_ok=True)
+
+    from memexa.ingestion.v5_email_batch_builder import (
+        _build_prompt, load_manifest, _extract_self_emails,
+    )
+    manifest_slice = load_manifest()
+    self_emails = _extract_self_emails(manifest_slice)
+
     n_batches = 0
-    # Group by <account>/<date>; each (account, date) becomes one batch.
     for account_dir in raw_root.iterdir():
         if not account_dir.is_dir():
             continue
@@ -387,11 +401,33 @@ def _glue_fetcher_to_builder_email(
             if not emails:
                 continue
             batch_id = f"{account}_{date_str.replace('-', '')}"
-            batch_dir = builder_src / date_str / batch_id
+            batch_dir = l0_input_root / date_str / batch_id
+            prompt_path = batch_dir / "prompt.json"
+            if prompt_path.exists():
+                # Idempotent: don't overwrite (caller may have already
+                # processed this batch; l0_worker_api skips via .done marker)
+                continue
             batch_dir.mkdir(parents=True, exist_ok=True)
-            raw_out = batch_dir / "raw.json"
-            raw_out.write_text(
-                json.dumps(emails, ensure_ascii=False, indent=2),
+            try:
+                prompt = _build_prompt(
+                    batch_id, emails, self_emails, manifest_slice
+                )
+            except Exception as e:
+                print(f"  [warn] _build_prompt failed for {batch_id}: {e}",
+                      file=sys.stderr)
+                continue
+            prompt_path.write_text(
+                json.dumps(prompt, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
+            # meta.json is referenced by some downstream tools; keep it.
+            meta = {
+                "batch_id": batch_id, "date": date_str, "account": account,
+                "n_msgs": prompt.get("n_msgs", len(emails)),
+                "source_kind": "email",
+            }
+            (batch_dir / "meta.json").write_text(
+                json.dumps(meta, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
             n_batches += 1
@@ -399,27 +435,28 @@ def _glue_fetcher_to_builder_email(
 
 
 def ingest_email(args: argparse.Namespace) -> int:
-    """End-to-end email ingest: fetch IMAP -> build batches -> extract -> POST.
+    """End-to-end email ingest: fetch IMAP -> build prompts -> extract -> POST.
 
-    Chain (v0.1.1; replaces the v0.1.0 broken pipeline):
+    Chain (v0.1.1; collapsed to 4 steps after dropping the
+    unnecessary v5_email_batch_builder middle step, which assumed a
+    src layout no OSS pipeline ever writes):
 
-    1. ``email_history_fetcher`` -- IMAP fetch raw emails to
-       ``data/raw_inputs/email/<account>/<date>/<folder>/<uid>.json``
-    2. ``_glue_fetcher_to_builder_email`` -- regroup per-(account, date)
-       into ``data/raw_email_batches/<date>/<batch_id>/raw.json``
-    3. ``v5_email_batch_builder`` -- transform raw.json -> prompt.json at
-       ``data/l0_v5/input_batches_email/<date>/<batch_id>/prompt.json``
-    4. ``l0_worker_api`` -- LLM gate + extract + arbiter -> V2 cards at
-       ``data/l0_v5/cards_v2_email/<batch_id>.json``
-    5. ``streaming_post_v5`` -- POST cards to Hindsight memory_full_v5
+    1. ``email_history_fetcher``     -- IMAP fetch -> per-email JSON
+       at ``data/raw_inputs/email/<account>/<date>/<folder>/<uid>.json``
+    2. ``_glue_fetcher_to_l0_input_email`` -- regroup + call
+       ``v5_email_batch_builder._build_prompt`` directly -> writes
+       ``data/l0_v5/input_batches_email/<date>/<batch_id>/{prompt,meta}.json``
+    3. ``l0_worker_api``             -- LLM gate + extract + arbiter
+       -> V2 cards at ``data/l0_v5/cards_v2_email/<batch_id>.json``
+    4. ``streaming_post_v5``         -- POST cards to Hindsight
+       memory_full_v5 bank
 
     With backend up + LLM env vars set, this single command takes a
     user from "configured account" to "queryable cards."
     """
     from memexa.extraction.email_history_fetcher import _cli as fetcher_cli
-    from memexa.ingestion import v5_email_batch_builder
 
-    print("[1/5] IMAP fetch...")
+    print("[1/4] IMAP fetch...")
     forwarded = ["email_history_fetcher"]
     if getattr(args, "account", None):
         forwarded.extend(["--account", args.account])
@@ -433,44 +470,29 @@ def ingest_email(args: argparse.Namespace) -> int:
               file=sys.stderr)
         return rc
 
+    # fetcher writes to `<install>/data/raw_inputs/email/...` (relative
+    # to email_history_fetcher.py::_REPO), not to data_root. Read its
+    # _RAW_DIR directly. L0 + post live under data_root for inspectability.
+    from memexa.extraction.email_history_fetcher import _RAW_DIR as raw_root
     data_root = _resolve_data_root()
-    raw_root = data_root / "raw_inputs" / "email"
-    builder_src = data_root / "raw_email_batches"
-    builder_out = data_root / "l0_v5" / "input_batches_email"
+    l0_input = data_root / "l0_v5" / "input_batches_email"
     cards_dir = data_root / "l0_v5" / "cards_v2_email"
 
-    print(f"[2/5] grouping per-(account,date) batches under {builder_src}...")
-    n = _glue_fetcher_to_builder_email(raw_root, builder_src)
-    print(f"[ok] {n} batch(es) regrouped")
+    print(f"[2/4] build prompts -> {l0_input}...")
+    n = _glue_fetcher_to_l0_input_email(raw_root, l0_input)
+    print(f"[ok] {n} new batch prompt(s) written "
+          f"(idempotent; already-built batches skipped)")
     if n == 0:
         print("[info] nothing new to extract; pipeline exits 0")
         return 0
 
-    print(f"[3/5] builder transform -> {builder_out}...")
-    old_argv = sys.argv
-    sys.argv = [
-        "v5_email_batch_builder",
-        "--src", str(builder_src),
-        "--out", str(builder_out),
-        "--skip-existing",
-    ]
-    try:
-        rc = v5_email_batch_builder.main()
-    except SystemExit as e:
-        rc = int(e.code or 0)
-    finally:
-        sys.argv = old_argv
-    if rc != 0:
-        print(f"[fail] builder returned {rc}", file=sys.stderr)
-        return rc
-
-    print(f"[4/5] LLM extract -> {cards_dir}...")
-    rc = _run_l0_extract(builder_out, cards_dir)
+    print(f"[3/4] LLM extract -> {cards_dir}...")
+    rc = _run_l0_extract(l0_input, cards_dir)
     if rc != 0:
         print(f"[fail] l0_worker_api returned {rc}", file=sys.stderr)
         return rc
 
-    print(f"[5/5] POST cards -> Hindsight backend...")
+    print(f"[4/4] POST cards -> Hindsight backend...")
     rc = _run_streaming_post(cards_dir)
     if rc != 0:
         print(f"[fail] streaming_post_v5 returned {rc}", file=sys.stderr)
