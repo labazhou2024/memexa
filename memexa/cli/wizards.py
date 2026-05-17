@@ -627,6 +627,20 @@ def backend_up(args: argparse.Namespace) -> int:
         print(f"[fail] {e}", file=sys.stderr)
         return 1
     print(f"[info] using compose file: {compose_file}")
+    # Hindsight requires LLM key on startup; warn early if missing.
+    env_file = compose_file.parent / ".env"
+    has_llm = (
+        bool(os.environ.get("MEMEXA_REMOTE_LLM_API_KEY"))
+        or bool(os.environ.get("HINDSIGHT_API_LLM_API_KEY"))
+        or (env_file.exists() and "MEMEXA_REMOTE_LLM_API_KEY" in
+            env_file.read_text(encoding="utf-8"))
+    )
+    if not has_llm:
+        print("[warn] no LLM API key found "
+              "(MEMEXA_REMOTE_LLM_API_KEY env var or ~/.memexa/.env). "
+              "Hindsight container will fail to start without it. "
+              "Run `memexa init llm` first if you have not.",
+              file=sys.stderr)
     rc = _run_docker(
         ["compose", "-f", str(compose_file), "up", "-d"],
         cwd=str(compose_file.parent),

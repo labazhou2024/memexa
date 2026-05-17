@@ -1,23 +1,19 @@
-# memexa backend stack — minimal pg + Hindsight only.
+# memexa backend stack -- pg + Hindsight.
 #
 # Started/managed by `memexa backend up/down/status`. Seeded into
-# `~/.memexa/docker-compose.yml` on first run from the packaged
-# template (this file).
+# `~/.memexa/docker-compose.yml` on first run from this packaged
+# template.
 #
-# To customize (e.g. expose different host ports, swap in an existing
-# PostgreSQL instance), copy this file or edit the seeded copy at
-# ~/.memexa/docker-compose.yml.
+# Environment passthrough:
+#   `docker compose` auto-loads ~/.memexa/.env (same directory as the
+#   seeded compose file). Run `memexa init llm` first to write your
+#   MEMEXA_REMOTE_LLM_* values into that .env file; the variables
+#   below pick them up so the Hindsight container can call your LLM.
 #
 # Manual control:
 #   docker compose -f ~/.memexa/docker-compose.yml up -d
 #   docker compose -f ~/.memexa/docker-compose.yml down
 #   docker compose -f ~/.memexa/docker-compose.yml down -v   # also wipes pg-data
-#
-# Note: this file does NOT include the optional `dashboard` UI service,
-# because that one requires a build context (docker/dashboard.Dockerfile)
-# that is not packaged inside the wheel. Run the dashboard manually
-# (`python -m memexa.dashboard.sys_monitor.server`) if you want it; it
-# only needs the same backend that's started here.
 
 services:
   postgres:
@@ -50,6 +46,13 @@ services:
       HINDSIGHT_HOST: 0.0.0.0
       HINDSIGHT_PORT: 8888
       HINDSIGHT_LOG_LEVEL: info
+      # Pass through the user's LLM provider (see `memexa init llm`).
+      # Hindsight reranks / summarises with this; without it the API
+      # container refuses to start.
+      HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-openai}
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-${MEMEXA_REMOTE_LLM_EXTRACT_MODEL:-gpt-4o-mini}}
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:-${MEMEXA_REMOTE_LLM_API_KEY:-}}
+      HINDSIGHT_API_LLM_BASE_URL: ${HINDSIGHT_API_LLM_BASE_URL:-${MEMEXA_REMOTE_LLM_BASE_URL:-}}
     ports:
       - "8888:8888"
     healthcheck:
