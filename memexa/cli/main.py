@@ -73,13 +73,30 @@ def _cmd_version(_args: argparse.Namespace) -> int:
 
 
 def _cmd_init(args: argparse.Namespace) -> int:
-    """Create ``~/.memexa/`` with example config files.
+    """Create ``~/.memexa/`` with example config files, or onboard a source.
 
-    Resolution order matches ``memexa.core._path_resolver``:
-      1. ``--target`` flag
-      2. ``MEMEXA_CONFIG_DIR`` env var
-      3. ``~/.memexa``
+    v0.1.1: ``memexa init <source>`` dispatches to interactive wizards
+    so first-time users do not have to hand-edit ``identity.yaml``:
+      - ``memexa init email``   -> IMAP wizard with 6-provider auto-detect
+      - ``memexa init wechat``  -> WeChatMsg-export onboarding (Win-only)
+      - ``memexa init`` (no arg) -> legacy scaffold (write example yaml files)
     """
+    source = getattr(args, "source", None)
+    if source == "email":
+        from memexa.cli.wizards import init_email_wizard
+        return init_email_wizard(args)
+    if source == "wechat":
+        from memexa.cli.wizards import init_wechat_wizard
+        return init_wechat_wizard(args)
+    if source == "llm":
+        from memexa.cli.wizards import init_llm_wizard
+        return init_llm_wizard(args)
+    if source is not None:
+        print(f"[fail] unknown init source: {source!r}", file=sys.stderr)
+        print( "       valid: email, wechat, llm (or no arg for legacy scaffold)",
+               file=sys.stderr)
+        return 2
+
     target = (
         Path(args.target).expanduser()
         if args.target
@@ -302,6 +319,35 @@ def _cmd_query(args: argparse.Namespace, remainder: List[str]) -> int:
     return memory_query._cli(argv)
 
 
+def _cmd_ingest(args: argparse.Namespace) -> int:
+    """Dispatch ``memexa ingest <source>`` to the per-source wrapper."""
+    source = args.source
+    if source == "email":
+        from memexa.cli.wizards import ingest_email
+        return ingest_email(args)
+    if source == "wechat":
+        from memexa.cli.wizards import ingest_wechat
+        return ingest_wechat(args)
+    print(f"[fail] unknown ingest source: {source!r}", file=sys.stderr)
+    return 2
+
+
+def _cmd_backend(args: argparse.Namespace) -> int:
+    """Dispatch ``memexa backend <up|down|status>``."""
+    action = args.action
+    if action == "up":
+        from memexa.cli.wizards import backend_up
+        return backend_up(args)
+    if action == "down":
+        from memexa.cli.wizards import backend_down
+        return backend_down(args)
+    if action == "status":
+        from memexa.cli.wizards import backend_status
+        return backend_status(args)
+    print(f"[fail] unknown backend action: {action!r}", file=sys.stderr)
+    return 2
+
+
 def _cmd_demo(_args: argparse.Namespace) -> int:
     """30-second onboarding: ingest the bundled synthetic dataset with the
     stub extractor (no LLM key required), then run five example queries
@@ -423,7 +469,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sp_init = sub.add_parser(
         "init",
-        help="scaffold ~/.memexa/ config directory",
+        help="scaffold ~/.memexa/ config (no arg) or onboard a source (email/wechat)",
+    )
+    sp_init.add_argument(
+        "source",
+        nargs="?",
+        default=None,
+        choices=["email", "wechat", "llm"],
+        help="source to onboard (email/wechat) or component to set up (llm); "
+             "omit for legacy yaml scaffold",
     )
     sp_init.add_argument(
         "--target",
@@ -437,6 +491,50 @@ def _build_parser() -> argparse.ArgumentParser:
         help="overwrite existing files",
     )
     sp_init.set_defaults(func=_cmd_init)
+
+    # v0.1.1: top-level `ingest <source>` -- wraps the per-source builders
+    # so users do not have to call `python -m memexa.extraction.<...>` by hand.
+    sp_ingest = sub.add_parser(
+        "ingest",
+        help="ingest a configured source (email/wechat)",
+    )
+    sp_ingest.add_argument(
+        "source",
+        choices=["email", "wechat"],
+        help="which source to ingest",
+    )
+    sp_ingest.add_argument(
+        "--account", default=None,
+        help="(email only) account name from identity.yaml; default: all",
+    )
+    sp_ingest.add_argument(
+        "--since", default=None,
+        help="(email only) ISO date YYYY-MM-DD; default: use account's since_days",
+    )
+    sp_ingest.add_argument(
+        "--max-per-folder", type=int, default=None,
+        help="(email only) cap per IMAP folder, default unlimited",
+    )
+    sp_ingest.add_argument(
+        "--from", dest="from_dir", default=None,
+        help="(wechat only) WeChatMsg export directory; "
+             "default: wechat.export_dir from identity.yaml",
+    )
+    sp_ingest.set_defaults(func=_cmd_ingest)
+
+    # v0.1.1: top-level `backend` -- docker-compose wrapper for the
+    # bundled pg+Hindsight stack. Users get a one-liner instead of
+    # having to memorise the compose file path.
+    sp_backend = sub.add_parser(
+        "backend",
+        help="bring up / tear down / check the Docker backend (pg + Hindsight)",
+    )
+    sp_backend.add_argument(
+        "action",
+        choices=["up", "down", "status"],
+        help="up = start; down = stop; status = container state + healthz",
+    )
+    sp_backend.set_defaults(func=_cmd_backend)
 
     sp_config = sub.add_parser("config", help="print resolved configuration")
     sp_config.set_defaults(func=_cmd_config)

@@ -7,7 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(Nothing yet — `0.1.0` was the latest cut.)
+(Nothing yet — `0.1.1` was the latest cut.)
+
+## [0.1.1] — 2026-05-17
+
+Onboarding rewrite + critical fix for the email path that v0.1.0
+unintentionally shipped broken.
+
+### Critical Fix
+
+- **Email IMAP path was broken in v0.1.0.**
+  `memexa/extraction/email_history_fetcher.py` was hard-coded to
+  two maintainer-specific account names (`qq_email`, `ustc_email`)
+  and tried to import `memexa.qq_email` / `memexa.ustc_email` --
+  modules that **do not exist** in the OSS package. Any user
+  following `docs/integrations/email.md` and trying to ingest email
+  would hit `ModuleNotFoundError`. The rc5 audit before v0.1.0
+  missed this because it only exercised `memexa demo` and the query
+  layer, never the ingestion path. PyPI download count for v0.1.0
+  was effectively zero at the time this was caught, so no users
+  were affected, but v0.1.1 fixes it properly. Not yanking v0.1.0
+  -- transparent disclosure here and in `ROADMAP.md` closes the
+  gap.
+- `email_history_fetcher` rewritten as a generic IMAP client:
+  reads `email.accounts.<name>` from `~/.memexa/identity.yaml`,
+  supports multiple accounts, friendly error if password env var
+  is unset or identity.yaml is missing.
+
+### Added
+
+- **`memexa init email`**: interactive IMAP onboarding wizard.
+  Auto-detects 12+ providers from the email domain
+  (gmail / googlemail / outlook / hotmail / live / icloud / qq /
+  foxmail / 163 / 126 / yeah / sina / mail.ustc.edu.cn). Asks for
+  account label, password env-var name, folders, and since-days,
+  then writes the account into identity.yaml. Prints next-step
+  commands for both bash and PowerShell.
+- **`memexa init wechat`**: WeChat-export onboarding wizard
+  (Windows only). Detects WeChatMsg in four common install
+  locations; if absent, prints the release URL and the export
+  directory it expects. Writes `wechat.export_dir` into
+  identity.yaml. Does **not** auto-download the EXE (security: the
+  user has to grab the third-party binary themselves).
+- **`memexa ingest email`**: top-level wrapper around
+  `email_history_fetcher` so users do not need to type
+  `python -m memexa.extraction.email_history_fetcher`. Forwards
+  `--account`, `--since`, and `--max-per-folder`. Iterates all
+  configured accounts when `--account` is omitted.
+- **`memexa ingest wechat`**: top-level wrapper that reads a
+  WeChatMsg export directory (from `--from` flag or
+  `wechat.export_dir` in identity.yaml) and drives
+  `v5_wechat_batch_builder`.
+- `memexa/cli/wizards.py` — new module hosting wizard +
+  ingest-dispatch logic. Future sources (飞书, 钉钉, local docs)
+  will land here.
+
+### Changed
+
+- `docs/quickstart.md` (+ zh) Tier 1 rewritten around the new
+  `memexa init <source>` + `memexa ingest <source>` flow. Four
+  sources documented inline: Claude Code (5 min, no third-party),
+  Email (10 min, IMAP), WeChat (Windows only, ~30-60 min),
+  QQ (in-flight, v0.2). Each section gives the exact commands a
+  user types, plus where to find the credential / export tool.
+- `docs/quickstart.md` (+ zh) Tier 3 status table updated:
+  Email row ✅ now cites `memexa init email`; WeChat row ⚠→✅
+  reflects the new wizard wrapping WeChatMsg.
+- `ROADMAP.md` (+ zh) Known-limitations section updated: v0.1.0
+  email-broken item moved to a new "Closed in v0.1.1" subsection,
+  WeChat limitation reworded to note the wizard exists but the
+  upstream-exporter constraint remains.
+
+### CLI surface (new public commands)
+
+```
+memexa init email          # interactive IMAP wizard
+memexa init wechat         # WeChatMsg-export wizard
+memexa ingest email        # fetch IMAP for all configured accounts
+memexa ingest wechat       # read WeChatMsg export dir → builder
+```
 
 ## [0.1.0] — 2026-05-17
 
@@ -319,7 +397,8 @@ before cutting v0.1.0 stable.
      post-release with documented honesty). -->
 
 
-[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.1
 [0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
 [0.1.0-rc4]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc4
 [0.1.0-rc3]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc3

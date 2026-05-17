@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "memexa"
-version = "0.1.0"
+version = "0.1.1"
 description = "镜我 · Your personal Pensieve. Turn scattered Chinese data into ready-to-use deliverables."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -112,6 +112,10 @@ exclude = ["tests*", "examples.community_templates*", ".audit*"]
 # Ship the bundled synthetic dataset's JSON / JSONL data files inside
 # the wheel so `memexa demo` works without a source checkout.
 "examples.demo_dataset" = ["*.json", "*.jsonl", "*.md"]
+# v0.1.1: ship the docker-compose template inside the wheel so
+# `memexa backend up` can seed ~/.memexa/docker-compose.yml from
+# packaged resources (no source checkout required).
+"memexa.templates" = ["docker-compose.yml"]
 
 [tool.ruff]
 line-length = 100

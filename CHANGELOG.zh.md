@@ -9,7 +9,72 @@
 
 ## [Unreleased]
 
-(暂无 — `0.1.0` 是最新一切。)
+(暂无 — `0.1.1` 是最新一切。)
+
+## [0.1.1] — 2026-05-17
+
+Onboarding 重写 + 修复 v0.1.0 意外 ship 的 email broken path。
+
+### 关键修复
+
+- **邮箱 IMAP 路径 v0.1.0 是 broken**。
+  `memexa/extraction/email_history_fetcher.py` hard-coded 到 2 个
+  maintainer-specific account 名 (`qq_email`, `ustc_email`),
+  调用时 import `memexa.qq_email` / `memexa.ustc_email` -- 这 2
+  个 module **OSS 包里不存在**。用户跟着
+  `docs/integrations/email.md` 走到 ingest email 这一步必撞
+  `ModuleNotFoundError`。v0.1.0 切 stable 前的 rc5 audit 漏了这条
+  (只跑 `memexa demo` + 查询层, 没跑 ingestion)。被发现时 v0.1.0
+  PyPI 下载量基本为 0, 无用户受影响。v0.1.1 真修。不 yank v0.1.0,
+  这里 + ROADMAP 透明 disclose。
+- `email_history_fetcher` 重写为 generic IMAP client: 读
+  `~/.memexa/identity.yaml` 的 `email.accounts.<name>` 块,
+  支持多账号, env var 未设 / identity.yaml 缺失时给友好错误。
+
+### Added (新增)
+
+- **`memexa init email`**: 交互式 IMAP 引导 wizard。从邮箱后缀
+  自动识别 12+ provider (gmail / googlemail / outlook / hotmail /
+  live / icloud / qq / foxmail / 163 / 126 / yeah / sina /
+  mail.ustc.edu.cn)。依次问账号 label, 密码 env-var 名, folders,
+  抓多少天, 写到 identity.yaml。打印 bash + PowerShell 双 shell
+  下一步命令。
+- **`memexa init wechat`**: 微信导出引导 wizard (仅 Windows)。
+  检测 WeChatMsg 在 4 个常见安装路径; 没装就打印 release URL +
+  预期 export 目录。写 `wechat.export_dir` 到 identity.yaml。
+  **不** auto-download EXE (安全考虑: 用户自己拿第三方二进制)。
+- **`memexa ingest email`**: 顶级 wrapper 封装
+  `email_history_fetcher`, 用户不用打
+  `python -m memexa.extraction.email_history_fetcher`。
+  forward `--account`, `--since`, `--max-per-folder`。`--account`
+  省略时跑所有配置账号。
+- **`memexa ingest wechat`**: 顶级 wrapper 读 WeChatMsg export 目录
+  (`--from` flag 或 identity.yaml 的 `wechat.export_dir`), 驱动
+  `v5_wechat_batch_builder`。
+- `memexa/cli/wizards.py` -- 新 module 装 wizard + ingest dispatch
+  逻辑。未来 source (飞书, 钉钉, 本地文档) 会进这里。
+
+### Changed (变更)
+
+- `docs/quickstart.zh.md` Tier 1 围绕新
+  `memexa init <source>` + `memexa ingest <source>` 流程重写。4
+  source 内联文档化: Claude Code (5 min, 无第三方), 邮箱 (10 min,
+  IMAP), 微信 (仅 Windows, ~30-60 min), QQ (调试中, v0.2)。每节
+  给出用户该打哪些命令 + 凭据 / export 工具去哪找。
+- `docs/quickstart.zh.md` Tier 3 状态表更新: 邮件行 ✅ 引用
+  `memexa init email`; 微信行 ⚠→✅ 反映新 wizard wrap WeChatMsg。
+- `ROADMAP.zh.md` Known limitations 段更新: v0.1.0 邮箱 broken 项
+  移到新 "v0.1.1 闭合" 子节, 微信 limitation 改写为 wizard 存在
+  但上游 exporter 约束仍在。
+
+### 新公开 CLI
+
+```
+memexa init email          # 交互式 IMAP wizard
+memexa init wechat         # WeChatMsg 导出 wizard
+memexa ingest email        # 抓 IMAP for all configured accounts
+memexa ingest wechat       # 读 WeChatMsg export -> builder
+```
 
 ## [0.1.0] — 2026-05-17
 
@@ -262,7 +327,8 @@ rc1 之上的安装 bug 修复。
      个推迟到 v0.1.x post-release 文档化诚实)。 -->
 
 
-[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/labazhou2024/memexa/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.1
 [0.1.0]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0
 [0.1.0-rc4]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc4
 [0.1.0-rc3]: https://github.com/labazhou2024/memexa/releases/tag/v0.1.0-rc3
