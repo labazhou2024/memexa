@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
@@ -346,6 +347,14 @@ def _exclude_invalidated(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+# 2026-05-17 rc5: surface backend-unreachable failures to the CLI layer
+# so `memexa quick "X"` can exit non-zero instead of silently returning
+# N=0. quick() / reflect() / ... cannot return an error field without
+# breaking their `List[Dict]` / `str` return contracts; instead the CLI
+# checks this flag after the call and emits an English stderr hint.
+_LAST_RECALL_ERROR: Optional[str] = None
+
+
 def _recall_raw(
     query: str,
     *,
@@ -363,7 +372,13 @@ def _recall_raw(
       3. Both fail → empty result + warn
 
     Used by quick/reflect/timeline/person/project/pending internally.
+
+    rc5 (2026-05-17): when every route fails, sets module-level
+    ``_LAST_RECALL_ERROR`` so the CLI layer can exit 1 and print an
+    English hint to stderr (replacing the previous silent N=0 + exit 0).
     """
+    global _LAST_RECALL_ERROR
+    _LAST_RECALL_ERROR = None
     import os as _os
     bank_id = bank or DEFAULT_BANK
     # 2026-05-08: legacy `memory_full` cards have NO kind:event/schema tag
@@ -418,6 +433,7 @@ def _recall_raw(
                                  "body": (r.text or "")[:200]})
                     logger.warning("memory_query recall %s 4xx: %s %s",
                                    label, r.status_code, (r.text or "")[:120])
+                    _LAST_RECALL_ERROR = last_err  # rc5: surface to CLI
                     return {"results": [], "error": last_err}
                 r.raise_for_status()
                 result = r.json()
@@ -427,14 +443,21 @@ def _recall_raw(
                     logger.warning("recall served by fallback %s", url)
                 return result
         except Exception as e:
-            last_err = f"{label}={url}: {str(e)[:120]}"
+            # rc5: keep the structured error in last_err for the CLI
+            # layer to surface; demote the noisy logger.warning to
+            # logger.debug so the user-facing console only sees the
+            # clean English hint (the previous warning could leak
+            # localized OS error strings, e.g. Win11 GBK garbage).
+            last_err = f"{label}={url}: {type(e).__name__}"
             _emit_trace("memory_query_recall_fail",
                         {"query": query[:80], "route": label,
                          "url": url, "error": str(e)[:200]})
-            logger.warning("memory_query recall %s fail: %s", label, e)
+            logger.debug("memory_query recall %s fail: %r", label, e)
             continue
 
-    return {"results": [], "error": last_err or "all routes failed"}
+    # rc5: surface to CLI for non-zero exit + English hint
+    _LAST_RECALL_ERROR = last_err or "all routes failed"
+    return {"results": [], "error": _LAST_RECALL_ERROR}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -1526,11 +1549,19 @@ def _cli(argv: List[str]) -> int:
     # Cursor, Cline) parse memexa output via json.loads() instead of
     # text. Subprocess CLI is the current first-class agent path;
     # native MCP server lands in v0.5.
+    #
+    # rc5 (2026-05-16): --json now lives on a common parent parser so it
+    # is accepted both before AND after the subcommand. Both work:
+    #   memexa --json query quick "X"     (top-level)
+    #   memexa quick "X" --json           (subcmd-level, matches README)
     p.add_argument("--json", action="store_true",
                    help="emit raw result as JSON array/object for agent parsing")
+    _common = argparse.ArgumentParser(add_help=False)
+    _common.add_argument("--json", action="store_true",
+                         help="emit raw result as JSON array/object for agent parsing")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    pq = sub.add_parser("quick")
+    pq = sub.add_parser("quick", parents=[_common])
     pq.add_argument("query")
     pq.add_argument("--source")
     pq.add_argument("--types", nargs="*")
@@ -1544,26 +1575,26 @@ def _cli(argv: List[str]) -> int:
     pq.add_argument("--raw-max", type=int, default=5,
                     help="--show-raw 时最多 attach 几张 cards 的原文 (默认 5)")
 
-    pr = sub.add_parser("reflect")
+    pr = sub.add_parser("reflect", parents=[_common])
     pr.add_argument("query")
     pr.add_argument("--budget", default="mid")
     pr.add_argument("--no-articles", action="store_true")
 
-    pt = sub.add_parser("timeline")
+    pt = sub.add_parser("timeline", parents=[_common])
     pt.add_argument("--start", required=True)
     pt.add_argument("--end", required=True)
     pt.add_argument("--room")
     pt.add_argument("--source")
 
-    pp = sub.add_parser("person")
+    pp = sub.add_parser("person", parents=[_common])
     pp.add_argument("name")
 
-    ppr = sub.add_parser("project")
+    ppr = sub.add_parser("project", parents=[_common])
     ppr.add_argument("topic")
 
-    psu = sub.add_parser("pending")
+    psu = sub.add_parser("pending", parents=[_common])
 
-    pss = sub.add_parser("session-context")
+    pss = sub.add_parser("session-context", parents=[_common])
 
     # 2026-05-08: 'topic' subcommand — multi-variant fan-out for "tell me
     # about X" questions. Empirically beats single-variant quick() by ~20×
@@ -1571,6 +1602,7 @@ def _cli(argv: List[str]) -> int:
     # vs 1 from quick).
     pt2 = sub.add_parser(
         "topic",
+        parents=[_common],
         help="topic-style multi-variant fan-out (replaces ad-hoc N-query scripts)",
     )
     pt2.add_argument("topic", help="主题关键词 (e.g. 'Mac Studio' / 'PRL 投稿')")
@@ -1592,6 +1624,7 @@ def _cli(argv: List[str]) -> int:
     # "tell me how X evolved over time".
     pa = sub.add_parser(
         "arc",
+        parents=[_common],
         help="relationship/topic chronological arc (multi-query union)",
     )
     pa.add_argument("entity", help="canonical name or surface form (e.g. Bob)")
@@ -1606,6 +1639,7 @@ def _cli(argv: List[str]) -> int:
     # 2026-05-13 product-grade: advanced query layer
     ptypes = sub.add_parser(
         "types",
+        parents=[_common],
         help="filter by types_csv (commitment/question/announcement/decision/state)",
     )
     ptypes.add_argument("--filter", required=True, nargs="+",
@@ -1620,6 +1654,7 @@ def _cli(argv: List[str]) -> int:
 
     pgw = sub.add_parser(
         "graph-walk",
+        parents=[_common],
         help="multi-hop 关系网络 (X → 关联人/物/事 → 再关联)",
     )
     pgw.add_argument("entity")
@@ -1629,6 +1664,7 @@ def _cli(argv: List[str]) -> int:
 
     psum = sub.add_parser(
         "summary",
+        parents=[_common],
         help="LLM 综合时段总结 (本周做了什么 / 上月学了什么)",
     )
     psum.add_argument("--window-days", type=int, default=7)
@@ -1640,6 +1676,7 @@ def _cli(argv: List[str]) -> int:
 
     ptr = sub.add_parser(
         "trends",
+        parents=[_common],
         help="按 sender/source/room/types 聚合统计 (本月谁找我最多)",
     )
     ptr.add_argument("--by", default="source",
@@ -1653,6 +1690,7 @@ def _cli(argv: List[str]) -> int:
 
     pcs = sub.add_parser(
         "cross-source",
+        parents=[_common],
         help="同一 query 在 6 source 的覆盖度 (X 是真做还是只说)",
     )
     pcs.add_argument("query")
@@ -1662,6 +1700,12 @@ def _cli(argv: List[str]) -> int:
                       help="子集 (default all 6)")
 
     args = p.parse_args(argv[1:])
+    # rc5: argparse parent-vs-subparser conflict — subparser
+    # parents=[_common] resets `args.json` to its default (False) even
+    # when `--json` appeared BEFORE the subcommand. Use the raw argv as
+    # ground truth so all three positions work:
+    #   `--json pending` / `pending --json` / `query pending --json`
+    json_mode = "--json" in argv[1:]
     _t_start = time.time()
     _n_results = 0
     _ok = True
@@ -1670,7 +1714,7 @@ def _cli(argv: List[str]) -> int:
         # 2026-05-16 v0.1.x: --json mode short-circuits text rendering.
         # Same call surface, raw return value as JSON to stdout. Agents
         # invoking memexa via subprocess CLI should pass --json.
-        if args.json:
+        if json_mode:
             if args.cmd == "quick":
                 _res = quick(args.query, source=args.source, types=args.types,
                              tier_in=args.tier, salience_min=args.salience,
@@ -1739,6 +1783,16 @@ def _cli(argv: List[str]) -> int:
                     or (1 if _res.get("text") else 0)
                 )
             print(json.dumps(_res, ensure_ascii=False, default=str))
+            # rc5: --json must also exit non-zero on backend
+            # unreachable so agent subprocess callers can distinguish
+            # "empty result" from "your invocation produced nothing
+            # usable because the backend was down."
+            if _LAST_RECALL_ERROR is not None:
+                sys.stderr.write(
+                    "[memexa] backend unreachable: "
+                    f"{_LAST_RECALL_ERROR} (run `memexa doctor`)\n")
+                sys.stderr.flush()
+                return 1
             return 0
         # Below: original text-rendering path, unchanged when --json
         # is not set.
@@ -1990,6 +2044,29 @@ def _cli(argv: List[str]) -> int:
                         except Exception:
                             pass
                     print(f"      [{ws}] {txt}")
+        # rc5 (2026-05-17): surface backend-unreachable failures as
+        # non-zero exit + English stderr hint, replacing the previous
+        # silent N=0 + exit 0 behavior. Agents subprocess-invoking
+        # memexa rely on exit codes to distinguish "no results" from
+        # "backend is down — your invocation produced nothing usable".
+        if _LAST_RECALL_ERROR is not None:
+            primary_url = os.environ.get(
+                "MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
+            # ASCII-only message: some Windows consoles fall back to
+            # GBK and would render em-dash/arrow as garbage. Hint must
+            # be readable on every shell.
+            sys.stderr.write(
+                "\n[memexa] backend unreachable: "
+                f"{_LAST_RECALL_ERROR}\n"
+                f"  primary: {primary_url}\n"
+                "  Hints:\n"
+                "    - Start the backend:  make backend-up\n"
+                "    - Or set the URL:     "
+                "MEMEXA_HINDSIGHT_URL=http://your-host:8888\n"
+                "    - Self-diagnostic:    memexa doctor\n"
+            )
+            sys.stderr.flush()
+            return 1
         return 0
     except Exception as e:
         _ok = False

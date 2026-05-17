@@ -47,7 +47,7 @@ Two starting points; pick whichever describes you.
 ### Humans — 30-second visual
 
 ```bash
-pip install --pre memexa
+pip install memexa
 memexa demo
 ```
 
@@ -61,7 +61,7 @@ what the project does.
 
 ```bash
 # Agents already work today via subprocess:
-pip install --pre memexa
+pip install memexa
 memexa quick "<your question>" --json   # structured output for agent parsing
 memexa arc "<person>" --json
 # ... fourteen subcommands total, all with --json mode (v0.1.x)

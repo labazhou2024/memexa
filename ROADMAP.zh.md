@@ -19,20 +19,37 @@ memexa 占据相邻 OSS 项目未覆盖的赛道: 中文原生数据源、高准
 关于与相邻项目（OpenHuman、MemPalace、ReMe）的逐项能力对比, 以及
 memexa 服务的 5 类用户场景, 见 [docs/why.zh.md](docs/why.zh.md)。
 
-## 当前状态 (v0.1.0-rc2 已在 PyPI, 2026-05-16)
+## 当前状态 (v0.1.0 已在 PyPI, 2026-05-17)
 
 已 ship:
 
-- CLI: `init` / `version` / `config` / `doctor` / `query`
-- 14 个查询子命令 (基础 9 + 高级 5)
+- CLI: `init` / `version` / `config` / `doctor` / `demo` / `query`
+- 14 个查询子命令 (基础 7 + 高级 7), `--json` 模式既支持顶层
+  (`memexa --json query quick "X"`) 也支持子命令级 (`memexa quick "X" --json`)
+- `memexa demo`: 30 秒新手引导, 跑内置合成数据集 (无需 Docker, 无需 LLM key, 无需配置)
 - 6 个摄入源: 微信、QQ、邮件、浏览、Claude Code、音频
 - 双 LLM gate-extract 流程, DeepSeek arbiter 仲裁
 - PostgreSQL + pgvector 后端 (docker compose 内含 Hindsight FastAPI)
 - 端口 8765 dashboard, 7 个 panel
-- macOS / Windows / Linux + Docker 三平台部署指南
-- 8 个测试, 19 个 CI workflow 检查, CodeQL 0 open error
+- macOS / Windows 平台部署指南; Linux 走 docker-compose 路径
+- 10 个测试 (unit + integration), 6 个 CI workflow
+  (lint / test / codeql / security / release-drafter / dependabot),
+  CodeQL clean
 - Dependabot 漏洞 alerts 已启用, 自动安全修复已启用
 - Fresh-clone smoke test 在 Win + macOS + Linux × Python 3.10 / 3.11 / 3.12 通过
+  (CI matrix; macOS-py3.10 单元因传递依赖 wheel 缺失主动排除, 见 ci.yml)
+
+v0.1.0 已知 limitation (文档化的 gap; 诚实 baseline 而非沉默惊喜 —
+完整逐源状态表见 [`docs/quickstart.zh.md#tier-3`](docs/quickstart.zh.md)):
+
+- **QQ db-only adapter 还没进 OSS**。推荐 QQ 读路径在上游 JARVIS
+  `jarvis/qq_db.py` (单文件 762 行, 仅标准库)。OSS v0.1.0 用户手工
+  接入; v0.2 移植。NapCat / OneBot 路径**默认关**, 因为腾讯
+  2025-09-05 指纹封号潮; 只有研究 disposable 账号才能用
+  `MEMEXA_QQ_NAPCAT_FORCE=1` override。
+- **微信导出仅 Windows**, 受上游工具生态约束 (WeChatMsg /
+  wechatDataBackup / PyWxDump 都只在 Windows)。macOS / Linux
+  用户能部署 memexa, 但今天不能 ingest 微信历史。
 
 未 ship:
 
