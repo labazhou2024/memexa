@@ -1,0 +1,8 @@
+# Copy to ~/.memexa/identity.yaml and edit. Keep out of version control.
+#
+# Every numeric identifier or address that uniquely points to your
+# account goes here. Resolvable via the helpers in
+# ``memexa/core/_user_identity.py``.
+
+qq_id: # e.g. 1234567890
+primary_email: # e.g. you@example.com

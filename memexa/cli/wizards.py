@@ -708,17 +708,38 @@ def backend_up(args: argparse.Namespace) -> int:
               "Hindsight container will fail to start without it. "
               "Run `memexa init llm` first if you have not.",
               file=sys.stderr)
+    # v0.1.1 (§C.-42 Mac OrbStack): users with prior JARVIS-era exports of
+    # ``HINDSIGHT_API_LLM_*`` in ~/.zshrc / ~/.zshenv leak into compose
+    # substitution and override ~/.memexa/.env. Strip them from the env
+    # we pass to compose so the .env file (where `memexa init llm`
+    # writes) is the single source of truth. Users can still override by
+    # setting these in ~/.memexa/.env explicitly.
+    sub_env = dict(os.environ)
+    for k in (
+        "HINDSIGHT_API_LLM_PROVIDER",
+        "HINDSIGHT_API_LLM_MODEL",
+        "HINDSIGHT_API_LLM_API_KEY",
+        "HINDSIGHT_API_LLM_BASE_URL",
+    ):
+        sub_env.pop(k, None)
     rc = _run_docker(
         ["compose", "-f", str(compose_file), "up", "-d"],
         cwd=str(compose_file.parent),
+        env=sub_env,
     )
     if rc != 0:
         return rc
-    print("[info] waiting for Hindsight to report healthy (up to 60s)...")
-    if _poll_hindsight(60):
+    # v0.1.1 (post §C.-42 LIVE on Mac OrbStack first-run): bump poll
+    # timeout to the helper default 180s. 60s raced cold BGE-M3 model
+    # load on Mac (where OrbStack ships a smaller image cache + China
+    # users typically hit slower BGE-M3 weights pull). The helper has
+    # always supported 180s; the call site was the bottleneck.
+    print("[info] waiting for Hindsight to report healthy "
+          "(up to 180s; first run pulls BGE-M3 weights)...")
+    if _poll_hindsight(180):
         print("[ok] backend ready at http://127.0.0.1:8888")
         return 0
-    print("[warn] backend started but did not become healthy in 60s; "
+    print("[warn] backend started but did not become healthy in 180s; "
           "see `docker logs memexa-hindsight` for details",
           file=sys.stderr)
     return 0  # don't fail-hard; user can investigate

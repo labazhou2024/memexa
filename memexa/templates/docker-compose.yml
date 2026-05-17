@@ -50,9 +50,32 @@ services:
       # Hindsight reranks / summarises with this; without it the API
       # container refuses to start.
       HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_API_LLM_PROVIDER:-openai}
-      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-${MEMEXA_REMOTE_LLM_EXTRACT_MODEL:-gpt-4o-mini}}
+      # 2026-05-17 v0.1.1 (§C.-42 LIVE Win 11 finding): default to the GATE
+      # model rather than the EXTRACT model. Hindsight's internal fact-
+      # extraction prompts produce empty `content` on reasoning-class models
+      # (deepseek-v4-flash-ascend, qwen-reasoner -- they emit everything into
+      # `reasoning_content` instead). The GATE model is a non-reasoning chat
+      # model and survives Hindsight's strict-JSON prompt structure. Users
+      # can still override with HINDSIGHT_API_LLM_MODEL if they really want
+      # to send Hindsight's prompts through a reasoning model.
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_API_LLM_MODEL:-${MEMEXA_REMOTE_LLM_GATE_MODEL:-${MEMEXA_REMOTE_LLM_EXTRACT_MODEL:-gpt-4o-mini}}}
       HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_API_LLM_API_KEY:-${MEMEXA_REMOTE_LLM_API_KEY:-}}
       HINDSIGHT_API_LLM_BASE_URL: ${HINDSIGHT_API_LLM_BASE_URL:-${MEMEXA_REMOTE_LLM_BASE_URL:-}}
+      # 2026-05-17 v0.1.1 (§C.-42 LIVE Mac OrbStack finding): Hindsight
+      # downloads BGE-M3 from HuggingFace on first run. China users
+      # without a working container-side proxy hit "Cannot send a
+      # request, as the client has been closed" inside huggingface_hub.
+      # Three escape hatches:
+      #   (a) HF_ENDPOINT=https://hf-mirror.com   ← official PRC mirror
+      #   (b) HF_HOME=/root/.cache/huggingface   ← persist between runs
+      #   (c) HTTPS_PROXY=http://host.orb.internal:7890   ← Mac+mihomo
+      # All three are env-passthrough so users who don't need them get
+      # an empty string (huggingface_hub defaults to huggingface.co).
+      HF_ENDPOINT: ${HF_ENDPOINT:-}
+      HF_HOME: ${HF_HOME:-}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-postgres,127.0.0.1,localhost,host.docker.internal,host.orb.internal}
     ports:
       - "8888:8888"
     healthcheck:

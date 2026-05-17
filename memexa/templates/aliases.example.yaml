@@ -1,0 +1,30 @@
+# Copy to ~/.memexa/aliases.yaml and edit, OR set
+# MEMEXA_ALIASES_FILE=/path/to/your/aliases.yaml.
+#
+# All values here are used by speaker_role classification, entity
+# resolution, and the calendar grounding pipeline. Keep this file out of
+# version control once you fill it in.
+
+# Strings that resolve to "the user themselves" when seen in chats,
+# emails, audio transcripts, etc. Case-insensitive match. Include both
+# English and Chinese variants if you use both.
+self_aliases:
+  - self
+  - me
+  - myself
+  - 自己
+  # - <your-first-name>
+  # - <your-nickname>
+  # - <your-email-prefix>
+
+# Social roles the user plays. Used to bucket events where the user
+# appears as an implicit subject (e.g. lecture, meeting, group chat).
+self_roles:
+  # - student
+  # - employee
+  # - 学生
+  # - 同学
+
+# IANA timezone. Drives local-time decisions in audio session
+# classification and cron orchestration.
+timezone: Asia/Shanghai
