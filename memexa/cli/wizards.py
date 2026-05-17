@@ -237,7 +237,15 @@ def init_email_wizard(args: argparse.Namespace) -> int:
     print( "  3. Fetch:      memexa ingest email")
     print( "  4. Query:      memexa quick \"<question>\"")
     print()
-    if "ustc.edu.cn" in email_addr.lower() or "exmail.qq.com" in host.lower():
+    # Substring checks would be flagged by CodeQL
+    # (py/incomplete-url-substring-sanitization). Use domain-suffix
+    # match so an attacker can't sneak past with
+    # `exmail.qq.com.evil.com`. The check is print-NOTE-only -- no
+    # security boundary -- but tightening it keeps CodeQL clean.
+    _email_domain = email_addr.split("@", 1)[-1].lower() if "@" in email_addr else ""
+    _is_ustc = _email_domain == "mail.ustc.edu.cn"
+    _is_exmail_host = host.lower().endswith(".exmail.qq.com") or host.lower() == "imap.exmail.qq.com"
+    if _is_ustc or _is_exmail_host:
         print("NOTE: USTC mail and other Tencent Exmail accounts use")
         print("      imap.exmail.qq.com (NOT mail.ustc.edu.cn). The IMAP")
         print("      credential is a 16-char client auth code generated in")
