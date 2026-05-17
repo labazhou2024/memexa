@@ -599,7 +599,7 @@ def _poll_hindsight(timeout_s: int = 180) -> bool:
     elapsed = 0
     while time.time() < deadline:
         try:
-            r = httpx.get(f"{url}/healthz", timeout=3.0)
+            r = httpx.get(f"{url}/health", timeout=3.0)
             if r.status_code < 400:
                 if elapsed > 0:
                     print()  # finish progress line
@@ -680,8 +680,8 @@ def backend_status(args: argparse.Namespace) -> int:
     try:
         import httpx  # type: ignore
         url = os.environ.get("MEMEXA_HINDSIGHT_URL", "http://127.0.0.1:8888")
-        r = httpx.get(f"{url}/healthz", timeout=3.0)
-        print(f"  {url}/healthz -> HTTP {r.status_code}")
+        r = httpx.get(f"{url}/health", timeout=3.0)
+        print(f"  {url}/health -> HTTP {r.status_code}")
         if r.status_code < 400:
             print("  [ok] backend reachable")
             return 0
