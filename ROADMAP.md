@@ -90,23 +90,65 @@ Not yet shipped:
 ## v0.1.x — close out to stable
 
 The remaining v0.1 work unblocks the first-experience path for both
-**human users** and **AI agents**. v0.1.0 is cut from a green rc only
-after every item in this list is true.
+**human users** and **AI agents**.
 
-- `memexa demo` subcommand: a thirty-second walkthrough that uses the
-  bundled synthetic dataset and the stub extractor. No Docker, no LLM
-  key, no configuration.
-- `--json` output mode for all fourteen query subcommands, so agents
-  invoking memexa via shell can `json.loads()` the result directly
-  instead of parsing text. The subprocess-CLI path is the current
-  first-class agent integration; native MCP server arrives in v0.5.
-- `Makefile` lint and format targets point at `memexa tests` rather
-  than the deprecated `src` path.
-- `CHANGELOG.md` known-limitation about PyPI availability removed
-  (the package has been on PyPI since rc1).
-- At least one non-author issue, discussion, or pull request landed.
-- At least one full week elapsed since the most recent critical bug
-  fix.
+### v0.1.0 (shipped 2026-05-17)
+
+Stable cut from a green rc. All initial-experience gates were
+satisfied (`memexa demo` subcommand, fourteen-subcommand `--json`
+mode, Makefile lint/format targets, CHANGELOG cleanup, fresh-clone
+smoke test across Win + macOS + Linux × Python 3.10 / 3.11 / 3.12).
+
+### v0.1.1 (shipped 2026-05-17)
+
+Same-day follow-up. Fixed the v0.1.0 email path (hard-coded
+maintainer account names tried to import non-existent modules) and
+rewrote onboarding around three interactive wizards
+(`memexa init llm` / `init email` / `init wechat`) plus five new
+top-level commands (`memexa backend up/down/status` + `ingest
+email` + `ingest wechat`). A second pass replayed the whole flow
+as a brand-new user across Win 11 + Mac Studio + USTC Linux with
+real IMAP credentials and real WeChatMsg-schema JSON; this
+surfaced 13 more blockers, all fixed. 140 pytest pass. See
+[CHANGELOG.md `[0.1.1]`](CHANGELOG.md) for the full list.
+
+### v0.1.2 — next (in progress)
+
+Close the four LIVE-attestation gaps that v0.1.1's verification
+pass deferred. None of these are blockers for the "install →
+demo → init → ingest → query" flow on QQ / USTC IMAP / WeChat
+demo data, but each closes a credibility surface for early users.
+
+- **Other IMAP providers** (Gmail, Outlook, iCloud, 163, 126,
+  Yeah, Hotmail, Sina, Live). The `_detect_provider` table has
+  host / port / auth-type hints for each but only QQ and USTC
+  were LIVE-fetched in v0.1.1. v0.1.2 should produce at least one
+  LIVE-attested ingest run per provider (`fetched > 0`,
+  `errors == 0`) and add the provider to the integration matrix.
+- **Hindsight async-consolidation transparency.** `memexa ingest`
+  currently reports `dead-letter: N` when the post-POST verify
+  sees `total = 0`, even though the cards are in the document
+  store waiting for the background consolidator. v0.1.2 should
+  auto-`POST /consolidate` after ingest and either poll briefly
+  for completion or print "indexing in background, queryable in
+  ≤60s" so the user does not read a successful ingest as a
+  failure.
+- **Large-volume ingest (>500 batches).** v0.1.1 LIVE proved a
+  small dataset (≤20 batches). v0.1.2 should stress-test
+  rate-limit back-pressure, dead-letter recovery, memory
+  footprint, and (separately) document the empirically-correct
+  `--max-per-folder` and concurrency knobs.
+- **WeChatMsg-from-the-real-binary.** v0.1.1 adapter is
+  reverse-engineered from documented field names; a real
+  WeChatMsg release export was not in the verification pass.
+  v0.1.2 should drive at least one real WeChatMsg export through
+  the pipeline end-to-end and patch any field-name surprises.
+
+Optional, queued behind the four above if cycles permit:
+
+- One non-maintainer issue, discussion, or PR (community-health
+  signal — leftover from the v0.1.0 gate, still not met).
+- One full week without a critical bug fix on `main`.
 
 ## v0.2 — agent workflow templates
 

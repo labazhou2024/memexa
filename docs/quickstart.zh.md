@@ -284,17 +284,17 @@ Tier 0 / 1 / 2 验证的是**管线**: package 装上、backend 起来、合成
 不导出任何闭源平台的数据** — 它消费上游工具导出的结果, 然后规范
 化 / 抽取 / 入图。
 
-下面是 `0.1.0` 时点的**逐源诚实状态**。✅ = 纯 OSS 路径端到端工作;
+下面是 `0.1.1` 时点的**逐源诚实状态**。✅ = 纯 OSS 路径端到端工作;
 ⚠ = 工作但需要第三方导出工具或手动移文件; ❌ = 今天没有推荐的 OSS
 路径, 必须等列出的里程碑。
 
-| 源             | 可用平台              | 今天 (v0.1.0)                                                                                          | 何时更好                                |
+| 源             | 可用平台              | 今天 (v0.1.1)                                                                                          | 何时更好                                |
 |----------------|----------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------|
-| **邮件**       | Win / macOS / Linux  | ✅ `memexa init email` wizard (v0.1.1) — 6 provider 自动识别 (gmail/outlook/icloud/qq/163/foxmail/ustc), 10 min 全程 | —                                        |
+| **邮件**       | Win / macOS / Linux  | ✅ `memexa init email` wizard — 12+ provider 自动识别 (gmail / googlemail / outlook / hotmail / live / icloud / qq / foxmail / 163 / 126 / yeah / sina / mail.ustc); v0.1.1 LIVE-验证过 QQ + USTC IMAP, 其他 provider 走同一代码路径 | —                                        |
 | **音频**       | Win / macOS / Linux  | ✅ 录音笔导出 → Whisper / SenseVoice → JSON → builder                                                  | v0.4 (跨设备 merge, ECAPA 声纹注册)      |
 | **浏览**       | Win / macOS / Linux  | ✅ 读 Chrome / Firefox SQLite history → builder                                                         | —                                        |
 | **Claude Code**| Win / macOS / Linux  | ✅ 读 `~/.claude/projects/*/conversations.jsonl` → builder                                              | —                                        |
-| **微信**       | **仅 Windows**       | ✅ `memexa init wechat` wizard (v0.1.1) wrap [WeChatMsg](https://github.com/LC044/WeChatMsg) — 检测已装 / 没装就指 release 页; 在 WeChatMsg 内导出后 `memexa ingest wechat`。macOS / Linux 用户仍无路径 (上游工具仅 Win)。 | v0.2+ (auto-download + GUI hand-off) |
+| **微信**       | **仅 Windows**       | ✅ `memexa init wechat` wizard wrap [WeChatMsg](https://github.com/LC044/WeChatMsg) — 检测已装 / 没装就指 release 页; 在 WeChatMsg 内导出后 `memexa ingest wechat`。v0.1.1 处理 **6 种消息类型** (文本 / 图片 / 表情 / 视频 / 含标题的 appmsg / 系统消息), 非文本内容不再被静默丢弃。macOS / Linux 用户仍无路径 (上游工具仅 Win)。 | v0.2+ (auto-download + GUI hand-off) |
 | **QQ**         | Win / macOS / Linux  | ⚠ **db-only adapter 还没进 OSS**。NapCat / OneBot 路径**默认关** (腾讯对所有用过 NapCat 的账号指纹封号 — 见 [`integrations/qq.zh.md`](integrations/qq.zh.md))。今天想用 db-only 路径, 手工把上游 JARVIS 的 `jarvis/qq_db.py` 单文件 (762 行, 仅标准库) 拷到 `memexa/extraction/qq/`。剪贴板 fallback 也在上游, 没移植。 | v0.2 (db-only + 剪贴板 fallback 移植; NapCat 路径删除) |
 
 ### 推荐的接入顺序
@@ -309,7 +309,7 @@ Tier 0 / 1 / 2 验证的是**管线**: package 装上、backend 起来、合成
 5. **QQ** — 只在你愿意手工把上游 `qq_db.py` 拷过来时做; 否则等
    v0.2。
 
-### v0.1.0 已知 limitation
+### v0.1.1 已知 limitation
 
 - **QQ db-only adapter** 还没进 OSS 包; 参考实现在上游 JARVIS,
   单文件 762 行, 仅依赖标准库。v0.2 移植。
@@ -317,6 +317,17 @@ Tier 0 / 1 / 2 验证的是**管线**: package 装上、backend 起来、合成
   wechatDataBackup / PyWxDump) 都只在 Windows 上有。macOS /
   Linux 用户**有部署 guide 但没有微信历史路径**。v0.3 跟踪
   (微信 PC 备份 ingestion), 但最终受上游工具生态约束。
+- **其他 IMAP provider** (Gmail / Outlook / iCloud / 163 / 126 /
+  Yeah / Hotmail / Sina / Live) — wizard 对每个都有正确的 host
+  / port / 鉴权提示, 但 v0.1.1 验证只 LIVE-fetched 过 QQ 和
+  USTC。v0.1.2 补齐 LIVE 验证。
+- **Hindsight 异步 consolidation 透明化** — `memexa ingest` 在
+  POST-then-GET verify 看到 `total=0` 时会报 `dead-letter: N`,
+  但卡片通常已经入 document store, 只是后台 consolidator 还
+  没跑。v0.1.2 在 ingest 后自动触发 `/consolidate`。
+- **WeChatMsg 字段名覆盖** — schema adapter 是基于公开字段反向
+  工程的; 未来 WeChatMsg release 若 emit 全新字段可能需要
+  v0.1.2 补丁。
 - **没有 飞书 / 钉钉 adapter** — v0.3。
 - **没有本地文档源** (`.md` / `.pdf` / `.docx` / `.txt`) — v0.3。
 - **没有 `--embedded` backend 模式** — Tier 1 / Tier 2 仍需

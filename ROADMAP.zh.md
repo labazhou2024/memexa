@@ -75,18 +75,53 @@ v0.1.1 闭合 (原 v0.1.0 limitation):
 ## v0.1.x — 收尾 stable
 
 剩下的 v0.1 工作 = 同时打通**人类用户**和 **AI agent** 的第一体验路径。
-v0.1.0 仅在以下所有条件全部为真时, 才从绿色 rc 中切版本。
 
-- `memexa demo` 子命令: 30 秒 walkthrough, 用 bundled synthetic 数据
-  + stub extractor。无需 Docker, 无需 LLM key, 无需配置。
-- 14 个查询子命令全部加 `--json` 输出 mode, 让 agent 通过 shell 调
-  memexa 时能直接 `json.loads()`, 不用 parse 文本。subprocess CLI 路径
-  是当前 first-class agent integration; native MCP server 留 v0.5。
-- `Makefile` 的 lint / format target 指向 `memexa tests`（而不是已废
-  弃的 `src` 路径）。
-- `CHANGELOG.md` 删除"PyPI 尚未上"那条 known-limitation（rc1 起已 LIVE）。
-- 至少 1 个非作者的 issue / discussion / pull request 已 land。
-- 自最近一个 critical bug fix 起至少经过 1 周。
+### v0.1.0 (2026-05-17 已发布)
+
+从绿色 rc 切出的 stable 版本。所有首体验 gate 全过 (`memexa demo`
+子命令 / 14 个 subcmd `--json` mode / Makefile lint/format target /
+CHANGELOG 清理 / Win + macOS + Linux × Python 3.10 / 3.11 / 3.12
+全 fresh-clone smoke test)。
+
+### v0.1.1 (2026-05-17 同日发布)
+
+同日补发版本。修复 v0.1.0 邮件路径 (hard-coded 到不存在的 module) 并
+围绕 3 个交互式 wizard 重写 onboarding (`memexa init llm` /
+`init email` / `init wechat`), 加 5 个新顶层命令
+(`memexa backend up/down/status` + `ingest email` + `ingest wechat`)。
+第二轮按"全新用户"视角在 Win 11 + Mac Studio + USTC Linux 复测, 接
+真 IMAP 凭据 + 真 WeChatMsg-schema JSON, 浮出 13 个 fresh-user
+blocker, 全部修。140 pytest pass。详 [CHANGELOG.md `[0.1.1]`](CHANGELOG.zh.md)。
+
+### v0.1.2 — next (进行中)
+
+关掉 v0.1.1 验证延后的 4 个 LIVE-attestation gap。这些都**不阻塞**
+"install → demo → init → ingest → query" 走 QQ / USTC IMAP / 微信
+demo 数据的主流程, 但每一项都关掉一个 early user 的信任表面。
+
+- **其他 IMAP provider** (Gmail / Outlook / iCloud / 163 / 126 /
+  Yeah / Hotmail / Sina / Live)。`_detect_provider` 表里 host /
+  port / 鉴权提示都有, 但 v0.1.1 只 LIVE-fetched 过 QQ 和 USTC。
+  v0.1.2 应该每个 provider 至少跑过 1 次 LIVE 验证
+  (`fetched > 0`, `errors == 0`) 并加进 integration matrix。
+- **Hindsight 异步 consolidation 透明化**。`memexa ingest` 现在
+  POST-后-verify 看到 `total=0` 就报 `dead-letter: N`, 即使卡片
+  其实在 document store 等后台 consolidator。v0.1.2 应该 ingest
+  完自动 `POST /consolidate` + 短轮询 / 或打"后台索引中, ≤60s
+  可查询", 让用户不把成功的 ingest 当失败。
+- **大批量 ingest (>500 batches)**。v0.1.1 只验了小数据集
+  (≤20 batches)。v0.1.2 应该压测 rate-limit 回压 / dead-letter
+  恢复 / 内存 footprint, 并 (单独) 给出 `--max-per-folder` 和
+  concurrency 的实证推荐值。
+- **WeChatMsg 真实二进制导出**。v0.1.1 adapter 基于公开字段反向
+  工程; 真实 WeChatMsg release 导出未在验证范围。v0.1.2 应该
+  端到端跑一次真 WeChatMsg 导出 + 修任何字段名意外。
+
+可选, 时间允许才做:
+
+- 至少 1 个非维护者的 issue / discussion / PR (社区健康信号 —
+  v0.1.0 gate 残留, 仍未满足)。
+- main 上自最近 critical bug fix 起至少 1 周无新 critical fix。
 
 ## v0.2 — agent workflow 模板 (spec 文档, 非 Python 代码)
 
