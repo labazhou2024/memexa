@@ -86,11 +86,18 @@ EMAIL_PROVIDERS: Dict[str, tuple] = {
         "https://mail.sina.com.cn",
     ),
     "mail.ustc.edu.cn": (
-        "imap.exmail.qq.com", 993,
-        "Client auth code (16-char token, Tencent Exmail hosting)",
+        # LIVE-verified 2026-05-17 on a USTC account:
+        # imap.exmail.qq.com replies to TCP but rejects LOGIN; the
+        # USTC-side reverse proxy mail.ustc.edu.cn accepts the same
+        # 16-char auth code. Route USTC users here, not to the
+        # generic Tencent Exmail host.
+        "mail.ustc.edu.cn", 993,
+        "Client auth code (16-char token, USTC Tencent Exmail reverse proxy)",
         "https://mail.ustc.edu.cn  (Settings -> Client -> IMAP/SMTP -> generate)",
     ),
     "exmail.qq.com": (
+        # Generic corporate Tencent Exmail (non-USTC). For these,
+        # imap.exmail.qq.com is the right host.
         "imap.exmail.qq.com", 993,
         "Client auth code (16-char token, Tencent Exmail)",
         "https://exmail.qq.com  (Settings -> Client -> IMAP/SMTP -> generate)",

@@ -160,31 +160,120 @@ def _parse_imap_date(s: str) -> Optional[datetime]:
         return None
 
 
+def _decode_mime_header(raw: Any) -> str:
+    """RFC2047 -> Unicode string. Handles email.header.Header objects too.
+
+    v0.1.1: stdlib-only replacement for the deleted ``memexa.qq_email``
+    helpers. Servers like Tencent Exmail wrap non-ASCII headers in
+    ``=?utf-8?B?...?=`` or ``=?gb18030?Q?...?=`` MIME encodings;
+    decode_header returns ``[(bytes_or_str, charset), ...]`` chunks
+    which we reassemble.
+    """
+    from email.header import decode_header, Header
+    if raw is None:
+        return ""
+    if isinstance(raw, Header):
+        raw = str(raw)
+    if not isinstance(raw, str):
+        raw = str(raw)
+    out = []
+    for chunk, charset in decode_header(raw):
+        if isinstance(chunk, bytes):
+            try:
+                out.append(chunk.decode(charset or "utf-8", errors="replace"))
+            except (LookupError, TypeError):
+                out.append(chunk.decode("utf-8", errors="replace"))
+        else:
+            out.append(chunk)
+    return "".join(out)
+
+
+def _extract_email_body(msg) -> tuple:
+    """Walk a parsed email.Message; return (text_body, html_body) as str."""
+    text_parts, html_parts = [], []
+    if msg.is_multipart():
+        for part in msg.walk():
+            ctype = (part.get_content_type() or "").lower()
+            cdisp = str(part.get("Content-Disposition", "")).lower()
+            if "attachment" in cdisp:
+                continue
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                continue
+            charset = part.get_content_charset() or "utf-8"
+            try:
+                text = payload.decode(charset, errors="replace")
+            except (LookupError, TypeError):
+                text = payload.decode("utf-8", errors="replace")
+            if ctype == "text/plain":
+                text_parts.append(text)
+            elif ctype == "text/html":
+                html_parts.append(text)
+    else:
+        payload = msg.get_payload(decode=True)
+        if payload is not None:
+            charset = msg.get_content_charset() or "utf-8"
+            try:
+                body = payload.decode(charset, errors="replace")
+            except (LookupError, TypeError):
+                body = payload.decode("utf-8", errors="replace")
+            if "html" in (msg.get_content_type() or "").lower():
+                html_parts.append(body)
+            else:
+                text_parts.append(body)
+    return ("\n".join(text_parts), "\n".join(html_parts))
+
+
+def _extract_email_attachments(msg) -> List[str]:
+    """Return list of attachment filenames (no payload data)."""
+    names = []
+    if not msg.is_multipart():
+        return names
+    for part in msg.walk():
+        cdisp = str(part.get("Content-Disposition", "")).lower()
+        if "attachment" not in cdisp:
+            continue
+        fname = part.get_filename()
+        if fname:
+            names.append(_decode_mime_header(fname))
+    return names
+
+
+def _parse_rfc822_date(raw: str) -> Optional[datetime]:
+    """Parse 'Tue, 17 May 2026 08:32:11 +0800' -> datetime, or None."""
+    if not raw:
+        return None
+    try:
+        from email.utils import parsedate_to_datetime
+        return parsedate_to_datetime(raw)
+    except Exception:
+        return None
+
+
 def _safe_email_parse(raw_bytes: bytes) -> Dict[str, Any]:
-    """Parse RFC822 → JSON-friendly dict."""
+    """Parse RFC822 -> JSON-friendly dict.
+
+    v0.1.1: stdlib-only implementation. The v0.1.0 version imported
+    ``_decode_header``, ``_extract_body``, ``_extract_attachments``,
+    and ``_parse_date`` from ``memexa.qq_email`` -- a module that
+    does not exist in OSS, so every email parse crashed with
+    ``ModuleNotFoundError`` after the IMAP fetch succeeded. Now uses
+    only Python's stdlib ``email`` package.
+    """
     import email as email_lib
-    from memexa.qq_email import (
-        _decode_header, _extract_body, _extract_attachments, _parse_date,
-    )
     msg = email_lib.message_from_bytes(raw_bytes)
 
     def _hdr(name: str) -> str:
-        """Get header as decoded string. Handles QQ's Header objects."""
-        v = msg.get(name, "")
-        if v is None:
-            return ""
-        # Some servers (QQ) return email.header.Header objects directly
-        # for non-ASCII headers. Force str() and decode again.
-        return _decode_header(str(v))
+        return _decode_mime_header(msg.get(name, ""))
 
     subject = _hdr("Subject")
     from_raw = _hdr("From")
     to_raw = _hdr("To")
     cc_raw = _hdr("Cc")
     date_raw = _hdr("Date")
-    parsed_dt = _parse_date(date_raw)
-    text_body, html_body = _extract_body(msg)
-    attachments = _extract_attachments(msg)
+    parsed_dt = _parse_rfc822_date(date_raw)
+    text_body, html_body = _extract_email_body(msg)
+    attachments = _extract_email_attachments(msg)
     return {
         "subject": str(subject),
         "from_raw": str(from_raw),
