@@ -7,9 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(Nothing yet — `0.1.1` was the latest cut.)
+Tracking against v0.1.2. Known v0.1.1 gaps queued here:
+
+- Other IMAP providers (Gmail / Outlook / iCloud / 163 / 126 / Yeah /
+  Hotmail / Sina / Live) — wizards have correct host/port/auth hints
+  but only QQ + USTC have been LIVE-fetched in v0.1.1.
+- Large-volume ingest (>500 batches) — small dataset proven; scale
+  not yet stress-tested.
+- WeChatMsg-from-the-real-binary — adapter reverse-engineered from
+  documented schema; real WeChatMsg.exe output not in v0.1.1
+  verification.
+- Hindsight async-consolidation transparency — `memexa ingest` shows
+  `dead-letter: N` when verify-after-POST sees `total=0`, but cards
+  are usually in the document store waiting for the background
+  consolidator. v0.1.2 should auto-trigger `/consolidate`.
 
 ## [0.1.1] — 2026-05-17
+
+Published to PyPI 2026-05-17 15:20:59 UTC.
+[pypi.org/project/memexa/0.1.1/](https://pypi.org/project/memexa/0.1.1/)
 
 Onboarding rewrite + critical fix for the email path that v0.1.0
 unintentionally shipped broken.
