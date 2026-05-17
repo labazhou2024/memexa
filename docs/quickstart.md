@@ -307,19 +307,19 @@ does not export data from any closed platform itself — it consumes
 exports produced by upstream tools, then normalises / extracts /
 indexes them.
 
-The table below is the honest per-source status as of `0.1.0`. ✅
+The table below is the honest per-source status as of `0.1.1`. ✅
 means an OSS-only path works end-to-end; ⚠ means it works but
 requires a third-party export tool or manual file move; ❌ means
 there is no recommended OSS path today and you must wait for the
 listed milestone.
 
-| Source         | OS path that works     | Today (v0.1.0)                                                                                       | When better                              |
+| Source         | OS path that works     | Today (v0.1.1)                                                                                       | When better                              |
 |----------------|------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------|
-| **Email**      | Win / macOS / Linux    | ✅ `memexa init email` wizard (v0.1.1) — 6 providers auto-detected (gmail/outlook/icloud/qq/163/foxmail/ustc), 10 min total | —                                        |
+| **Email**      | Win / macOS / Linux    | ✅ `memexa init email` wizard — 12+ providers auto-detected (gmail / googlemail / outlook / hotmail / live / icloud / qq / foxmail / 163 / 126 / yeah / sina / mail.ustc); LIVE-attested on QQ + USTC IMAP in v0.1.1, other providers should work via the same code path. | —                                        |
 | **Audio**      | Win / macOS / Linux    | ✅ recorder export → Whisper / SenseVoice → JSON → builder                                            | v0.4 (cross-device merge, ECAPA enroll)  |
 | **Browser**    | Win / macOS / Linux    | ✅ read Chrome / Firefox SQLite history → builder                                                     | —                                        |
 | **Claude Code**| Win / macOS / Linux    | ✅ read `~/.claude/projects/*/conversations.jsonl` → builder                                          | —                                        |
-| **WeChat**     | **Windows only**       | ✅ `memexa init wechat` wizard (v0.1.1) wraps [WeChatMsg](https://github.com/LC044/WeChatMsg) — detects existing install or points at release page; you export in WeChatMsg, then `memexa ingest wechat`. macOS / Linux users still have no path (upstream tooling Windows-only). | v0.2+ (auto-download + GUI hand-off) |
+| **WeChat**     | **Windows only**       | ✅ `memexa init wechat` wizard wraps [WeChatMsg](https://github.com/LC044/WeChatMsg) — detects existing install or points at release page; you export in WeChatMsg, then `memexa ingest wechat`. v0.1.1 handles **6 message types** (text / image / sticker / video / appmsg-with-title / system-msg) so non-text content survives instead of being dropped. macOS / Linux users still have no path (upstream tooling Windows-only). | v0.2+ (auto-download + GUI hand-off) |
 | **QQ**         | Win / macOS / Linux    | ⚠ **db-only adapter not yet in OSS**. NapCat / OneBot path is **disabled by default** (Tencent fingerprint-bans accounts that ever ran NapCat — see [`integrations/qq.md`](integrations/qq.md)). To use the db-only path today, manually copy `jarvis/qq_db.py` from the upstream JARVIS repo (762 lines, stdlib only) into `memexa/extraction/qq/`. Clipboard fallback also lives upstream and has not been migrated. | v0.2 (db-only adapter + clipboard fallback migrated; NapCat path removed) |
 
 ### Recommended first-day order
@@ -335,7 +335,7 @@ listed milestone.
 5. **QQ** — only if you are willing to wire in the upstream
    `qq_db.py` manually. Otherwise wait for v0.2.
 
-### Known limitations of v0.1.0
+### Known limitations of v0.1.1
 
 - **QQ db-only adapter** is not yet in the OSS package; the reference
   implementation lives in upstream JARVIS as a single 762-line
@@ -345,6 +345,20 @@ listed milestone.
   Windows-only. macOS / Linux users have a deployment guide but no
   WeChat-history path. Tracked in v0.3 (WeChat PC backup ingestion)
   but ultimately bounded by upstream tool availability.
+- **Other IMAP providers** (Gmail / Outlook / iCloud / 163 / 126 /
+  Yeah / Hotmail / Sina / Live) — the wizard has correct host /
+  port / auth hints for each but only QQ and USTC have been LIVE-
+  fetched in v0.1.1 verification. v0.1.2 will close the LIVE
+  attestation gap.
+- **Hindsight async-consolidation transparency** — `memexa ingest`
+  shows `dead-letter: N` when its post-POST verify sees `total=0`,
+  but the cards are usually already in the document store waiting
+  for the background consolidator. v0.1.2 will auto-trigger
+  `/consolidate` after ingest.
+- **WeChatMsg field-name coverage** — the schema adapter is
+  reverse-engineered from documented fields; truly novel field
+  names emitted by future WeChatMsg releases may need a v0.1.2
+  patch.
 - **No 飞书 / 钉钉 adapter** — v0.3.
 - **No local-document source** (`.md` / `.pdf` / `.docx` / `.txt`) —
   v0.3.
