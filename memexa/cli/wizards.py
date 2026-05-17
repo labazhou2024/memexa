@@ -588,9 +588,54 @@ def _find_docker_bin() -> Optional[str]:
     return None
 
 
+_COMPOSE_STYLE_CACHE: Optional[str] = None  # "plugin" | "standalone"
+
+
+def _find_compose_style() -> Optional[str]:
+    """Detect whether ``docker compose`` (plugin) or standalone
+    ``docker-compose`` is available.
+
+    Older Docker daemons (e.g. Ubuntu 22.04's 20.10.x) lack the
+    compose plugin but ship the standalone ``docker-compose`` binary.
+    """
+    global _COMPOSE_STYLE_CACHE
+    if _COMPOSE_STYLE_CACHE:
+        return _COMPOSE_STYLE_CACHE
+    import shutil, subprocess
+    docker_bin = _find_docker_bin()
+    if docker_bin is not None:
+        try:
+            rc = subprocess.run(
+                [docker_bin, "compose", "version"],
+                capture_output=True, timeout=10,
+            ).returncode
+            if rc == 0:
+                _COMPOSE_STYLE_CACHE = "plugin"
+                return "plugin"
+        except Exception:
+            pass
+    if shutil.which("docker-compose"):
+        _COMPOSE_STYLE_CACHE = "standalone"
+        return "standalone"
+    return None
+
+
 def _run_docker(cmd: list, **kwargs) -> int:
-    """Run a `docker` subcommand and stream output to stdout/stderr."""
+    """Run a `docker` subcommand and stream output to stdout/stderr.
+
+    Special handling for ``compose`` subcommand: if the Docker plugin
+    is missing but standalone ``docker-compose`` is on PATH, route the
+    call to it (transparent fallback for older Docker daemons).
+    """
     import subprocess
+    # Compose fallback: ["compose", "-f", ...] -> ["docker-compose", "-f", ...]
+    if cmd and cmd[0] == "compose":
+        style = _find_compose_style()
+        if style == "standalone":
+            import shutil
+            standalone = shutil.which("docker-compose")
+            return subprocess.call([standalone] + cmd[1:], **kwargs)
+        # plugin path falls through to normal docker call below
     docker_bin = _find_docker_bin()
     if docker_bin is None:
         print("[fail] docker not found. Install Docker Desktop "
