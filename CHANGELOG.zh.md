@@ -9,9 +9,23 @@
 
 ## [Unreleased]
 
-(暂无 — `0.1.1` 是最新一切。)
+针对 v0.1.2 跟踪。已知 v0.1.1 留尾排在这里：
+
+- 其他 IMAP provider (Gmail / Outlook / iCloud / 163 / 126 / Yeah /
+  Hotmail / Sina / Live) —— wizard 有正确 host/port/auth 提示但
+  v0.1.1 只 LIVE-fetched 过 QQ + USTC。
+- 大批量 ingest (>500 batches) —— 小数据集验证过，规模未压测。
+- WeChatMsg 真二进制导出 —— adapter 是基于公开 schema 反向工程的，
+  真实 WeChatMsg.exe 输出未在 v0.1.1 内验证。
+- Hindsight async-consolidation 透明化 —— `memexa ingest` 在
+  verify-after-POST 看到 `total=0` 时报 `dead-letter: N`，但卡片
+  通常已经入了 document store 在等后台 consolidator。v0.1.2 应
+  自动触发 `/consolidate`。
 
 ## [0.1.1] — 2026-05-17
+
+发布到 PyPI 时间 2026-05-17 15:20:59 UTC.
+[pypi.org/project/memexa/0.1.1/](https://pypi.org/project/memexa/0.1.1/)
 
 Onboarding 重写 + 修复 v0.1.0 意外 ship 的 email broken path。
 
