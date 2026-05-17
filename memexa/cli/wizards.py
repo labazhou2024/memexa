@@ -917,11 +917,178 @@ def _run_streaming_post(cards_dir: Path) -> int:
         sys.argv = old_argv
 
 
-def ingest_wechat(args: argparse.Namespace) -> int:
-    """Ingest a WeChatMsg export directory.
+def _build_wechat_prompt_from_messages(
+    batch_id: str, chat_room: str, messages: list,
+) -> Dict[str, Any]:
+    """Build a v5 prompt dict for one chat-day batch from a flat
+    message list.
 
-    Resolves ``--from`` flag first, then ``wechat.export_dir`` in
-    identity.yaml, then errors with a hint.
+    Schema accepted (demo format, also produced by trivial adapters
+    from WeChatMsg JSON):
+        [{room, sender, send_time, content}, ...]
+        OR with field aliases:
+        [{chat_room, sender_name|sender|NickName, ts|send_time|CreateTime, content|StrContent}, ...]
+
+    v0.1.1: writes a minimal V5 envelope sufficient for l0_worker_api
+    to extract cards. Full WeChat features (group meta, reply chains,
+    image stickers) deferred to v0.3 official adapter.
+    """
+    import hashlib
+    msgs = []
+    senders = set()
+    timestamps = []
+    for m in messages:
+        sender = (m.get("sender") or m.get("sender_name") or
+                  m.get("NickName") or m.get("Remark") or "unknown")
+        ts_str = (m.get("send_time") or m.get("ts") or m.get("CreateTime")
+                  or "")
+        content = (m.get("content") or m.get("StrContent")
+                   or m.get("DisplayContent") or "")
+        if not content:
+            continue
+        if isinstance(ts_str, (int, float)):
+            from datetime import datetime, timezone
+            ts_iso = datetime.fromtimestamp(
+                float(ts_str), tz=timezone.utc
+            ).isoformat()
+        else:
+            ts_iso = str(ts_str)
+        try:
+            from datetime import datetime
+            ts_epoch = datetime.fromisoformat(ts_iso.replace("Z", "+00:00")
+                                              ).timestamp()
+            timestamps.append(ts_epoch)
+        except Exception:
+            pass
+        wxid_hash = hashlib.sha1(sender.encode("utf-8")).hexdigest()[:12]
+        msgs.append({
+            "ts": ts_iso,
+            "wxid_hash": wxid_hash,
+            "sender": sender,
+            "content": str(content),
+        })
+        senders.add(sender)
+
+    if timestamps:
+        from datetime import datetime, timezone
+        win_start = datetime.fromtimestamp(min(timestamps),
+                                           tz=timezone.utc).isoformat()
+        win_end = datetime.fromtimestamp(max(timestamps),
+                                         tz=timezone.utc).isoformat()
+    else:
+        win_start = win_end = ""
+
+    room_hash = hashlib.sha1(chat_room.encode("utf-8")).hexdigest()[:12]
+    return {
+        "batch_id": batch_id,
+        "chat_room": chat_room,
+        "room_hash": room_hash,
+        "batch_window_local": [win_start, win_end],
+        "sender_list": [{"sender": s,
+                          "wxid_hash":
+                          hashlib.sha1(s.encode("utf-8")).hexdigest()[:12]}
+                         for s in sorted(senders)],
+        "manifest_slice": {"persons": {}},
+        "messages": msgs,
+        "schema_v_input": "v5",
+        "v5_native_builder": "wizards._build_wechat_prompt_from_messages",
+        "source_kind": "wechat",
+        "n_msgs": len(msgs),
+        "n_unique_senders": len(senders),
+        "is_group_chat": len(senders) > 2,
+    }
+
+
+def _glue_wechat_json_dir_to_l0_input(
+    export_dir: Path, l0_input_root: Path,
+) -> int:
+    """Read a directory of per-chat JSON files (demo / WeChatMsg-adapted
+    schema), regroup per (chat_room, date), and write l0_worker_api-
+    ready prompt.json + meta.json.
+
+    Layouts accepted:
+      <dir>/<chat-name>/messages.json    (WeChatMsg per-chat dir)
+      <dir>/*.json                       (flat per-chat files)
+      <dir>/messages.json                (single chat)
+    """
+    import json
+    if not export_dir.exists():
+        return 0
+    l0_input_root.mkdir(parents=True, exist_ok=True)
+    n = 0
+    # Discover candidate JSON files
+    candidates = []
+    if (export_dir / "messages.json").exists():
+        candidates.append(export_dir / "messages.json")
+    for child in export_dir.iterdir():
+        if child.is_file() and child.suffix.lower() == ".json":
+            candidates.append(child)
+        elif child.is_dir():
+            mj = child / "messages.json"
+            if mj.exists():
+                candidates.append(mj)
+
+    for jpath in candidates:
+        try:
+            data = json.loads(jpath.read_text(encoding="utf-8"))
+            if not isinstance(data, list):
+                continue
+        except Exception:
+            continue
+        # Group per (chat_room, date)
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for m in data:
+            room = (m.get("room") or m.get("chat_room") or jpath.stem)
+            ts_str = str(m.get("send_time") or m.get("ts")
+                         or m.get("CreateTime") or "")[:10]
+            if not ts_str:
+                continue
+            groups[(room, ts_str)].append(m)
+        for (room, date_str), msgs in groups.items():
+            import hashlib
+            batch_id = hashlib.sha1(
+                f"{room}|{date_str}".encode("utf-8")
+            ).hexdigest()[:16]
+            batch_dir = l0_input_root / date_str / batch_id
+            prompt_path = batch_dir / "prompt.json"
+            if prompt_path.exists():
+                continue
+            batch_dir.mkdir(parents=True, exist_ok=True)
+            prompt = _build_wechat_prompt_from_messages(batch_id, room, msgs)
+            prompt_path.write_text(
+                json.dumps(prompt, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
+            (batch_dir / "meta.json").write_text(
+                json.dumps({"batch_id": batch_id, "date": date_str,
+                            "chat_room": room, "source_kind": "wechat"},
+                            ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            n += 1
+    return n
+
+
+def ingest_wechat(args: argparse.Namespace) -> int:
+    """End-to-end WeChat ingest from a JSON export directory.
+
+    Chain:
+      1. Read per-chat JSON files (demo schema, or WeChatMsg-adapted)
+         from --from <dir> or wechat.export_dir in identity.yaml.
+      2. _glue_wechat_json_dir_to_l0_input regroups per (chat, date)
+         and writes prompt.json + meta.json under
+         data/l0_v5/input_batches_wechat/<date>/<batch_id>/
+      3. l0_worker_api -- LLM extract V2 cards
+      4. streaming_post_v5 -- POST to Hindsight
+
+    Note (v0.1.1 honesty): the schema accepted is the demo-dataset
+    flat-message format `[{room, sender, send_time, content}]`.
+    WeChatMsg's native export uses similar but richer fields
+    (CreateTime, StrContent, NickName, etc.); both are accepted via
+    field-name aliasing in _build_wechat_prompt_from_messages.
+    Full WeChatMsg feature parity (replies, sub_msg_types, image
+    stickers) is on the v0.3 roadmap.
     """
     cfg_dir = _resolve_config_dir()
     identity_path = cfg_dir / "identity.yaml"
@@ -933,28 +1100,38 @@ def ingest_wechat(args: argparse.Namespace) -> int:
     if not export_dir:
         print("[fail] no WeChat export directory specified.", file=sys.stderr)
         print( "       Either pass --from <dir>, or run `memexa init wechat`",
-              file=sys.stderr)
+               file=sys.stderr)
         return 1
     export_path = Path(export_dir).expanduser()
     if not export_path.exists():
         print(f"[fail] export directory not found: {export_path}",
               file=sys.stderr)
         return 1
-    print(f"[info] reading WeChat export from {export_path}")
-    # Delegate to the existing builder. Re-uses the v5 pipeline so any
-    # downstream consumer (extractor, dashboard) stays uniform.
-    from memexa.ingestion import v5_wechat_batch_builder
-    try:
-        # The builder uses its own arg parser; we wire stdin args via sys.argv
-        # so user-overrides flow through cleanly.
-        old_argv = sys.argv
-        sys.argv = [
-            "v5_wechat_batch_builder",
-            "--src", str(export_path),
-        ]
-        try:
-            return v5_wechat_batch_builder.main()
-        finally:
-            sys.argv = old_argv
-    except SystemExit as e:
-        return int(e.code or 0)
+
+    data_root = _resolve_data_root()
+    l0_input = data_root / "l0_v5" / "input_batches_wechat"
+    cards_dir = data_root / "l0_v5" / "cards_v2_wechat"
+
+    print(f"[1/3] reading WeChat JSON exports from {export_path}...")
+    n = _glue_wechat_json_dir_to_l0_input(export_path, l0_input)
+    print(f"[ok] {n} new batch prompt(s) written")
+    if n == 0:
+        print("[info] nothing new to extract; pipeline exits 0")
+        return 0
+
+    print(f"[2/3] LLM extract -> {cards_dir}...")
+    rc = _run_l0_extract(l0_input, cards_dir)
+    if rc != 0:
+        print(f"[fail] l0_worker_api returned {rc}", file=sys.stderr)
+        return rc
+
+    print(f"[3/3] POST cards -> Hindsight backend...")
+    rc = _run_streaming_post(cards_dir)
+    if rc != 0:
+        print(f"[fail] streaming_post_v5 returned {rc}", file=sys.stderr)
+        return rc
+
+    print()
+    print("[done] WeChat end-to-end ingest complete. Try:")
+    print("  memexa quick \"<question>\"")
+    return 0
