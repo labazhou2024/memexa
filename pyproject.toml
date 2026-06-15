@@ -79,7 +79,7 @@ windows = [
 bench = [
     # Optional: in-process benchmark harness against a Hindsight server.
     # Plain CLI usage does NOT require these.
-    "hindsight-client>=0.5,<0.8",
+    "hindsight-client>=0.5,<0.9",
     "hindsight-all>=0.4,<0.5",
 ]
 
