@@ -52,7 +52,7 @@ Input is a single entity: `canon` (the canonical string) + optional `raw_forms` 
 
 Output a single JSON object with ONE key `kind`, whose value is one of:
   person      — human actor: names, roles (CEO, advisor, mentor, reviewer, etc.)
-  project     — named software/research initiative (memexa, eNe, PRL, <topic-3>, etc.)
+  project     — named software/research initiative (memexa, <topic-1>, <topic-2>, <topic-3>, etc.)
   concept     — abstract idea / method / theory / feedback / workflow step
   constraint  — rule / policy / HARD RULE / limit / forbidden / permission
   tool        — software library / CLI / API / module name / file-level code unit
