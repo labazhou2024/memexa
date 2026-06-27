@@ -30,7 +30,7 @@ def sample_inputs():
                 "person_alice": {
                     "primary_name": "Alice",
                     "aka": ["Alice"],
-                    "pinyin_initials": ["hys"],
+                    "pinyin_initials": ["al"],
                     "is_self": True,
                     "wxid_hashes": ["af0d4c08aa1037a05"],
                 }

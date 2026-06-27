@@ -14,8 +14,6 @@ PATTERNS=(
     "<USER_QQ_ID>"
     "<REDACTED>"
     "@mail\.ustc\.edu\.cn"
-    "100\.73\.32\.96"
-    "222\.195\.68\.89"
 )
 
 PATTERN_JOINED=$(IFS="|"; echo "${PATTERNS[*]}")

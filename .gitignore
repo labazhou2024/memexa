@@ -7,6 +7,12 @@ config.yml
 !config/*.example.yaml
 **/secrets/
 
+# Local-only PII scanner patterns: the maintainer's REAL tokens live in
+# scripts/pii_patterns.txt (never commit it). The committed, PII-free
+# template is scripts/pii_patterns.example.txt.
+scripts/pii_patterns.txt
+**/pii_patterns.txt
+
 # Python
 __pycache__/
 *.pyc

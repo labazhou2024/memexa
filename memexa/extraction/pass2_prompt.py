@@ -379,7 +379,7 @@ _SECTION_CHAT = """
 - **"我"** → 当前消息的 sender (查 sender_list 找 is_self=true 那位; 若群里 is_self 不在 sender_list, "我" 指消息发送者本人).
 - **"你"** → 上下文最近被 @ 或被回复的人.
 - **"他/她/它/那个/那位"** → 上下文 5 句内最近被命名的实体.
-- **拼音首字母** (如 wjc, xsh, lxr) → 严格匹配 manifest_slice.persons[*].pinyin_initials; 唯一命中即合并; 多人共享同首字母 → ambiguous + identity_assertions 记录.
+- **拼音首字母** (如 cl, xsh, lxr) → 严格匹配 manifest_slice.persons[*].pinyin_initials; 唯一命中即合并; 多人共享同首字母 → ambiguous + identity_assertions 记录.
 - **群名 / sender 后缀** 是身份提示 — 形如 "<姓名> <届号 + 学校 / 机构>" 模式时，把后缀写入 entities[*].attributes.role.
 
 【qq 特殊】

@@ -153,7 +153,7 @@ QUERY_REWRITE_SYSTEM_PROMPT = """你是 query rewriter. 输入用户的自然语
 
 任务:
 1. **entity 同义词扩展**: 识别 query 中提到的人/物/事件, 用 manifest aka 扩同义词
-   例: "Alice" → ["Alice", "Alice", "粥粥"] (用 manifest 切片中的真实 aka)
+   例: "Alice" → ["Alice", "Alice", "小爱"] (用 manifest 切片中的示例 aka)
 2. **intent 分类**: lifelog / contact_fact / cross_aggregate / status / progress / ddl / general
 3. **time_range 识别**: 显式时间或相对时间 → 绝对 ISO range (now=注入)
 4. **types_filter**: 如果 query 暗示 commitment / decision / report 等类型, 列出

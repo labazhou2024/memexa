@@ -5,7 +5,7 @@ Spec: docs/l0_v5/MASTER_PLAN.md §3.3 Stage 2 + §4.1
 Pass-1 is a LIGHTWEIGHT, MANIFEST-FEEDING extraction pass. Goal:
 - Identify self/other identity declarations ("我是 X / X 是 Y")
 - Identify how-known assertions ("X 介绍我认识 Y")
-- Identify abbreviation expansions ("wjc 是Carol")
+- Identify abbreviation expansions ("cl 是Carol")
 - Flag candidate new entities (not in current manifest)
 - DO NOT extract narrative / commitment / decision / etc.
   (those are Pass-2 territory)
@@ -34,7 +34,7 @@ PASS1_SYSTEM_PROMPT = """你是 IdentityAssertion 抽取器（轻量 pass）。
        → assertion(speaker_wxid_hash, asserted_relation=is_self/is_aka, value=X)
   A.2 别名: "Y 也叫 X / Y 就是 X / X 别名 Y / X 即 Y"
        → assertion(asserted_relation=is_aka, value=X)
-  A.3 拼音缩写: "wjc 是Carol / wjc(Carol) / 也就是 wjc"
+  A.3 拼音缩写: "cl 是Carol / cl(Carol) / 也就是 cl"
        → assertion(asserted_relation=is_aka, value=缩写, expansion=全名)
   A.4 组织成员: "X 是 your-org 的 / X 在 your-org读书"
        → assertion(asserted_relation=is_in_org, value=组织名)
@@ -127,10 +127,10 @@ manifest_slice (相关切片):
   persons:
     person_alice:
       primary_name: Alice
-      aka: [Alice, 粥粥]
-      pinyin_initials: [hys]
+      aka: [Alice, 小爱]
+      pinyin_initials: [al]
       is_self: true
-    person_maomao:
+    person_bob:
       primary_name: Bob
       aka: []
       is_self: false
@@ -139,7 +139,7 @@ manifest_slice (相关切片):
 
 messages:
   [2026-05-04 14:30] wxid_axxxx (af0d4c08aa1037a05): 我是Alice, 这周三去找你吃粥
-  [2026-05-04 14:30] wxid_byyyy (1037a05c88f3a2bb): 上次老张介绍的那个 wjc 论文你看了吗
+  [2026-05-04 14:30] wxid_byyyy (1037a05c88f3a2bb): 上次老张介绍的那个 cl 论文你看了吗
   [2026-05-04 14:31] wxid_axxxx (af0d4c08aa1037a05): 看了, Carol最近实验进度很猛
   [2026-05-04 14:31] wxid_byyyy (1037a05c88f3a2bb): 我们老板像马斯克一样疯
 ```
@@ -160,9 +160,9 @@ messages:
       "subject_wxid_hash": "1037a05c88f3a2bb",
       "subject_canonical_id": null,
       "asserted_relation": "is_aka",
-      "asserted_value": "wjc",
+      "asserted_value": "cl",
       "expansion": "Carol",
-      "quote": "上次老张介绍的那个 wjc 论文 / Carol最近实验进度很猛",
+      "quote": "上次老张介绍的那个 cl 论文 / Carol最近实验进度很猛",
       "confidence": "inferred"
     }
   ],
@@ -171,10 +171,10 @@ messages:
       "person_a_canonical_id": null,
       "person_a_surface": "老张",
       "person_b_canonical_id": null,
-      "person_b_surface": "wjc",
+      "person_b_surface": "cl",
       "relation_type": "introduced",
       "context": "学术介绍 (论文)",
-      "quote": "老张介绍的那个 wjc 论文",
+      "quote": "老张介绍的那个 cl 论文",
       "confidence": "inferred"
     }
   ],
@@ -182,13 +182,13 @@ messages:
     {
       "surface_form": "老张",
       "kind_hint": "person",
-      "context_snippet": "上次老张介绍的那个 wjc 论文你看了吗",
-      "co_occurring_known": ["wjc", "person_maomao"]
+      "context_snippet": "上次老张介绍的那个 cl 论文你看了吗",
+      "co_occurring_known": ["cl", "person_bob"]
     },
     {
-      "surface_form": "wjc",
+      "surface_form": "cl",
       "kind_hint": "person",
-      "context_snippet": "上次老张介绍的那个 wjc 论文 / Carol最近实验进度很猛",
+      "context_snippet": "上次老张介绍的那个 cl 论文 / Carol最近实验进度很猛",
       "co_occurring_known": ["老张", "person_alice"]
     }
   ]
@@ -198,7 +198,7 @@ END_OF_OUTPUT
 
 注意:
 - "我是Alice" → certain (manifest_slice 已确认)
-- "wjc 是Carol" 通过下文"Carol最近实验进度"间接证实 → inferred (拼音匹配 + 时间近邻)
+- "cl 是Carol" 通过下文"Carol最近实验进度"间接证实 → inferred (拼音匹配 + 时间近邻)
 - "我们老板像马斯克" 不输出 RelationAssertion (是比喻, 不是介绍)
 - "老张" 是新实体候选, 不在 slice 内 → 进 new_entity_candidates
 - "马斯克" 是公众人物, 不输出新实体, 不输出 introduction

@@ -13,5 +13,5 @@
 /GOVERNANCE.md                          @labazhou2024
 /.github/                               @labazhou2024
 /scripts/full_pii_scan.sh               @labazhou2024
-/scripts/pii_patterns.txt               @labazhou2024
+/scripts/pii_patterns.example.txt       @labazhou2024
 /scripts/pre-commit-pii-scan.sh         @labazhou2024
