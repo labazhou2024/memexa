@@ -1,0 +1,11 @@
+[
+  {"room": "demo-1on1-alice", "sender": "Alice", "send_time": "2024-01-05T20:10:00+08:00", "content": "你上次提的那本书我看完了，还挺好的。"},
+  {"room": "demo-1on1-alice", "sender": "demo_user", "send_time": "2024-01-05T20:11:00+08:00", "content": "哪本？《数据密集型应用系统设计》？"},
+  {"room": "demo-1on1-alice", "sender": "Alice", "send_time": "2024-01-05T20:11:30+08:00", "content": "对，DDIA 那本。"},
+  {"room": "demo-1on1-alice", "sender": "demo_user", "send_time": "2024-01-05T20:12:00+08:00", "content": "你最喜欢哪一章？"},
+  {"room": "demo-1on1-alice", "sender": "Alice", "send_time": "2024-01-05T20:13:20+08:00", "content": "第 5 章讲 replication 那个，第二遍读才明白 leaderless 的意义。"},
+  {"room": "demo-1on1-alice", "sender": "demo_user", "send_time": "2024-01-12T15:00:00+08:00", "content": "组会 ppt 你那部分准备得怎么样？"},
+  {"room": "demo-1on1-alice", "sender": "Alice", "send_time": "2024-01-12T15:02:10+08:00", "content": "做好了，等 Bob 那边的数据出来就整合。"},
+  {"room": "demo-1on1-alice", "sender": "demo_user", "send_time": "2024-01-12T15:03:00+08:00", "content": "Carol 那边今晚能给吗？"},
+  {"room": "demo-1on1-alice", "sender": "Alice", "send_time": "2024-01-12T15:04:00+08:00", "content": "她说明早，应该没问题。"}
+]

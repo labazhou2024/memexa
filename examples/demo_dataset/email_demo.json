@@ -1,0 +1,6 @@
+[
+  {"from": "advisor@example.com", "to": ["demo_user@example.com"], "subject": "[课程通知] 下周二请提交项目中期报告", "sent_at": "2024-01-08T09:00:00+08:00", "body": "各位同学：项目中期报告需要在 2024-01-16 23:59 前提交到课程平台。报告模板见附件。"},
+  {"from": "demo_user@example.com", "to": ["advisor@example.com"], "subject": "Re: [课程通知] 下周二请提交项目中期报告", "sent_at": "2024-01-08T11:32:00+08:00", "body": "老师好，收到。我们小组分工已经完成，本周内会发您看一下大纲。"},
+  {"from": "advisor@example.com", "to": ["demo_user@example.com"], "subject": "Re: Re: [课程通知] 下周二请提交项目中期报告", "sent_at": "2024-01-08T14:05:00+08:00", "body": "好的。注意中期报告至少要包含实验数据，不能只是文献综述。"},
+  {"from": "demo_user@example.com", "to": ["alice@example.com", "bob@example.com", "carol@example.com"], "subject": "中期报告大纲", "sent_at": "2024-01-11T22:00:00+08:00", "body": "整理了一份大纲，分四部分：背景、方法、实验、讨论。各自负责的部分见正文。"}
+]

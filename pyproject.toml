@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memexa"
+version = "0.1.0"
+description = "Open demo of memexa — a self-hosted Chinese personal memory graph. The full engine is the proprietary memexa product."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "labazhou2024" }]
+maintainers = [{ name = "labazhou2024" }]
+requires-python = ">=3.10"
+keywords = [
+    "personal-memory", "knowledge-graph", "chinese-nlp",
+    "retrieval-augmented-generation", "self-hosted", "demo",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Natural Language :: Chinese (Simplified)",
+]
+# The open demo is intentionally dependency-free at runtime. The full
+# engine and all of its dependencies are part of the proprietary memexa
+# product.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+    "build>=1.2",
+    "twine>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/labazhou2024/memexa"
+Documentation = "https://github.com/labazhou2024/memexa/tree/main/docs"
+Issues = "https://github.com/labazhou2024/memexa/issues"
+
+[project.scripts]
+memexa = "memexa.cli.main:main"
+memexa-query = "memexa.cli.main:main"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+# Ship the slim CLI package plus the bundled synthetic demo dataset so
+# `memexa demo` works after a fresh `pip install memexa`.
+include = ["memexa*", "examples", "examples.demo_dataset", "examples.demo_dataset.*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+"examples.demo_dataset" = ["*.json", "*.jsonl", "*.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E9", "F"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["F841", "B011"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.bandit]
+# hashlib.sha1 in the demo ingester is a content cache key, not crypto.
+skips = ["B324"]
+exclude_dirs = ["tests"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "-p", "no:cacheprovider",
+]
+testpaths = ["tests"]
+markers = [
+    "integration: in-process integration tests (no network, no backend)",
+    "slow: marks tests as slow",
+]

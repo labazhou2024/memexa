@@ -1,0 +1,21 @@
+[
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-08T10:14:00+08:00", "content": "组会改到周三下午三点了。"},
+  {"room": "demo-study-group", "sender": "Bob",   "send_time": "2024-01-08T10:14:30+08:00", "content": "@Alice 收到，已记下。"},
+  {"room": "demo-study-group", "sender": "Carol", "send_time": "2024-01-08T10:15:02+08:00", "content": "请假名单：周三下午我有别的事，可能晚到 20 分钟。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-08T10:15:40+08:00", "content": "OK，那 3:20 之前别开会。"},
+  {"room": "demo-study-group", "sender": "Bob",   "send_time": "2024-01-09T18:02:00+08:00", "content": "演示文稿我做到第 5 页了，明天交。"},
+  {"room": "demo-study-group", "sender": "Carol", "send_time": "2024-01-09T18:03:11+08:00", "content": "我负责的实验数据部分明早可以交，已经跑完了。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-09T18:04:00+08:00", "content": "辛苦了。等大家都齐了我合起来 review。"},
+  {"room": "demo-study-group", "sender": "demo_user", "send_time": "2024-01-10T09:30:00+08:00", "content": "我把第 3 部分写完了，发到群文件里。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-10T09:31:00+08:00", "content": "看到了，谢谢。"},
+  {"room": "demo-study-group", "sender": "Bob",   "send_time": "2024-01-10T15:00:00+08:00", "content": "周三的会我可能要请假，临时有事。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-10T15:02:00+08:00", "content": "那就推到下周一同一时间吧。"},
+  {"room": "demo-study-group", "sender": "Carol", "send_time": "2024-01-10T15:03:00+08:00", "content": "下周一可以。"},
+  {"room": "demo-study-group", "sender": "demo_user", "send_time": "2024-01-10T15:04:00+08:00", "content": "我也行。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-15T14:00:00+08:00", "content": "组会 14:00 准时开始。"},
+  {"room": "demo-study-group", "sender": "demo_user", "send_time": "2024-01-15T14:02:00+08:00", "content": "在了。"},
+  {"room": "demo-study-group", "sender": "Bob",   "send_time": "2024-01-15T14:02:30+08:00", "content": "在。"},
+  {"room": "demo-study-group", "sender": "Carol", "send_time": "2024-01-15T14:03:00+08:00", "content": "在的。"},
+  {"room": "demo-study-group", "sender": "Alice", "send_time": "2024-01-22T11:00:00+08:00", "content": "下周组会因为节假日改到 2024-01-30。"},
+  {"room": "demo-study-group", "sender": "demo_user", "send_time": "2024-01-22T11:01:00+08:00", "content": "记下了。"}
+]

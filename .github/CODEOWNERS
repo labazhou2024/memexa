@@ -1,0 +1,11 @@
+# Code owners for review-required paths.
+#
+# GitHub uses the LAST matching rule per file, so order matters.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: every change requires BDFL review.
+*                                       @labazhou2024
+
+# Security-sensitive paths.
+/.github/                               @labazhou2024
+/scripts/                               @labazhou2024
