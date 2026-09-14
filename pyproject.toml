@@ -36,7 +36,7 @@ dependencies = []
 dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.6",
-    "build>=1.6.0",
+    "build>=1.6.1",
     "twine>=7.0.0",
 ]
 
